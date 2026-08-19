@@ -113,7 +113,11 @@ const Duration kIdleWakeDuration = Duration(milliseconds: 1000);
 
 /// Durata della pressione lunga sull'ingranaggio per aprire le impostazioni.
 /// Il tap semplice non fa nulla: è a prova di dita ubriache.
-const Duration kSettingsLongPress = Duration(seconds: 3);
+const Duration kSettingsLongPress = Duration(seconds: 2);
+
+/// Spessore dell'anello rosso che si riempie mentre si tiene premuto:
+/// sottile non si notava, e la pressione lunga sembrava non fare niente.
+const double kSettingsRingStroke = 4;
 
 /// Frazione di larghezza schermo occupata dalla zona di decremento (sinistra).
 /// Il resto è zona di incremento.
