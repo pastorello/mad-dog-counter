@@ -18,6 +18,9 @@ class _SpyTapLog implements TapLog {
       const <TapRecord>[];
 
   @override
+  Future<List<TapRecord>> dumpAll() async => const <TapRecord>[];
+
+  @override
   Future<int> sumOfDeltas() async {
     int sum = 0;
     for (final (int delta, TapType _) in records) {

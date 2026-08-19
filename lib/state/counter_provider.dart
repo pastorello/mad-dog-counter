@@ -6,6 +6,7 @@ import 'dart:async';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
 import '../audio/sound_manager.dart';
+import '../data/backup_service.dart';
 import '../data/counter_repository.dart';
 import '../data/settings_repository.dart';
 import '../data/tap_log.dart';
@@ -117,3 +118,29 @@ final Provider<SettingsRepository> settingsRepositoryProvider =
         'SettingsRepository.open()',
       ),
     );
+
+/// Il servizio di backup. Sovrascritto in `main()` con la cartella vera;
+/// senza override non esiste, e l'app conta lo stesso.
+final Provider<BackupService?> backupServiceProvider = Provider<BackupService?>(
+  (Ref ref) => null,
+);
+
+/// Tiene il backup aggiornato.
+///
+/// Controlla all'avvio e a ogni scrittura: il tablet sta acceso a muro per
+/// settimane, quindi contare solo sull'avvio vorrebbe dire un backup al mese.
+/// Il controllo è un confronto di date, e la scrittura è fire-and-forget:
+/// nessun tap aspetta il disco.
+final Provider<void> backupWatcherProvider = Provider<void>((Ref ref) {
+  final BackupService? backup = ref.watch(backupServiceProvider);
+  if (backup == null) return;
+
+  unawaited(backup.backupIfNeeded());
+
+  final StreamSubscription<CounterChange> subscription = ref
+      .watch(counterRepositoryProvider)
+      .watchChanges()
+      .listen((CounterChange _) => unawaited(backup.backupIfNeeded()));
+
+  ref.onDispose(subscription.cancel);
+});

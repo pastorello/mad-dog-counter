@@ -34,6 +34,13 @@ class TapRecord {
   final int delta;
   final TapType type;
 
+  Map<String, Object?> toJson() => <String, Object?>{
+    'id': id,
+    'ts': timestamp.millisecondsSinceEpoch,
+    'delta': delta,
+    'type': type.dbValue,
+  };
+
   factory TapRecord.fromRow(Map<String, Object?> row) => TapRecord(
     id: row['id']! as int,
     timestamp: DateTime.fromMillisecondsSinceEpoch(row['ts']! as int),
@@ -55,6 +62,10 @@ abstract class TapLog {
 
   /// Somma di tutti i delta registrati. Serve al sanity check di avvio.
   Future<int> sumOfDeltas();
+
+  /// Tutto il log, dal più vecchio. È il dump che finisce nel backup: per
+  /// ricostruire la storia servono tutti i tap, non gli ultimi cento.
+  Future<List<TapRecord>> dumpAll();
 
   Future<void> close();
 }
@@ -120,6 +131,15 @@ class SqfliteTapLog implements TapLog {
   }
 
   @override
+  Future<List<TapRecord>> dumpAll() async {
+    final List<Map<String, Object?>> rows = await _db.query(
+      'taps',
+      orderBy: 'ts ASC, id ASC',
+    );
+    return rows.map(TapRecord.fromRow).toList();
+  }
+
+  @override
   Future<void> close() => _db.close();
 }
 
@@ -137,6 +157,9 @@ class NoopTapLog implements TapLog {
 
   @override
   Future<int> sumOfDeltas() async => 0;
+
+  @override
+  Future<List<TapRecord>> dumpAll() async => const <TapRecord>[];
 
   @override
   Future<void> close() async {}

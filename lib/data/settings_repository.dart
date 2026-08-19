@@ -32,6 +32,18 @@ class SettingsRepository {
     }
   }
 
+  /// Ultimo giorno di cui esiste un backup, in formato `YYYYMMDD`.
+  /// Null se non è mai stato fatto.
+  String? get lastBackupDay => _prefs.getString(kPrefsLastBackupDay);
+
+  Future<void> setLastBackupDay(String day) async {
+    try {
+      await _prefs.setString(kPrefsLastBackupDay, day);
+    } catch (_) {
+      // Se non si segna, domani si rifà: un backup in più non fa danni.
+    }
+  }
+
   /// Minuti di inattività prima della faccina annoiata.
   int get idleMinutes =>
       _prefs.getInt(kPrefsIdleMinutes) ?? kIdleMinutesDefault;
