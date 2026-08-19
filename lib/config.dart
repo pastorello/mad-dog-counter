@@ -339,3 +339,22 @@ const String kPrefsLastBackupDay = 'last_backup_day';
 
 /// Sottocartella dei backup nella storage esterna dell'app.
 const String kBackupDirName = 'backups';
+
+// ---------------------------------------------------------------------------
+// Splash
+// ---------------------------------------------------------------------------
+
+/// Quanto resta pieno il logo prima di iniziare a svanire.
+///
+/// Il contatore sotto è già vivo e già tappabile: questo tempo non ritarda
+/// nulla, decide solo quanto si vede il brand (FUNCTIONAL_SPEC → Avvio).
+const Duration kSplashHold = Duration(milliseconds: 900);
+
+/// Durata della dissolvenza del logo.
+const Duration kSplashFade = Duration(milliseconds: 500);
+
+/// Testi del logo House of Mad Dogs, come sul sottobicchiere ufficiale.
+const String kBrandPub = 'THE DUTCH PUB · GAETA';
+const String kBrandNameLine1 = 'HOUSE OF';
+const String kBrandNameLine2 = 'MAD DOGS';
+const String kBrandTagline = 'MAY CAUSE UNFORGETTABLE NIGHTS';

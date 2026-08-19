@@ -21,6 +21,7 @@ import 'widgets/big_number.dart';
 import 'widgets/dutch_flag_divider.dart';
 import 'widgets/panic_button.dart';
 import 'widgets/settings_gear.dart';
+import 'widgets/splash_overlay.dart';
 
 class CounterScreen extends ConsumerStatefulWidget {
   const CounterScreen({super.key});
@@ -32,6 +33,7 @@ class CounterScreen extends ConsumerStatefulWidget {
 class _CounterScreenState extends ConsumerState<CounterScreen> {
   DateTime? _lastTap;
   bool _settingsOpen = false;
+  bool _splashVisible = true;
 
   void _openSettings() {
     // Equivalente a un killAll() silenzioso: gli effetti in corso si fermano,
@@ -184,6 +186,16 @@ class _CounterScreenState extends ConsumerState<CounterScreen> {
           // Il pannello copre tutto: mentre e' aperto non si conta.
           if (_settingsOpen)
             Positioned.fill(child: SettingsPanel(onClose: _closeSettings)),
+
+          // Lo splash sta sopra a tutto ma non intercetta i tocchi: il
+          // contatore sotto è già vivo, e un tap mentre il logo è a video
+          // conta comunque.
+          if (_splashVisible)
+            Positioned.fill(
+              child: SplashOverlay(
+                onFinished: () => setState(() => _splashVisible = false),
+              ),
+            ),
         ],
       ),
     );
