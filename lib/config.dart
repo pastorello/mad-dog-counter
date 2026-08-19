@@ -162,3 +162,63 @@ const String kTapLogDatabase = 'mad_dog_taps.db';
 
 /// Versione dello schema del log dei tap.
 const int kTapLogSchemaVersion = 1;
+
+// ---------------------------------------------------------------------------
+// Suoni (assets/sounds/)
+// ---------------------------------------------------------------------------
+// Set sintetizzato proceduralmente, nessuna licenza da gestire.
+// I nomi dei file sono il contratto col codice: per cambiare un suono si
+// sostituisce il WAV mantenendo il nome. Mappa completa e durate in
+// assets/sounds/README.md.
+//
+// Il percorso e' relativo alla root degli asset: `audioplayers` con
+// AssetSource vuole il path senza il prefisso `assets/`.
+
+const String _sfxDir = 'sounds';
+
+/// Tap di incremento.
+const String kSfxTapPop = '$_sfxDir/tap_pop.wav';
+
+/// Tap di decremento: blip discendente, volutamente diverso dall'incremento.
+const String kSfxTapDown = '$_sfxDir/tap_down.wav';
+
+/// Soglie della combo. Per il pitch crescente dei pop si riusa [kSfxTapPop]
+/// con playback rate variabile, non un file per livello.
+const String kSfxComboMilestone = '$_sfxDir/combo_milestone.wav';
+
+/// Il totale finisce per 67.
+const String kSfxWobble67 = '$_sfxDir/wobble_67.wav';
+
+/// Trasformazione degli 8 adiacenti. Solo al momento del morph, mai in loop.
+const String kSfxBoing = '$_sfxDir/boing.wav';
+
+/// Multiplo di 100.
+const String kSfxFireworks = '$_sfxDir/fireworks.wav';
+
+/// Multiplo di 1000, parte 1: rotolamento, da sincronizzare con l'ingresso
+/// della palla.
+const String kSfxBowlingRoll = '$_sfxDir/bowling_roll.wav';
+
+/// Multiplo di 1000, parte 2: impatto, birilli e campanella.
+const String kSfxBowlingStrike = '$_sfxDir/bowling_strike.wav';
+
+/// Pulsante panico.
+const String kSfxPanicExplosion = '$_sfxDir/panic_explosion.wav';
+
+/// Risveglio dopo l'idle. L'idle in se' e' muto per specifica: non deve
+/// disturbare il pub nei momenti calmi.
+const String kSfxWakeJubilation = '$_sfxDir/wake_jubilation.wav';
+
+/// Tutti i suoni, per il precaricamento all'avvio.
+const List<String> kAllSfx = <String>[
+  kSfxTapPop,
+  kSfxTapDown,
+  kSfxComboMilestone,
+  kSfxWobble67,
+  kSfxBoing,
+  kSfxFireworks,
+  kSfxBowlingRoll,
+  kSfxBowlingStrike,
+  kSfxPanicExplosion,
+  kSfxWakeJubilation,
+];

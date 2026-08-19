@@ -2,6 +2,8 @@
 
 L'anima dell'app. Ogni evento ha: **trigger**, **effetto**, **durata indicativa**, **suono**. Le durate sono da tarare a mano sul tablet vero.
 
+I suoni citati qui sotto esistono già come file: mappa evento→WAV in `assets/sounds/README.md`, costanti `kSfx*` in `lib/config.dart`.
+
 ## Regole del motore effetti
 
 0. **REGOLA MADRE — solo su incremento**: nessuna animazione, easter egg o effetto celebrativo scatta MAI su un decremento. Il −1 produce solo il suo feedback base (pulsazione inversa blu + suono) e può *rimuovere* stati attivi (azzera la combo; se rompe una coppia di 8, le cifre tornano normali), mai attivarne. Tutte le condizioni trigger si valutano esclusivamente dopo un +1.

@@ -8,18 +8,46 @@ Il contatore **parte da zero** (`INITIAL_COUNT = 0`): il valore storico del vecc
 
 - **Device di produzione**: Samsung Galaxy Tab A8 (SM-X200), Android 14 / API 34, landscape bloccato, schermo sempre acceso.
 - **Stack**: Flutter + Dart, Riverpod, persistenza locale (`shared_preferences` per il totale + `sqflite` per il log tap) dietro l'interfaccia `CounterRepository`.
-- **Stato**: fase di specifica. Il codice Flutter non è ancora stato generato.
+- **Stato**: scheletro funzionante. Il contatore conta e persiste; effetti, audio e pannello impostazioni sono da fare.
 
 ## Struttura del repo
 
 ```
 CLAUDE.md      istruzioni operative per gli agenti AI (regole d'oro, stack vincolato, testing)
-README.md      questo file
 docs/          le specifiche di progetto (vedi docs/README.md per l'ordine di lettura)
 design/        materiale di brand: raw/ (sorgenti), processed/ (asset pronti), fonts/
+lib/
+  config.dart  TUTTE le costanti: valori, durate, palette, testi
+  data/        CounterRepository (la porta verso la fase 2) + log tap sqflite
+  state/       provider Riverpod + logica trigger pura degli easter egg
+  ui/          schermata unica, widget, effetti
+  audio/       gestione suoni
+assets/        asset usati dall'app (font, immagini, suoni, lottie)
+test/          unit test e widget test
+.agents/       skill agent-skills, condivise fra i vari tool AI
 ```
 
 `design/` è **materiale sorgente** e non va mai referenziato dal codice: gli asset usati dall'app vanno esportati e ottimizzati in `assets/` del progetto Flutter.
+
+## Sviluppo
+
+```bash
+flutter pub get
+flutter test
+flutter analyze
+flutter run
+```
+
+Prima di ogni commit: `dart format lib test` e `flutter analyze` puliti. La CI ricontrolla entrambi e pubblica un APK di debug come artifact, comodo per il sideload sul tablet senza SDK Android in locale.
+
+## Cosa c'è e cosa manca
+
+| | |
+|---|---|
+| ✅ Fatto | Contatore con persistenza, clamp a zero, log tap, zone di tap, landscape + wakelock, logica trigger pura, 28 test |
+| ⬜ Da fare | Motore effetti e coda, combo, easter egg, pulsante panico, pannello impostazioni, audio, roll delle cifre, backup giornaliero |
+
+Ordine di implementazione consigliato in [docs/ANIMATIONS_SPEC.md](docs/ANIMATIONS_SPEC.md) → Priorità.
 
 ## Da dove partire
 
