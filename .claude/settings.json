@@ -1,0 +1,7 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "enabledPlugins": {
+    "agent-skills@addy-agent-skills": true,
+    "impeccable@impeccable": false
+  }
+}

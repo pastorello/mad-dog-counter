@@ -10,6 +10,10 @@ Istruzioni operative per Claude Code su questo progetto. Leggere prima i documen
 4. **Costanti in `config.dart`**, mai sparse nel codice: `INITIAL_COUNT` (0), finestra combo (2 s), soglie combo, durate animazioni, testi celebrativi, durata pressione lunga impostazioni (3 s). I valori regolabili dall'utente (audio on/off, minuti di idle) vivono invece in shared_preferences coi loro default.
 5. **Un effetto = un modulo.** Ogni easter egg è un widget/controller autonomo registrato nel catalogo effetti. Aggiungere un effetto nuovo non deve toccare quelli esistenti.
 
+## Tooling agenti
+
+I plugin di Claude Code sono installati **globalmente** e accesi **per progetto**: `.claude/settings.json` (versionato) dice quali servono qui. Oggi: `agent-skills` acceso, `impeccable` spento — è una raccolta di design per il web e questo è un progetto Flutter con una palette già chiusa in UX_UI_SPEC. Non reinstallare le skill dentro al repo: ci starebbero due volte.
+
 ## Stack vincolato
 
 - Flutter (ultima stable) + Dart, **Riverpod** per lo stato. Persistenza **locale**: shared_preferences (totale) + sqflite (log tap), dietro l'interfaccia `CounterRepository` (vedi ARCHITECTURE.md). Non introdurre Bloc, GetX, né backend online: la persistenza remota è fase 2 e arriverà come nuova implementazione del repository.

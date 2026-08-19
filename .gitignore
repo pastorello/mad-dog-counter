@@ -56,5 +56,6 @@ test/failures/
 .env.local
 
 # ---- Claude Code ----
-# le skill in .agents/ e .claude/skills/ sono versionate di proposito
+# .claude/settings.json e' versionato: dice quali plugin servono a QUESTO
+# progetto. Le skill vivono nei plugin installati globalmente, non nel repo.
 .claude/settings.local.json

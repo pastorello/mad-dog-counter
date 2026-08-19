@@ -24,7 +24,7 @@ lib/
   audio/       gestione suoni
 assets/        asset usati dall'app (font, immagini, suoni, lottie)
 test/          unit test e widget test
-.agents/       skill agent-skills, condivise fra i vari tool AI
+.claude/       settings.json: quali plugin Claude Code servono a questo progetto
 ```
 
 `design/` è **materiale sorgente** e non va mai referenziato dal codice: gli asset usati dall'app vanno esportati e ottimizzati in `assets/` del progetto Flutter.
