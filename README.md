@@ -19,8 +19,10 @@ design/        materiale di brand: raw/ (sorgenti), processed/ (asset pronti), f
 lib/
   config.dart  TUTTE le costanti: valori, durate, palette, testi
   data/        CounterRepository (la porta verso la fase 2) + log tap sqflite
-  state/       provider Riverpod + logica trigger pura degli easter egg
-  ui/          schermata unica, widget, effetti
+  state/       provider Riverpod + logica trigger pura + macchina combo
+  ui/
+    effects/   un file per easter egg, registrati in effect_catalog.dart
+    widgets/   numerone, bandierina, pulsante panico, ingranaggio
   audio/       gestione suoni
 assets/        asset usati dall'app (font, immagini, suoni, lottie)
 test/          unit test e widget test
@@ -44,8 +46,8 @@ Prima di ogni commit: `dart format lib test` e `flutter analyze` puliti. La CI r
 
 | | |
 |---|---|
-| ✅ Fatto | Contatore con persistenza, clamp a zero, log tap, zone di tap, landscape + wakelock, logica trigger pura, SoundManager, motore effetti con coda e kill switch, combo con Ciommo, pannello impostazioni, 102 test |
-| ⬜ Da fare | I widget dei singoli easter egg (fuochi, strike, shake, tette), idle con la faccina, roll delle cifre, backup giornaliero, splash |
+| ✅ Fatto | Contatore con persistenza, clamp a zero, log tap, zone di tap, landscape + wakelock, SoundManager, motore effetti con coda e kill switch, combo con Ciommo, i quattro easter egg del catalogo, pannello impostazioni, 123 test |
+| ⬜ Da fare | Idle con la faccina, roll delle cifre, backup giornaliero, splash. E la taratura di durate e ampiezze sul tablet vero: finora nessuno ha ancora visto girare l'app |
 
 Ordine di implementazione consigliato in [docs/ANIMATIONS_SPEC.md](docs/ANIMATIONS_SPEC.md) → Priorità.
 

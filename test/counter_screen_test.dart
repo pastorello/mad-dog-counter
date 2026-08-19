@@ -8,6 +8,8 @@ import 'package:mad_dog_counter/state/counter_provider.dart';
 import 'package:mad_dog_counter/ui/counter_screen.dart';
 import 'package:mad_dog_counter/data/settings_repository.dart';
 import 'package:mad_dog_counter/state/combo_machine.dart';
+import 'package:confetti/confetti.dart';
+import 'package:mad_dog_counter/ui/effects/boobs_digits.dart';
 import 'package:mad_dog_counter/ui/effects/combo_overlay.dart';
 import 'package:mad_dog_counter/ui/widgets/panic_button.dart';
 import 'package:shared_preferences/shared_preferences.dart';
@@ -269,6 +271,102 @@ void main() {
         digit.style!.fontSize,
         1200 * kBigNumberHeightFraction,
         reason: 'con una cifra sola comanda l altezza, non la larghezza',
+      );
+    });
+  });
+
+  group('easter egg a schermo', () {
+    Future<void> tapOnce(WidgetTester tester) async {
+      final Size size = tester.view.physicalSize / tester.view.devicePixelRatio;
+      await tester.tapAt(Offset(size.width * 0.8, size.height / 2));
+      await tester.pump();
+      await tester.pump(const Duration(milliseconds: 16));
+    }
+
+    testWidgets('arrivare a 100 accende i fuochi', (WidgetTester tester) async {
+      await pumpScreen(tester, await repoWith(99));
+      expect(find.byType(ConfettiWidget), findsNothing);
+
+      await tapOnce(tester);
+
+      expect(find.byType(ConfettiWidget), findsWidgets);
+      await tester.pump(kFireworksDuration);
+      await tester.pumpAndSettle();
+    });
+
+    testWidgets('arrivare a 1000 fa lo strike, non i fuochi', (
+      WidgetTester tester,
+    ) async {
+      await pumpScreen(tester, await repoWith(999));
+      await tapOnce(tester);
+
+      expect(
+        find.byType(ConfettiWidget),
+        findsNothing,
+        reason: 'lo strike assorbe i fuochi',
+      );
+      // La palla e' l'unico CustomPaint dell'overlay dello strike.
+      expect(find.byType(CustomPaint), findsWidgets);
+
+      await tester.pump(kStrikeDuration);
+      await tester.pumpAndSettle();
+    });
+
+    testWidgets('scendere a 100 non accende niente', (
+      WidgetTester tester,
+    ) async {
+      await pumpScreen(tester, await repoWith(101));
+
+      final Size size = tester.view.physicalSize / tester.view.devicePixelRatio;
+      await tester.tapAt(Offset(size.width * 0.1, size.height / 2));
+      await tester.pump();
+
+      expect(find.byType(ConfettiWidget), findsNothing);
+    });
+
+    testWidgets('salire su una coppia di 8 trasforma le cifre', (
+      WidgetTester tester,
+    ) async {
+      await pumpScreen(tester, await repoWith(87));
+      expect(find.byType(BoobsDigits), findsNothing);
+
+      await tapOnce(tester); // 88
+      await tester.pump(kBoobsMorphDuration);
+
+      expect(find.byType(BoobsDigits), findsOneWidget);
+    });
+
+    testWidgets('quando la coppia si rompe le cifre tornano normali', (
+      WidgetTester tester,
+    ) async {
+      final LocalCounterRepository repo = await repoWith(87);
+      final FakeClock clock = await pumpScreen(tester, repo);
+
+      await tapOnce(tester); // 88
+      await tester.pump(kBoobsMorphDuration);
+      expect(find.byType(BoobsDigits), findsOneWidget);
+
+      clock.advance(kTapDebounce * 2);
+      await tapOnce(tester); // 89: la coppia sparisce
+      await tester.pump(kBoobsMorphDuration);
+      await tester.pumpAndSettle();
+
+      expect(find.byType(BoobsDigits), findsNothing);
+      expect(repo.total, 89);
+    });
+
+    testWidgets('in 888 si trasforma una coppia sola', (
+      WidgetTester tester,
+    ) async {
+      await pumpScreen(tester, await repoWith(887));
+      await tapOnce(tester); // 888
+      await tester.pump(kBoobsMorphDuration);
+
+      expect(find.byType(BoobsDigits), findsOneWidget);
+      expect(
+        find.text('8'),
+        findsWidgets,
+        reason: 'il terzo 8 resta una cifra',
       );
     });
   });

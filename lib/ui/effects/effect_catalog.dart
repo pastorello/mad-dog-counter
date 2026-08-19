@@ -1,17 +1,23 @@
 /// Il catalogo degli effetti.
 ///
 /// Regola 5 di ANIMATIONS_SPEC: un effetto = un modulo. Aggiungerne uno nuovo
-/// vuol dire aggiungere una voce qui e il suo widget, senza toccare gli altri
-/// né il motore.
+/// vuol dire aggiungere il suo file in `effects/` e una riga qui, senza
+/// toccare il motore, il numerone o gli altri effetti.
 ///
-/// Il catalogo tiene i **metadati** (durata, suono); il widget che disegna
-/// l'effetto lo si registra in [effectBuilders].
+/// Un effetto può agire su due piani, e il catalogo li tiene separati:
+/// - [effectOverlays]: un widget a tutto schermo sopra la scena (i fuochi, la
+///   palla da bowling);
+/// - [digitTransforms]: una trasformazione applicata a ogni cifra del numerone
+///   (il tremolio del 67, le cifre che volano come birilli).
 library;
 
 import 'package:flutter/widgets.dart';
 
 import '../../config.dart';
 import '../../state/effect_triggers.dart';
+import 'fireworks_effect.dart';
+import 'shake_effect.dart';
+import 'strike_effect.dart';
 
 /// Come si comporta un effetto in coda.
 class EffectSpec {
@@ -55,17 +61,48 @@ const Map<EffectKind, EffectSpec> effectCatalog = <EffectKind, EffectSpec>{
   ),
 };
 
-/// I widget che disegnano gli effetti.
-///
-/// Vuoto di proposito: il motore, la coda e l'audio funzionano già: quando un
-/// effetto non ha ancora un widget, si sente il suono e scorre la sua durata.
-/// Registrare qui il builder è l'unico passo per dargli una faccia.
-const Map<EffectKind, WidgetBuilder>
-effectBuilders = <EffectKind, WidgetBuilder>{
-  // EffectKind.fireworks: (BuildContext context) => const FireworksEffect(),
-  // EffectKind.strike: (BuildContext context) => const StrikeEffect(),
-  // EffectKind.shake67: (BuildContext context) => const Shake67Effect(),
-};
+/// Dove si trova una cifra e a che punto è l'effetto.
+class DigitContext {
+  const DigitContext({
+    required this.index,
+    required this.digitCount,
+    required this.progress,
+  });
+
+  /// Posizione della cifra, da sinistra.
+  final int index;
+
+  /// Quante cifre ha il numero in tutto.
+  final int digitCount;
+
+  /// Avanzamento dell'effetto, da 0 a 1.
+  final double progress;
+
+  /// Posizione della cifra rispetto al centro, da −1 (sinistra) a 1 (destra).
+  /// Serve agli effetti che devono spingere le cifre verso l'esterno.
+  double get offsetFromCenter {
+    if (digitCount <= 1) return 0;
+    return (index / (digitCount - 1)) * 2 - 1;
+  }
+}
+
+/// Trasforma una cifra del numerone.
+typedef DigitTransform = Widget Function(DigitContext context, Widget digit);
+
+/// I widget a tutto schermo, uno per effetto che ne ha bisogno.
+const Map<EffectKind, WidgetBuilder> effectOverlays =
+    <EffectKind, WidgetBuilder>{
+      EffectKind.fireworks: buildFireworksOverlay,
+      EffectKind.strike: buildStrikeOverlay,
+    };
+
+/// Le trasformazioni delle cifre, una per effetto che ne ha bisogno.
+const Map<EffectKind, DigitTransform> digitTransforms =
+    <EffectKind, DigitTransform>{
+      EffectKind.shake67: shakeDigit,
+      EffectKind.fireworks: gildDigit,
+      EffectKind.strike: scatterDigit,
+    };
 
 /// La durata di un effetto secondo il catalogo.
 Duration durationOf(EffectKind kind) => effectCatalog[kind]!.duration;

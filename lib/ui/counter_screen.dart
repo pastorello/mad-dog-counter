@@ -5,8 +5,6 @@
 /// posizioni nel layout sono già riservate qui.
 library;
 
-import 'dart:math' as math;
-
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
@@ -18,6 +16,7 @@ import '../state/effects_provider.dart';
 import 'effects/combo_overlay.dart';
 import 'effects/effect_catalog.dart';
 import 'settings_panel.dart';
+import 'widgets/big_number.dart';
 import 'widgets/dutch_flag_divider.dart';
 import 'widgets/panic_button.dart';
 import 'widgets/settings_gear.dart';
@@ -89,7 +88,13 @@ class _CounterScreenState extends ConsumerState<CounterScreen> {
         children: <Widget>[
           // Il numerone sta sotto: le zone di tap ci passano sopra.
           Positioned.fill(
-            child: Center(child: _BigNumber(total: total)),
+            child: Center(
+              child: BigNumber(
+                total: total,
+                effect: effects.current,
+                boobsActive: effects.boobsActive,
+              ),
+            ),
           ),
 
           // Zone di tap invisibili, larghe tutto lo schermo in altezza.
@@ -134,10 +139,11 @@ class _CounterScreenState extends ConsumerState<CounterScreen> {
           // numerone.
           Positioned.fill(child: ComboOverlay(combo: effects.combo)),
 
-          // L'effetto in scena. Il motore scandisce durate e suoni anche per
-          // gli effetti che non hanno ancora un widget nel catalogo.
+          // L'overlay a tutto schermo dell'effetto in scena, per gli effetti
+          // che ne hanno uno. Quelli che trasformano solo le cifre agiscono
+          // dentro al numerone.
           if (effects.current case final EffectKind kind)
-            if (effectBuilders[kind] case final WidgetBuilder build)
+            if (effectOverlays[kind] case final WidgetBuilder build)
               Positioned.fill(child: IgnorePointer(child: build(context))),
 
           // Il pulsante panico sta sopra le zone di tap: i suoi tocchi non
@@ -202,62 +208,6 @@ class _TapZoneState extends State<_TapZone> {
             : Colors.transparent,
         child: widget.child,
       ),
-    );
-  }
-}
-
-/// Il numerone: l'unico protagonista della schermata.
-///
-/// Le cifre stanno in slot a larghezza fissa perché i font brush non hanno
-/// cifre tabular e il numero ballerebbe a ogni cambio (UX_UI_SPEC → Tipografia).
-class _BigNumber extends StatelessWidget {
-  const _BigNumber({required this.total});
-
-  final int total;
-
-  @override
-  Widget build(BuildContext context) {
-    final String digits = total.toString();
-
-    return LayoutBuilder(
-      builder: (BuildContext context, BoxConstraints constraints) {
-        // La dimensione non può venire dalla sola altezza: il totale del pub è
-        // a sei cifre, e sei slot da 0,45 dell'altezza sfondano la larghezza
-        // anche sul tablet di produzione. Vince il vincolo più stretto.
-        final double byHeight =
-            constraints.maxHeight * kBigNumberHeightFraction;
-        final double byWidth =
-            constraints.maxWidth *
-            kBigNumberWidthFraction /
-            digits.length /
-            kDigitSlotRatio;
-        final double size = math.min(byHeight, byWidth);
-
-        return Row(
-          mainAxisAlignment: MainAxisAlignment.center,
-          children: <Widget>[
-            for (final String digit in digits.split(''))
-              SizedBox(
-                width: size * kDigitSlotRatio, // slot a larghezza fissa
-                child: Text(
-                  digit,
-                  textAlign: TextAlign.center,
-                  style: TextStyle(
-                    fontFamily: kDisplayFont,
-                    fontSize: size,
-                    height: 1,
-                    color: kTextColor,
-                    shadows: const <Shadow>[
-                      Shadow(color: kPrimaryRed, blurRadius: 24),
-                      Shadow(color: kPrimaryRed, blurRadius: 48),
-                    ],
-                  ),
-                ),
-              ),
-            // TODO: roll verticale della cifra che cambia (kDigitRollDuration).
-          ],
-        );
-      },
     );
   }
 }
