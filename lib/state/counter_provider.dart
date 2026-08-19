@@ -10,6 +10,7 @@ import '../data/counter_repository.dart';
 import '../data/settings_repository.dart';
 import '../data/tap_log.dart';
 import 'effects_provider.dart';
+import 'settings_provider.dart';
 
 /// Il log dei tap. Sovrascritto in `main()` con l'istanza sqflite aperta,
 /// e nei test con un [NoopTapLog].
@@ -77,7 +78,17 @@ final Provider<SoundManager> soundManagerProvider = Provider<SoundManager>(
 final Provider<EffectsEngine> effectsEngineProvider = Provider<EffectsEngine>((
   Ref ref,
 ) {
-  final EffectsEngine engine = EffectsEngine(ref.watch(soundManagerProvider));
+  final EffectsEngine engine = EffectsEngine(
+    ref.watch(soundManagerProvider),
+    idleDelay: Duration(minutes: ref.read(settingsProvider).idleMinutes),
+  );
+
+  // I minuti si cambiano dal pannello: si ascoltano, non si osservano con
+  // watch, altrimenti ogni modifica ricostruirebbe il motore da capo e
+  // butterebbe via la coda e gli stati persistenti.
+  ref.listen(settingsProvider, (SettingsState? _, SettingsState next) {
+    engine.idleDelay = Duration(minutes: next.idleMinutes);
+  });
 
   final StreamSubscription<CounterChange> subscription = ref
       .watch(counterRepositoryProvider)

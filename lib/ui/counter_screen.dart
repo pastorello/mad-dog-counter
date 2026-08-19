@@ -15,6 +15,7 @@ import '../state/effect_triggers.dart';
 import '../state/effects_provider.dart';
 import 'effects/combo_overlay.dart';
 import 'effects/effect_catalog.dart';
+import 'effects/idle_face.dart';
 import 'settings_panel.dart';
 import 'widgets/big_number.dart';
 import 'widgets/dutch_flag_divider.dart';
@@ -138,6 +139,10 @@ class _CounterScreenState extends ConsumerState<CounterScreen> {
           // L'overlay della combo: sotto agli effetti in coda, sopra il
           // numerone.
           Positioned.fill(child: ComboOverlay(combo: effects.combo)),
+
+          // La faccina annoiata: sopra il numerone, sotto agli effetti.
+          if (effects.idleFaceVisible || effects.idleWaking)
+            Positioned.fill(child: IdleFace(waking: effects.idleWaking)),
 
           // L'overlay a tutto schermo dell'effetto in scena, per gli effetti
           // che ne hanno uno. Quelli che trasformano solo le cifre agiscono
