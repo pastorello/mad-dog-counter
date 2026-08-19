@@ -1,10 +1,15 @@
 /// Stato Riverpod del contatore.
 library;
 
+import 'dart:async';
+
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
+import '../audio/sound_manager.dart';
 import '../data/counter_repository.dart';
+import '../data/settings_repository.dart';
 import '../data/tap_log.dart';
+import 'effects_provider.dart';
 
 /// Il log dei tap. Sovrascritto in `main()` con l'istanza sqflite aperta,
 /// e nei test con un [NoopTapLog].
@@ -47,4 +52,48 @@ class CounterActions {
 final Provider<CounterActions> counterActionsProvider =
     Provider<CounterActions>(
       (Ref ref) => CounterActions(ref.watch(counterRepositoryProvider)),
+    );
+
+/// Il gestore audio. Sovrascritto in `main()` con quello vero; il default
+/// silenzioso fa sì che i test e un'inizializzazione audio fallita non
+/// impediscano all'app di contare.
+final Provider<SoundManager> soundManagerProvider = Provider<SoundManager>(
+  (Ref ref) => SilentSoundManager(),
+);
+
+/// Il motore effetti, agganciato alle variazioni del contatore.
+///
+/// L'aggancio è qui e non nella UI di proposito: gli effetti sono spettatori
+/// del conteggio, non partecipanti. Se il motore muore, il contatore continua.
+final Provider<EffectsEngine> effectsEngineProvider = Provider<EffectsEngine>((
+  Ref ref,
+) {
+  final EffectsEngine engine = EffectsEngine(ref.watch(soundManagerProvider));
+
+  final StreamSubscription<CounterChange> subscription = ref
+      .watch(counterRepositoryProvider)
+      .watchChanges()
+      .listen(engine.onChange);
+
+  ref.onDispose(() {
+    subscription.cancel();
+    engine.dispose();
+  });
+
+  return engine;
+});
+
+/// Lo stato del layer effetti, per la UI.
+final StreamProvider<EffectsState> effectsStateProvider =
+    StreamProvider<EffectsState>(
+      (Ref ref) => ref.watch(effectsEngineProvider).watch(),
+    );
+
+/// Le impostazioni utente. Sovrascritto in `main()`.
+final Provider<SettingsRepository> settingsRepositoryProvider =
+    Provider<SettingsRepository>(
+      (Ref ref) => throw UnimplementedError(
+        'settingsRepositoryProvider va sovrascritto in main() con '
+        'SettingsRepository.open()',
+      ),
     );

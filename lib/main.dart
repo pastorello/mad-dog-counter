@@ -5,8 +5,10 @@ import 'package:flutter/services.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:wakelock_plus/wakelock_plus.dart';
 
+import 'audio/sound_manager.dart';
 import 'config.dart';
 import 'data/counter_repository.dart';
+import 'data/settings_repository.dart';
 import 'data/tap_log.dart';
 import 'state/counter_provider.dart';
 import 'ui/counter_screen.dart';
@@ -34,11 +36,25 @@ Future<void> main() async {
     log: log,
   );
 
+  // Anche l'audio e' fire-and-forget: se non si inizializza, si conta muti.
+  SoundManager sounds;
+  try {
+    final AudioPlayersSoundManager player = AudioPlayersSoundManager();
+    unawaited(player.preload());
+    sounds = player;
+  } catch (_) {
+    sounds = SilentSoundManager();
+  }
+  final SettingsRepository settings = await SettingsRepository.open();
+  sounds.enabled = settings.soundEnabled;
+
   runApp(
     ProviderScope(
       overrides: [
         tapLogProvider.overrideWithValue(log),
         counterRepositoryProvider.overrideWithValue(repository),
+        soundManagerProvider.overrideWithValue(sounds),
+        settingsRepositoryProvider.overrideWithValue(settings),
       ],
       child: const MadDogCounterApp(),
     ),

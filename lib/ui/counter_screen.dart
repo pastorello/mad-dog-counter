@@ -11,7 +11,11 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 
 import '../config.dart';
 import '../state/counter_provider.dart';
+import '../state/effect_triggers.dart';
+import '../state/effects_provider.dart';
+import 'effects/effect_catalog.dart';
 import 'widgets/dutch_flag_divider.dart';
+import 'widgets/panic_button.dart';
 
 class CounterScreen extends ConsumerStatefulWidget {
   const CounterScreen({super.key});
@@ -51,6 +55,13 @@ class _CounterScreenState extends ConsumerState<CounterScreen> {
     final int total = ref
         .watch(counterTotalProvider)
         .maybeWhen(data: (int value) => value, orElse: () => kInitialCount);
+
+    final EffectsState effects = ref
+        .watch(effectsStateProvider)
+        .maybeWhen(
+          data: (EffectsState value) => value,
+          orElse: () => const EffectsState(),
+        );
 
     return Scaffold(
       backgroundColor: kBackground,
@@ -99,9 +110,26 @@ class _CounterScreenState extends ConsumerState<CounterScreen> {
             child: DutchFlagDivider(),
           ),
 
-          // TODO: pulsante panico (alto destro) — FUNCTIONAL_SPEC → Kill switch.
+          // L'effetto in scena. Il motore scandisce durate e suoni anche per
+          // gli effetti che non hanno ancora un widget nel catalogo.
+          if (effects.current case final EffectKind kind)
+            if (effectBuilders[kind] case final WidgetBuilder build)
+              Positioned.fill(child: IgnorePointer(child: build(context))),
+
+          // Il pulsante panico sta sopra le zone di tap: i suoi tocchi non
+          // devono mai finire nel contatore.
+          Positioned(
+            top: 0,
+            right: 0,
+            child: PanicButton(
+              onPressed: () => ref.read(effectsEngineProvider).killAll(),
+            ),
+          ),
+
+          // L'esplosione copre tutto, pulsante panico compreso.
+          if (effects.panicking) const Positioned.fill(child: PanicBlast()),
+
           // TODO: ingranaggio impostazioni (basso destro, pressione lunga 3 s).
-          // TODO: overlay del motore effetti, sopra a tutto tranne il panico.
         ],
       ),
     );

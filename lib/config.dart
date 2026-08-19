@@ -222,3 +222,11 @@ const List<String> kAllSfx = <String>[
   kSfxPanicExplosion,
   kSfxWakeJubilation,
 ];
+
+/// Quanti player audio tenere in pool. Durante una combo i pop si
+/// sovrappongono: con un player solo ogni tap taglierebbe il precedente.
+const int kSfxPoolSize = 6;
+
+/// Ritardo tra il rotolamento della palla e l'impatto sui birilli, nello
+/// strike dei multipli di 1000. Corrisponde alla durata di `bowling_roll.wav`.
+const Duration kStrikeImpactDelay = Duration(milliseconds: 1800);

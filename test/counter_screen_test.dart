@@ -5,6 +5,7 @@ import 'package:mad_dog_counter/config.dart';
 import 'package:mad_dog_counter/data/counter_repository.dart';
 import 'package:mad_dog_counter/state/counter_provider.dart';
 import 'package:mad_dog_counter/ui/counter_screen.dart';
+import 'package:mad_dog_counter/ui/widgets/panic_button.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 
 Future<LocalCounterRepository> repoWith(int total) async {
@@ -72,5 +73,56 @@ void main() {
 
     expect(repo.total, 0);
     expect(find.text('0'), findsOneWidget);
+  });
+
+  group('pulsante panico', () {
+    testWidgets('il suo tap NON conta come incremento', (
+      WidgetTester tester,
+    ) async {
+      final LocalCounterRepository repo = await repoWith(10);
+      await pumpScreen(tester, repo);
+
+      await tester.tap(find.byType(PanicButton));
+      await tester.pump();
+
+      expect(
+        repo.total,
+        10,
+        reason: 'il kill switch tocca solo gli effetti, mai il contatore',
+      );
+    });
+
+    testWidgets('mostra l esplosione a tutto schermo', (
+      WidgetTester tester,
+    ) async {
+      await pumpScreen(tester, await repoWith(10));
+      expect(find.byType(PanicBlast), findsNothing);
+
+      await tester.tap(find.byType(PanicButton));
+      await tester.pump();
+
+      expect(find.byType(PanicBlast), findsOneWidget);
+
+      // L'esplosione si esaurisce da sola e lascia la schermata pulita.
+      await tester.pump(kPanicBlastDuration);
+      await tester.pumpAndSettle();
+      expect(find.byType(PanicBlast), findsNothing);
+      expect(find.text('1'), findsOneWidget);
+      expect(find.text('0'), findsOneWidget);
+    });
+
+    testWidgets('sta sopra la zona +1: un tap sull angolo non incrementa', (
+      WidgetTester tester,
+    ) async {
+      final LocalCounterRepository repo = await repoWith(10);
+      await pumpScreen(tester, repo);
+
+      // Tocco proprio nell'angolo alto destro, dove finisce la zona +1.
+      final Size size = tester.view.physicalSize / tester.view.devicePixelRatio;
+      await tester.tapAt(Offset(size.width - 20, 20));
+      await tester.pump();
+
+      expect(repo.total, 10);
+    });
   });
 }

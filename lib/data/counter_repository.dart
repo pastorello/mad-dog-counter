@@ -12,6 +12,32 @@ import 'package:shared_preferences/shared_preferences.dart';
 import '../config.dart';
 import 'tap_log.dart';
 
+/// Una variazione del totale: quanto vale adesso e come ci è arrivato.
+///
+/// Il motore effetti ha bisogno del **segno** della variazione, non solo del
+/// nuovo totale: la regola madre dice che gli effetti scattano solo in salita
+/// (ANIMATIONS_SPEC → regola 0), e dal solo totale non si capisce da che parte
+/// ci si è arrivati.
+class CounterChange {
+  const CounterChange({
+    required this.total,
+    required this.delta,
+    required this.type,
+  });
+
+  /// Il totale dopo la variazione.
+  final int total;
+
+  /// Di quanto è cambiato. Positivo in salita, negativo in discesa.
+  final int delta;
+
+  /// Se è un tap o una scrittura manuale dal pannello impostazioni.
+  final TapType type;
+
+  bool get isIncrement => delta > 0;
+  bool get isTap => type == TapType.tap;
+}
+
 /// Contratto del contatore.
 abstract class CounterRepository {
   /// Il totale corrente, che emette a ogni variazione.
@@ -19,6 +45,13 @@ abstract class CounterRepository {
 
   /// Il totale corrente, letto in modo sincrono.
   int get total;
+
+  /// Le variazioni del totale, una per una.
+  ///
+  /// Diverso da [watchTotal]: quello è lo stato da mostrare, questo sono gli
+  /// eventi a cui reagire. Non rigioca lo storico: chi si iscrive dopo vede
+  /// solo quello che succede da lì in avanti.
+  Stream<CounterChange> watchChanges();
 
   /// +1. Restituisce il nuovo totale.
   Future<int> increment();
@@ -45,6 +78,8 @@ class LocalCounterRepository implements CounterRepository {
   final SharedPreferences _prefs;
   final TapLog _log;
   final StreamController<int> _controller = StreamController<int>.broadcast();
+  final StreamController<CounterChange> _changes =
+      StreamController<CounterChange>.broadcast();
 
   int _total;
 
@@ -99,6 +134,10 @@ class LocalCounterRepository implements CounterRepository {
     _total = next;
     _controller.add(_total); // la UI si aggiorna subito, prima dello storage
 
+    _changes.add(
+      CounterChange(total: _total, delta: applied, type: TapType.tap),
+    );
+
     await _persist(_total);
     unawaited(_log.record(applied));
     return _total;
@@ -113,10 +152,17 @@ class LocalCounterRepository implements CounterRepository {
     _total = next;
     _controller.add(_total);
 
+    _changes.add(
+      CounterChange(total: _total, delta: delta, type: TapType.adjust),
+    );
+
     await _persist(_total);
     unawaited(_log.record(delta, type: TapType.adjust));
     return _total;
   }
+
+  @override
+  Stream<CounterChange> watchChanges() => _changes.stream;
 
   int _clamp(int value) => value < kMinCount ? kMinCount : value;
 
@@ -138,6 +184,7 @@ class LocalCounterRepository implements CounterRepository {
   @override
   Future<void> dispose() async {
     await _controller.close();
+    await _changes.close();
     await _log.close();
   }
 }
