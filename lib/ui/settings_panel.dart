@@ -66,7 +66,13 @@ class _SettingsPanelState extends ConsumerState<SettingsPanel> {
     final SettingsState settings = ref.watch(settingsProvider);
     final int currentTotal = ref
         .watch(counterTotalProvider)
-        .maybeWhen(data: (int value) => value, orElse: () => kInitialCount);
+        .maybeWhen(
+          data: (int value) => value,
+          // Non kInitialCount: il repository ha già il totale in memoria, e
+          // partire da zero per un frame farebbe rollare il numerone da 0 al
+          // totale salvato a ogni avvio.
+          orElse: () => ref.read(counterRepositoryProvider).total,
+        );
 
     // Material e non ColoredBox: i controlli del pannello (l'interruttore
     // audio, i bottoni) dipingono l'ink sul Material più vicino, e un
