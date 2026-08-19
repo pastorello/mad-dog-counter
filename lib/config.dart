@@ -308,3 +308,20 @@ const double kBigNumberWidthFraction = 0.92;
 /// Slot a larghezza fissa perché i font brush non hanno cifre tabular e il
 /// numero ballerebbe a ogni cifra che cambia (UX_UI_SPEC → Tipografia).
 const double kDigitSlotRatio = 0.62;
+
+// ---------------------------------------------------------------------------
+// Idle — la faccina annoiata
+// ---------------------------------------------------------------------------
+
+/// Lato del quadrato in cui sta la faccina.
+const double kIdleFaceSize = 320;
+
+/// Durata di un ciclo di respiro: sale, sospira, scende. Lento di proposito.
+const Duration kIdleBreathDuration = Duration(milliseconds: 3600);
+
+/// L'ambra della faccina. È l'oro celebrativo della palette: l'arancio del
+/// riferimento non è un colore di brand, questo sì e gli somiglia.
+const Color kIdleFaceColor = kCelebrationGold;
+
+/// Il riflesso pallido in fondo agli occhioni. Bianco sporco, mai puro.
+const Color kIdleEyeSheen = kTextColor;

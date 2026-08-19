@@ -19,6 +19,7 @@ import '../ui/effects/effect_catalog.dart';
 import 'combo_machine.dart';
 import 'combo_provider.dart';
 import 'effect_triggers.dart';
+import 'idle_provider.dart';
 
 /// Come programmare un'azione differita. Iniettabile: i test passano un
 /// finto scheduler e fanno scorrere il tempo a mano, senza attese vere.
@@ -39,6 +40,8 @@ class EffectsState {
     this.panicking = false,
     this.killCount = 0,
     this.combo = ComboState.idle,
+    this.idleFaceVisible = false,
+    this.idleWaking = false,
   });
 
   /// L'effetto in scena adesso, se c'è.
@@ -61,6 +64,14 @@ class EffectsState {
   /// gli 8 adiacenti (regola 3).
   final ComboState combo;
 
+  /// La faccina annoiata è in scena: non arrivano tap da un po'.
+  final bool idleFaceVisible;
+
+  /// La faccina sta esplodendo di gioia perché è arrivato un tap.
+  final bool idleWaking;
+
+  /// Il motore è a riposo. Diverso da [idleFaceVisible]: qui si parla di
+  /// effetti in corso, lì di clienti che non ordinano.
   bool get isIdle =>
       current == null && queue.isEmpty && !panicking && !combo.isActive;
 
@@ -72,6 +83,8 @@ class EffectsState {
     bool? panicking,
     int? killCount,
     ComboState? combo,
+    bool? idleFaceVisible,
+    bool? idleWaking,
   }) {
     return EffectsState(
       current: clearCurrent ? null : (current ?? this.current),
@@ -80,23 +93,36 @@ class EffectsState {
       panicking: panicking ?? this.panicking,
       killCount: killCount ?? this.killCount,
       combo: combo ?? this.combo,
+      idleFaceVisible: idleFaceVisible ?? this.idleFaceVisible,
+      idleWaking: idleWaking ?? this.idleWaking,
     );
   }
 }
 
 /// Il motore.
 class EffectsEngine {
-  EffectsEngine(this._sounds, {EffectScheduler scheduler = _realScheduler})
-    : _schedule = scheduler {
+  EffectsEngine(
+    this._sounds, {
+    EffectScheduler scheduler = _realScheduler,
+    Duration idleDelay = const Duration(minutes: kIdleMinutesDefault),
+  }) : _schedule = scheduler {
     _combo = ComboController(
       // La finestra è scaduta: il moltiplicatore sparisce e gli effetti
       // sfumano (ANIMATIONS_SPEC → Fine combo).
       () => _emit(_state.copyWith(combo: ComboState.idle)),
       scheduler: _schedule,
     );
+    _idle = IdleController(
+      // Nessun suono: l'idle deve restare muto per non disturbare il pub nei
+      // momenti calmi (ANIMATIONS_SPEC → Idle).
+      () => _emit(_state.copyWith(idleFaceVisible: true)),
+      scheduler: _schedule,
+      delay: idleDelay,
+    );
   }
 
   late final ComboController _combo;
+  late final IdleController _idle;
 
   final SoundManager _sounds;
   final EffectScheduler _schedule;
@@ -109,6 +135,7 @@ class EffectsEngine {
   Timer? _currentTimer;
   Timer? _followUpTimer;
   Timer? _panicTimer;
+  Timer? _idleWakeTimer;
 
   EffectsState get state => _state;
 
@@ -137,6 +164,10 @@ class EffectsEngine {
     // Le scritture manuali dal pannello non festeggiano: sono correzioni,
     // non cicchetti.
     if (!change.isTap) return;
+
+    // Qualsiasi tap è attività, anche un −1: se il barista sta correggendo un
+    // errore, il pub non è addormentato.
+    if (_idle.poke()) _wakeFromIdle();
 
     if (change.isIncrement) {
       _onIncrement(change.total);
@@ -187,6 +218,19 @@ class EffectsEngine {
     // Nessun effetto accodato, per definizione.
   }
 
+  /// La faccina esplode di gioia e sparisce.
+  void _wakeFromIdle() {
+    _sounds.play(kSfxWakeJubilation);
+    _emit(_state.copyWith(idleFaceVisible: false, idleWaking: true));
+    _idleWakeTimer = _schedule(kIdleWakeDuration, () {
+      _idleWakeTimer = null;
+      _emit(_state.copyWith(idleWaking: false));
+    });
+  }
+
+  /// Minuti di attesa prima della faccina, dal pannello impostazioni.
+  set idleDelay(Duration value) => _idle.delay = value;
+
   /// Se non c'è niente in scena, tira su il prossimo dalla coda.
   void _advanceIfIdle() {
     if (_state.current != null || _state.panicking) return;
@@ -227,6 +271,7 @@ class EffectsEngine {
   void killAll({bool silent = false}) {
     _cancelTimers();
     _combo.reset();
+    _idle.reset();
     _sounds.stopAll();
 
     _emit(
@@ -257,14 +302,17 @@ class EffectsEngine {
     _currentTimer?.cancel();
     _followUpTimer?.cancel();
     _panicTimer?.cancel();
+    _idleWakeTimer?.cancel();
     _currentTimer = null;
     _followUpTimer = null;
     _panicTimer = null;
+    _idleWakeTimer = null;
   }
 
   Future<void> dispose() async {
     _cancelTimers();
     _combo.dispose();
+    _idle.dispose();
     await _states.close();
   }
 }

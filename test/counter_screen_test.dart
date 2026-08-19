@@ -11,6 +11,7 @@ import 'package:mad_dog_counter/state/combo_machine.dart';
 import 'package:confetti/confetti.dart';
 import 'package:mad_dog_counter/ui/effects/boobs_digits.dart';
 import 'package:mad_dog_counter/ui/effects/combo_overlay.dart';
+import 'package:mad_dog_counter/ui/effects/idle_face.dart';
 import 'package:mad_dog_counter/ui/widgets/panic_button.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 
@@ -368,6 +369,63 @@ void main() {
         findsWidgets,
         reason: 'il terzo 8 resta una cifra',
       );
+    });
+  });
+
+  group('faccina annoiata', () {
+    // La faccina respira in loop, quindi pumpAndSettle non tornerebbe mai:
+    // qui si avanza sempre a colpi di pump espliciti.
+    testWidgets('compare dopo i minuti di inattivita', (
+      WidgetTester tester,
+    ) async {
+      await pumpScreen(tester, await repoWith(42));
+      expect(find.byType(IdleFace), findsNothing);
+
+      await tester.pump(const Duration(minutes: kIdleMinutesDefault));
+      await tester.pump();
+
+      expect(find.byType(IdleFace), findsOneWidget);
+    });
+
+    testWidgets('un tap la sveglia e la manda via', (
+      WidgetTester tester,
+    ) async {
+      final LocalCounterRepository repo = await repoWith(42);
+      await pumpScreen(tester, repo);
+      await tester.pump(const Duration(minutes: kIdleMinutesDefault));
+      await tester.pump();
+      expect(find.byType(IdleFace), findsOneWidget);
+
+      final Size size = tester.view.physicalSize / tester.view.devicePixelRatio;
+      await tester.tapAt(Offset(size.width * 0.8, size.height / 2));
+      await tester.pump();
+
+      // Durante il risveglio e' ancora in scena: sta esplodendo di gioia.
+      expect(find.byType(IdleFace), findsOneWidget);
+      expect(tester.widget<IdleFace>(find.byType(IdleFace)).waking, isTrue);
+
+      await tester.pump(kIdleWakeDuration);
+      await tester.pump();
+
+      expect(find.byType(IdleFace), findsNothing);
+      expect(repo.total, 43, reason: 'il tap che sveglia conta comunque');
+    });
+
+    testWidgets('non compare finche si continua a contare', (
+      WidgetTester tester,
+    ) async {
+      final FakeClock clock = await pumpScreen(tester, await repoWith(0));
+      final Size size = tester.view.physicalSize / tester.view.devicePixelRatio;
+
+      // Un tap ogni mezzo tempo di attesa: il conto non arriva mai in fondo.
+      for (int i = 0; i < 4; i++) {
+        await tester.pump(const Duration(minutes: kIdleMinutesDefault ~/ 2));
+        clock.advance(kTapDebounce * 2);
+        await tester.tapAt(Offset(size.width * 0.8, size.height / 2));
+        await tester.pump();
+      }
+
+      expect(find.byType(IdleFace), findsNothing);
     });
   });
 }

@@ -91,6 +91,12 @@ class _FakeClock {
   }
 
   int get pendingCount => _pending.where((r) => !r.cancelled).length;
+
+  /// Quanti timer vivi con questo ritardo. Contare per ritardo invece che sul
+  /// totale evita che aggiungere un effetto con un timer suo faccia fallire
+  /// test che non lo riguardano.
+  int pendingFor(Duration delay) =>
+      _pending.where((r) => !r.cancelled && r.delay == delay).length;
 }
 
 class _FakeTimer implements Timer {
@@ -297,12 +303,14 @@ void main() {
 
     test('cancella i timer in volo: niente effetti zombie', () {
       final b = build();
-      // timer dell'effetto + timer dell'impatto + finestra della combo
       b.engine.onChange(tap(240000, 1));
-      expect(b.clock.pendingCount, 3);
+      expect(b.clock.pendingFor(kStrikeDuration), 1, reason: 'effetto');
+      expect(b.clock.pendingFor(kStrikeImpactDelay), 1, reason: 'impatto');
 
       b.engine.killAll(silent: true);
-      expect(b.clock.pendingCount, 0);
+      expect(b.clock.pendingFor(kStrikeDuration), 0);
+      expect(b.clock.pendingFor(kStrikeImpactDelay), 0);
+      expect(b.clock.pendingFor(kComboWindow), 0);
 
       b.clock.fireAll();
       expect(b.engine.state.current, isNull);
@@ -435,7 +443,7 @@ void main() {
       // Se le finestre dei tap precedenti non venissero cancellate, la prima
       // a scadere ucciderebbe una combo ancora viva: due secondi dopo il
       // PRIMO tap invece che dopo l'ultimo.
-      expect(b.clock.pendingCount, 1);
+      expect(b.clock.pendingFor(kComboWindow), 1);
       expect(b.engine.state.combo, const ComboState(3));
     });
 
@@ -479,6 +487,124 @@ void main() {
       final b = build();
       b.engine.onChange(adjust(239338, 239338));
       expect(b.engine.state.combo, ComboState.idle);
+    });
+  });
+
+  group('idle', () {
+    ({EffectsEngine engine, _SpySounds sounds, _FakeClock clock}) buildIdle(
+      Duration delay,
+    ) {
+      final _SpySounds sounds = _SpySounds();
+      final _FakeClock clock = _FakeClock();
+      return (
+        engine: EffectsEngine(
+          sounds,
+          scheduler: clock.schedule,
+          idleDelay: delay,
+        ),
+        sounds: sounds,
+        clock: clock,
+      );
+    }
+
+    const Duration delay = Duration(minutes: 10);
+
+    test('dopo i minuti di attesa compare la faccina', () {
+      final b = buildIdle(delay);
+      expect(b.engine.state.idleFaceVisible, isFalse);
+
+      b.clock.fire(delay);
+      expect(b.engine.state.idleFaceVisible, isTrue);
+    });
+
+    test('l idle e muto: non deve disturbare il pub', () {
+      final b = buildIdle(delay);
+      b.clock.fire(delay);
+      expect(b.sounds.played, isEmpty);
+    });
+
+    test('un tap la sveglia e fa il giubilo', () {
+      final b = buildIdle(delay);
+      b.clock.fire(delay);
+
+      b.engine.onChange(tap(1, 1));
+
+      expect(b.engine.state.idleFaceVisible, isFalse);
+      expect(b.engine.state.idleWaking, isTrue);
+      expect(b.sounds.played, contains(kSfxWakeJubilation));
+    });
+
+    test('anche un decremento conta come attivita', () {
+      final b = buildIdle(delay);
+      b.clock.fire(delay);
+
+      // Il barista sta correggendo un errore: il pub non e addormentato.
+      b.engine.onChange(tap(5, -1));
+      expect(b.engine.state.idleFaceVisible, isFalse);
+      expect(b.sounds.played, contains(kSfxWakeJubilation));
+    });
+
+    test('un tap normale non fa il giubilo', () {
+      final b = buildIdle(delay);
+      b.engine.onChange(tap(1, 1));
+      expect(b.sounds.played, isNot(contains(kSfxWakeJubilation)));
+      expect(b.engine.state.idleWaking, isFalse);
+    });
+
+    test('finita la festa la faccina e fuori scena', () {
+      final b = buildIdle(delay);
+      b.clock.fire(delay);
+      b.engine.onChange(tap(1, 1));
+
+      b.clock.fire(kIdleWakeDuration);
+      expect(b.engine.state.idleWaking, isFalse);
+      expect(b.engine.state.idleFaceVisible, isFalse);
+    });
+
+    test('ogni tap fa ripartire il conto, non ne accumula', () {
+      final b = buildIdle(delay);
+      b.engine.onChange(tap(1, 1));
+      b.engine.onChange(tap(2, 1));
+      expect(b.clock.pendingFor(delay), 1);
+    });
+
+    test('il kill switch rimanda la faccina a dormire, senza giubilo', () {
+      final b = buildIdle(delay);
+      b.clock.fire(delay);
+      expect(b.engine.state.idleFaceVisible, isTrue);
+
+      b.engine.killAll(silent: true);
+
+      expect(b.engine.state.idleFaceVisible, isFalse);
+      expect(b.sounds.played, isNot(contains(kSfxWakeJubilation)));
+      expect(
+        b.clock.pendingFor(delay),
+        1,
+        reason: 'il conto riparte: dopo il panico il pub resta comunque calmo',
+      );
+    });
+
+    test('cambiare i minuti fa ripartire il conto da adesso', () {
+      final b = buildIdle(delay);
+      const Duration nuovo = Duration(minutes: 3);
+
+      b.engine.idleDelay = nuovo;
+
+      expect(b.clock.pendingFor(delay), 0);
+      expect(b.clock.pendingFor(nuovo), 1);
+      expect(
+        b.engine.state.idleFaceVisible,
+        isFalse,
+        reason: 'abbassare la soglia non deve far apparire la faccina subito',
+      );
+    });
+
+    test('le scritture manuali dal pannello non svegliano nessuno', () {
+      final b = buildIdle(delay);
+      b.clock.fire(delay);
+
+      b.engine.onChange(adjust(239338, 239338));
+      expect(b.engine.state.idleFaceVisible, isTrue);
     });
   });
 }
