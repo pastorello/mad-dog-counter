@@ -5,6 +5,8 @@
 /// posizioni nel layout sono già riservate qui.
 library;
 
+import 'dart:math' as math;
+
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
@@ -15,8 +17,10 @@ import '../state/effect_triggers.dart';
 import '../state/effects_provider.dart';
 import 'effects/combo_overlay.dart';
 import 'effects/effect_catalog.dart';
+import 'settings_panel.dart';
 import 'widgets/dutch_flag_divider.dart';
 import 'widgets/panic_button.dart';
+import 'widgets/settings_gear.dart';
 
 class CounterScreen extends ConsumerStatefulWidget {
   const CounterScreen({super.key});
@@ -27,6 +31,21 @@ class CounterScreen extends ConsumerStatefulWidget {
 
 class _CounterScreenState extends ConsumerState<CounterScreen> {
   DateTime? _lastTap;
+  bool _settingsOpen = false;
+
+  void _openSettings() {
+    // Equivalente a un killAll() silenzioso: gli effetti in corso si fermano,
+    // ma senza l'esplosione del pulsante panico.
+    ref.read(effectsEngineProvider).killAll(silent: true);
+    setState(() => _settingsOpen = true);
+  }
+
+  void _closeSettings() {
+    // Il debounce riparte da qui: il primo tap dopo la chiusura non deve
+    // essere scartato perche' "troppo vicino" a quello di tre minuti fa.
+    _lastTap = null;
+    setState(() => _settingsOpen = false);
+  }
 
   /// Debounce contro i doppi tocchi hardware, senza penalizzare le combo.
   bool _debounced() {
@@ -38,13 +57,13 @@ class _CounterScreenState extends ConsumerState<CounterScreen> {
   }
 
   void _onIncrement() {
-    if (_debounced()) return;
+    if (_settingsOpen || _debounced()) return;
     HapticFeedback.lightImpact();
     ref.read(counterActionsProvider).increment();
   }
 
   void _onDecrement() {
-    if (_debounced()) return;
+    if (_settingsOpen || _debounced()) return;
     HapticFeedback.selectionClick();
     ref.read(counterActionsProvider).decrement();
   }
@@ -134,7 +153,17 @@ class _CounterScreenState extends ConsumerState<CounterScreen> {
           // L'esplosione copre tutto, pulsante panico compreso.
           if (effects.panicking) const Positioned.fill(child: PanicBlast()),
 
-          // TODO: ingranaggio impostazioni (basso destro, pressione lunga 3 s).
+          // Ingranaggio impostazioni: angolo basso destro, lontano dal
+          // pulsante panico quanto basta da non confonderli.
+          Positioned(
+            bottom: 0,
+            right: 0,
+            child: SettingsGear(onLongPress: _openSettings),
+          ),
+
+          // Il pannello copre tutto: mentre e' aperto non si conta.
+          if (_settingsOpen)
+            Positioned.fill(child: SettingsPanel(onClose: _closeSettings)),
         ],
       ),
     );
@@ -189,31 +218,46 @@ class _BigNumber extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final String digits = total.toString();
-    final double size = MediaQuery.sizeOf(context).height * 0.45;
 
-    return Row(
-      mainAxisAlignment: MainAxisAlignment.center,
-      children: <Widget>[
-        for (final String digit in digits.split(''))
-          SizedBox(
-            width: size * 0.62, // slot a larghezza fissa
-            child: Text(
-              digit,
-              textAlign: TextAlign.center,
-              style: TextStyle(
-                fontFamily: kDisplayFont,
-                fontSize: size,
-                height: 1,
-                color: kTextColor,
-                shadows: const <Shadow>[
-                  Shadow(color: kPrimaryRed, blurRadius: 24),
-                  Shadow(color: kPrimaryRed, blurRadius: 48),
-                ],
+    return LayoutBuilder(
+      builder: (BuildContext context, BoxConstraints constraints) {
+        // La dimensione non può venire dalla sola altezza: il totale del pub è
+        // a sei cifre, e sei slot da 0,45 dell'altezza sfondano la larghezza
+        // anche sul tablet di produzione. Vince il vincolo più stretto.
+        final double byHeight =
+            constraints.maxHeight * kBigNumberHeightFraction;
+        final double byWidth =
+            constraints.maxWidth *
+            kBigNumberWidthFraction /
+            digits.length /
+            kDigitSlotRatio;
+        final double size = math.min(byHeight, byWidth);
+
+        return Row(
+          mainAxisAlignment: MainAxisAlignment.center,
+          children: <Widget>[
+            for (final String digit in digits.split(''))
+              SizedBox(
+                width: size * kDigitSlotRatio, // slot a larghezza fissa
+                child: Text(
+                  digit,
+                  textAlign: TextAlign.center,
+                  style: TextStyle(
+                    fontFamily: kDisplayFont,
+                    fontSize: size,
+                    height: 1,
+                    color: kTextColor,
+                    shadows: const <Shadow>[
+                      Shadow(color: kPrimaryRed, blurRadius: 24),
+                      Shadow(color: kPrimaryRed, blurRadius: 48),
+                    ],
+                  ),
+                ),
               ),
-            ),
-          ),
-        // TODO: roll verticale della cifra che cambia (kDigitRollDuration).
-      ],
+            // TODO: roll verticale della cifra che cambia (kDigitRollDuration).
+          ],
+        );
+      },
     );
   }
 }

@@ -265,3 +265,46 @@ const String kImgCiommoApproved = 'assets/images/ciommo_approved.png';
 
 /// Variante badge rotonda dello stesso timbro.
 const String kImgCiommoSticker = 'assets/images/ciommo_sticker_round.png';
+
+// ---------------------------------------------------------------------------
+// Pannello impostazioni
+// ---------------------------------------------------------------------------
+
+/// Estremi ammessi per i minuti di idle. Sotto il minimo la faccina
+/// comparirebbe tra un giro di Mad Dog e l'altro; sopra il massimo non
+/// comparirebbe mai.
+const int kIdleMinutesMin = 1;
+const int kIdleMinutesMax = 60;
+
+/// Valore massimo accettato dal campo "Imposta contatore". Non è un limite di
+/// prodotto, è una rete contro il dito che resta premuto sul tastierino.
+const int kMaxSettableTotal = 99999999;
+
+// Testi del pannello. Stanno qui come tutto il resto della UI
+// (regola d'oro 4): niente stringhe cablate nei widget.
+const String kSettingsTitle = 'Impostazioni';
+const String kSettingsCounterLabel = 'Imposta contatore';
+const String kSettingsCounterHint = 'Nuovo totale';
+const String kSettingsApply = 'Imposta';
+const String kSettingsConfirm = 'Conferma';
+const String kSettingsCancel = 'Annulla';
+const String kSettingsAudioLabel = 'Effetti sonori';
+const String kSettingsIdleLabel = 'Minuti di inattività';
+const String kSettingsClose = 'Chiudi';
+const String kSettingsInvalidNumber =
+    'Serve un numero tra 0 e $kMaxSettableTotal';
+
+// ---------------------------------------------------------------------------
+// Numerone
+// ---------------------------------------------------------------------------
+
+/// Quanta altezza dello schermo può occupare una cifra.
+const double kBigNumberHeightFraction = 0.45;
+
+/// Quanta larghezza può occupare il numero intero: il resto è respiro ai lati.
+const double kBigNumberWidthFraction = 0.92;
+
+/// Larghezza dello slot di una cifra, in proporzione alla sua dimensione.
+/// Slot a larghezza fissa perché i font brush non hanno cifre tabular e il
+/// numero ballerebbe a ogni cifra che cambia (UX_UI_SPEC → Tipografia).
+const double kDigitSlotRatio = 0.62;
