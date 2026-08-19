@@ -18,17 +18,19 @@ Il locale è **The Dutch** (Gaeta, since 1980); il brand del cicchetto è **Hous
 | Testo/contrasto | Bianco sporco | `#F0F0F0` | Mai bianco puro. |
 | Celebrativo | Oro/ambra | `#F0A830` (indicativo) | Solo per momenti epici (fuochi, glow combo), richiama la luce calda del pub. |
 
-⚠️ Niente rosa: la foto del poster nel locale ha una dominante calda che falsava i colori. Fanno fede i file vettoriali/di stampa.
+⚠️ Niente rosa **nella UI di brand**: la foto del poster nel locale ha una dominante calda che falsava i colori. Fanno fede i file vettoriali/di stampa.
+
+**Unica eccezione, decisa dal committente**: l'easter egg degli 8 adiacenti usa il rosa carne (`#EFA79B`) e il rosa dei cuoricini (`#E86A8A`). In rosso di brand la battuta non si leggeva — un `88` rosso non sembra una tetta. Il rosa vive lì e solo lì.
 
 ### Motivo ricorrente
 
-La **bandierina olandese** (striscia rosso/bianco/blu) è il separatore firma del brand: usarla come elemento orizzontale sottile (es. sotto il numerone o come bordo inferiore dello schermo).
+La **bandierina olandese** (striscia rosso/bianco/blu) è il separatore firma del brand: usarla come elemento orizzontale sottile (es. sotto il numerone o come bordo inferiore dello schermo). In app è il bordo inferiore, alto `kDutchFlagHeight` (12 dp: a 6 dp, da dietro il bancone, non si vedeva).
 
 ## Layout (landscape)
 
 ```
 ┌──────────────────────────────────────────────┐
-│ [logo HoMD piccolo]              [⛒ panico] │
+│         [x4 + testo combo]       [⛒ panico] │
 │                                              │
 │   ◄──── zona −1 ────►│◄──── zona +1 ────────►│
 │   (~25% larghezza)   │   (~75% larghezza)    │
@@ -36,16 +38,19 @@ La **bandierina olandese** (striscia rosso/bianco/blu) è il separatore firma de
 │              2 3 9 3 3 8                     │
 │           (numerone centrale)                │
 │                                              │
+│  [timbro]   [logo HoMD]   [timbro]           │
 │  ═══ bandierina olandese (separatore) ═══    │
-│  [stasera — fase 2, placeholder]     [⚙ imp] │
+│                                      [⚙ imp] │
 └──────────────────────────────────────────────┘
 ```
 
+- **In alto al centro** ci vanno il moltiplicatore della combo e i testi celebrativi: è l'area degli eventi, resta libera.
+- **Marchio House of Mad Dogs**: in basso al centro, piccolo, sopra la bandierina. Sempre a video, anche durante gli effetti; decorativo, non intercetta tap. I timbri "Ciommo Approved" salgono dal bordo basso ai suoi due lati, senza mai coprirlo.
 - **Pulsante panico**: angolo alto destro, icona piccola e discreta (es. una "X" in un cerchio sottile, opacità ridotta), con padding generoso che lo isola dalla zona +1: i suoi tap NON contano come incrementi. Comportamento in FUNCTIONAL_SPEC.md.
-- **Ingranaggio impostazioni**: angolo basso destro, stessa discrezione del pulsante panico, isolato dalla zona +1 e dalla bandierina. Si apre SOLO con pressione lunga (3 s); pannello overlay scuro coerente con la palette, tipografia secondaria (non Creepster: nel pannello serve leggibilità, usare il sans condensed). Dettagli in FUNCTIONAL_SPEC.md.
+- **Ingranaggio impostazioni**: angolo basso destro, stessa discrezione del pulsante panico, isolato dalla zona +1 e dalla bandierina. Si apre SOLO con pressione lunga (2 s), con un anello rosso spesso che si riempie mentre si tiene premuto; pannello overlay scuro coerente con la palette, tipografia secondaria (non Creepster: nel pannello serve leggibilità, usare il sans condensed). Dettagli in FUNCTIONAL_SPEC.md.
 - I due controlli di servizio stanno entrambi sul **bordo destro** (panico in alto, impostazioni in basso), lontani tra loro quanto basta da non confonderli, e la zona −1 a sinistra resta completamente pulita.
 
-- **Numerone**: l'unico protagonista. Occupa la maggior parte dell'altezza, centrato, bianco sporco con glow rosso sottile. Deve leggersi dall'altro lato del bancone.
+- **Numerone**: l'unico protagonista. Occupa la maggior parte dell'altezza, centrato, bianco sporco con glow rosso sottile. Deve leggersi dall'altro lato del bancone. **Sempre a sei cifre, zeri davanti compresi** (`000000`, `000001`, …): è un tabellone, e così non cambia larghezza a ogni passaggio di decina. Gli zeri si disegnano pieni come le altre cifre.
 - Le **zone tap** sono invisibili (tutto lo schermo è touch); un hint discreto (chevron − a sinistra) suggerisce la zona di decremento. Le zone si illuminano leggermente al tocco.
 - Nessun bottone, nessuna barra, nessun menu.
 
@@ -67,7 +72,7 @@ La **bandierina olandese** (striscia rosso/bianco/blu) è il separatore firma de
 | Asset | File nel repo | Uso nell'app |
 |---|---|---|
 | Logo The Dutch | `design/raw/logo_the_dutch_sottobicchiere.jpg` (+ varianti `logo_the_dutch_*.jpg`) | Splash/credits, uso marginale. NON vettorizzare automaticamente (tratteggio inciso troppo fine): usare PNG ritagliato |
-| Logo House of Mad Dogs | `design/raw/logo_house_of_mad_dogs_sottobicchiere.jpg` — vettoriale del bicchiere: `design/processed/homd_shot_glass.svg` (bozza da rifinire sul riferimento) | Logo principale in-app (angolo alto sx) + splash |
+| Logo House of Mad Dogs | `design/raw/logo_house_of_mad_dogs_sottobicchiere.jpg` — vettoriale del bicchiere: `design/processed/homd_shot_glass.svg` (bozza da rifinire sul riferimento) | Logo principale in-app (in basso al centro) + splash |
 | Ciommo Approved | `design/processed/ciommo_approved.svg` (vettoriale; per fondo scuro cambiare fill in `#F0F0F0`), alternative raster `ciommo_approved_white.png` / `ciommo_sticker_round.png` | Stamp delle combo lunghe |
 | Bandierina olandese | `design/processed/dutch_flag_stripe.svg` | Separatore firma |
 | Poster rituale | `design/raw/poster_come_bere_il_mad_dog.jpg` | Riferimento di stile per il lettering brush |

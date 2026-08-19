@@ -53,10 +53,12 @@ I suoni citati qui sotto esistono già come file: mappa evento→WAV in `assets/
 - **Effetto**: le coppie di 8 adiacenti si **trasformano in due tette** e **rimangono così** finché gli 8 restano adiacenti nel numero. Quando il numero cambia e la coppia si rompe, le cifre tornano normali (con una piccola transizione morph, non uno stacco secco).
 - Casi da gestire: `888` → una coppia trasformata + un 8 normale (scegliere: le prime due cifre della sequenza); più coppie disgiunte nel numero → tutte trasformate.
 - **Suono**: "boing" solo al momento della trasformazione, non continuo.
-- Grafica: due tette stilizzate coerenti col brand (rosso 186C su fondo scuro), in stile buffo da cartoon — è un pub, non un sito porno. Asset da produrre.
+- Grafica: due tette stilizzate in stile buffo da cartoon — è un pub, non un sito porno. **Rosa carne** (`kFleshPink`), unica deroga al divieto di rosa della palette: in rosso 186C la battuta non si leggeva (vedi UX_UI_SPEC → Palette).
+- Insieme alla trasformazione parte una salva di **cuoricini** che esplode attorno alle cifre e ricade con la gravità (`lib/ui/effects/hearts_burst.dart`).
 
 ### 7. Idle — la faccina annoiata
 - **Trigger**: nessun tap da N minuti (default suggerito: 10 min, costante in config).
+- **Posizione**: in alto al centro, nella stessa fascia dei contatori della combo (non in mezzo al numerone).
 - **Effetto**: compare la **faccina gialla triste con gli occhioni lucidi** (asset di riferimento: `design/raw/idle_faccina_riferimento.jpg`, da rielaborare in stile coerente) che guarda il contatore, sospira, magari bussa sul vetro dello schermo. Loop dolce finché non arriva un tap.
 - **Al tap dopo l'idle**: la faccina esplode di gioia e sparisce (micro-animazione di ~1 s), poi tutto normale.
 - **Suono**: nessuno durante l'idle (non deve disturbare il pub nei momenti calmi); giubilo al risveglio.
