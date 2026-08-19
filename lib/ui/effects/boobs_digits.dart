@@ -4,8 +4,8 @@
 /// 3): resta finché gli 8 restano adiacenti nel numero. Quando la coppia si
 /// rompe le cifre tornano normali, con un morph e non uno stacco secco.
 ///
-/// Stile buffo da cartoon, rosso 186C su fondo scuro: è un pub, non un sito
-/// porno.
+/// Stile buffo da cartoon, rosa carne su fondo scuro: in rosso di brand la
+/// battuta non si leggeva. Resta un pub, non un sito porno.
 library;
 
 import 'package:flutter/material.dart';
@@ -66,7 +66,7 @@ class _BoobsPainter extends CustomPainter {
     final Offset right = Offset(size.width / 2 + gap, cy);
 
     final Paint fill = Paint()
-      ..color = kPrimaryRed
+      ..color = kFleshPink
       ..style = PaintingStyle.fill;
     final Paint stroke = Paint()
       ..color = kTextColor
@@ -84,8 +84,8 @@ class _BoobsPainter extends CustomPainter {
       canvas.restore();
     }
 
-    // Il capezzolo, un puntino chiaro. Piccolo: il registro è da fumetto.
-    final Paint dot = Paint()..color = kTextColor;
+    // Il capezzolo, un puntino rosa scuro. Piccolo: il registro è da fumetto.
+    final Paint dot = Paint()..color = kHeartPink;
     canvas.drawCircle(left, r * 0.17, dot);
     canvas.drawCircle(right, r * 0.17, dot);
 

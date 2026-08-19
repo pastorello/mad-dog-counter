@@ -15,6 +15,7 @@ import '../state/effect_triggers.dart';
 import '../state/effects_provider.dart';
 import 'effects/combo_overlay.dart';
 import 'effects/effect_catalog.dart';
+import 'effects/hearts_burst.dart';
 import 'effects/idle_face.dart';
 import 'settings_panel.dart';
 import 'widgets/big_number.dart';
@@ -151,6 +152,11 @@ class _CounterScreenState extends ConsumerState<CounterScreen> {
           // L'overlay della combo: sotto agli effetti in coda, sopra il
           // numerone.
           Positioned.fill(child: ComboOverlay(combo: effects.combo)),
+
+          // I cuoricini delle tette: partono quando la coppia di 8 si forma e
+          // ricadono con la gravità. Stanno sopra al numerone perché devono
+          // passargli davanti.
+          if (effects.boobsActive) const Positioned.fill(child: HeartsBurst()),
 
           // La faccina annoiata: sopra il numerone, sotto agli effetti.
           if (effects.idleFaceVisible || effects.idleWaking)

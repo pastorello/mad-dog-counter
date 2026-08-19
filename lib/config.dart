@@ -89,6 +89,15 @@ const Duration kFireworksDuration = Duration(milliseconds: 3500);
 /// Palla da bowling + ricomposizione sui multipli di 1000.
 const Duration kStrikeDuration = Duration(milliseconds: 5500);
 
+/// Durata della pioggia di cuoricini che accompagna le tette.
+const Duration kHeartsBurstDuration = Duration(milliseconds: 900);
+
+/// Quanti cuoricini partono nella salva.
+const int kHeartsCount = 18;
+
+/// Gravità dei cuoricini: devono ricadere, non galleggiare.
+const double kHeartsGravity = 0.45;
+
 /// Morph delle cifre quando una coppia di 8 adiacenti si forma o si rompe.
 const Duration kBoobsMorphDuration = Duration(milliseconds: 400);
 
