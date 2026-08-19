@@ -1,25 +1,35 @@
 # macOS
 .DS_Store
 
-# Flutter / Dart
+# ---- Flutter / Dart (da `flutter create`) ----
+**/doc/api/
+**/ios/Flutter/.last_build_id
 .dart_tool/
+.flutter-plugins
+.flutter-plugins-dependencies
 .packages
 .pub-cache/
 .pub/
+.build/
+.buildlog/
+.history
+.svn/
+.swiftpm/
+.widget_preview/
 build/
-.flutter-plugins
-.flutter-plugins-dependencies
-*.lock.bak
-pubspec.lock.bak
+/build/
+migrate_working_dir/
+app.*.map.json
+app.*.symbols
+*.class
+*.log
+*.pyc
+*.swp
 
-# IDE
-.idea/
-.vscode/
-*.iml
-*.ipr
-*.iws
-
-# Android
+# ---- Android ----
+/android/app/debug
+/android/app/profile
+/android/app/release
 android/.gradle/
 android/local.properties
 android/key.properties
@@ -28,13 +38,23 @@ android/app/*.keystore
 *.apk
 *.aab
 
-# Coverage e test
+# ---- IDE ----
+.idea/
+.vscode/
+.atom/
+*.iml
+*.ipr
+*.iws
+
+# ---- Test e coverage ----
+/coverage/
 coverage/
 test/failures/
 
-# Ambiente locale
+# ---- Ambiente locale ----
 .env
 .env.local
 
-# Claude Code — impostazioni locali (le skill in .agents/ e .claude/skills/ sono versionate)
+# ---- Claude Code ----
+# le skill in .agents/ e .claude/skills/ sono versionate di proposito
 .claude/settings.local.json
