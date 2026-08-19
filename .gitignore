@@ -1,0 +1,37 @@
+# macOS
+.DS_Store
+
+# Flutter / Dart
+.dart_tool/
+.packages
+.pub-cache/
+.pub/
+build/
+.flutter-plugins
+.flutter-plugins-dependencies
+*.lock.bak
+pubspec.lock.bak
+
+# IDE
+.idea/
+.vscode/
+*.iml
+*.ipr
+*.iws
+
+# Android
+android/.gradle/
+android/local.properties
+android/key.properties
+android/app/*.jks
+android/app/*.keystore
+*.apk
+*.aab
+
+# Coverage e test
+coverage/
+test/failures/
+
+# Ambiente locale
+.env
+.env.local

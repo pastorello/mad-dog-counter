@@ -1,0 +1,7 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1200 60">
+  <!-- Striscia bandiera olandese — separatore firma The Dutch.
+       Rosso Pantone 186C, bianco sporco, blu Pantone 2728C (variante navy #1F4370 nei materiali stampati) -->
+  <rect x="0" y="0"  width="1200" height="20" fill="#C8102E"/>
+  <rect x="0" y="20" width="1200" height="20" fill="#F0F0F0"/>
+  <rect x="0" y="40" width="1200" height="20" fill="#0047BB"/>
+</svg>

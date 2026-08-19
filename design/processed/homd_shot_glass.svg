@@ -1,0 +1,32 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 400 460" fill="none">
+  <!-- House of Mad Dogs — bicchiere shot, ridisegno vettoriale dal logo ufficiale.
+       Colore: Pantone 186C (#C8102E) -->
+  <!-- contorno esterno -->
+  <path d="M60 28
+           L340 28
+           Q368 28 365 56
+           L330 408
+           Q327 436 298 436
+           L102 436
+           Q73 436 70 408
+           L35 56
+           Q32 28 60 28 Z"
+        stroke="#C8102E" stroke-width="34" stroke-linejoin="round"/>
+  <!-- bicchiere interno pieno con onda -->
+  <path d="M112 148
+           L288 148
+           Q300 148 299 160
+           L281 348
+           Q280 362 266 362
+           L134 362
+           Q120 362 119 348
+           L101 160
+           Q100 148 112 148 Z
+           M112 148"
+        fill="#C8102E"/>
+  <!-- scavo dell'onda (colore di sfondo: usare currentColor/il bg dell'app).
+       In app: sovrapporre questa forma col colore dello sfondo #0E0E14 -->
+  <path d="M101 160 Q100 148 112 148 L288 148 Q300 148 299 160 L296 196
+           Q250 230 200 210 Q150 190 104 214 L101 160 Z"
+        fill="#0E0E14"/>
+</svg>
