@@ -13,6 +13,7 @@ import 'package:mad_dog_counter/ui/effects/boobs_digits.dart';
 import 'package:mad_dog_counter/ui/effects/combo_overlay.dart';
 import 'package:mad_dog_counter/ui/effects/idle_face.dart';
 import 'package:mad_dog_counter/ui/widgets/panic_button.dart';
+import 'package:mad_dog_counter/ui/widgets/rolling_digit.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 
 Future<LocalCounterRepository> repoWith(int total) async {
@@ -426,6 +427,131 @@ void main() {
       }
 
       expect(find.byType(IdleFace), findsNothing);
+    });
+  });
+
+  group('roll delle cifre', () {
+    Future<void> tapZone(WidgetTester tester, double fraction) async {
+      final Size size = tester.view.physicalSize / tester.view.devicePixelRatio;
+      await tester.tapAt(Offset(size.width * fraction, size.height / 2));
+      await tester.pump();
+    }
+
+    testWidgets('a riposo non c e nessun roll in corso', (
+      WidgetTester tester,
+    ) async {
+      await pumpScreen(tester, await repoWith(1234));
+
+      for (final RollingDigit slot in tester.widgetList<RollingDigit>(
+        find.byType(RollingDigit),
+      )) {
+        expect(slot.progress, 1);
+      }
+    });
+
+    testWidgets('dopo un tap la cifra vecchia e la nuova convivono', (
+      WidgetTester tester,
+    ) async {
+      await pumpScreen(tester, await repoWith(1234));
+
+      await tapZone(tester, 0.8); // 1235
+      await tester.pump(kDigitRollDuration ~/ 2);
+
+      expect(find.text('4'), findsOneWidget, reason: 'la vecchia esce');
+      expect(find.text('5'), findsOneWidget, reason: 'la nuova entra');
+    });
+
+    testWidgets('rollano solo le cifre che cambiano', (
+      WidgetTester tester,
+    ) async {
+      await pumpScreen(tester, await repoWith(1234));
+
+      await tapZone(tester, 0.8); // 1235: cambiano solo le unita
+      await tester.pump(kDigitRollDuration ~/ 2);
+
+      expect(find.text('1'), findsOneWidget);
+      expect(find.text('2'), findsOneWidget);
+      expect(find.text('3'), findsOneWidget);
+    });
+
+    testWidgets('finito il roll resta solo il numero nuovo', (
+      WidgetTester tester,
+    ) async {
+      await pumpScreen(tester, await repoWith(1234));
+
+      await tapZone(tester, 0.8);
+      await tester.pump(kDigitRollDuration);
+      await tester.pump();
+
+      expect(find.text('5'), findsOneWidget);
+      expect(find.text('4'), findsNothing);
+    });
+
+    testWidgets('il verso segue il conteggio', (WidgetTester tester) async {
+      final FakeClock clock = await pumpScreen(tester, await repoWith(1234));
+
+      await tapZone(tester, 0.8); // +1
+      await tester.pump(kDigitRollDuration ~/ 2);
+      expect(
+        tester
+            .widgetList<RollingDigit>(find.byType(RollingDigit))
+            .last
+            .rollingUp,
+        isTrue,
+      );
+
+      await tester.pump(kDigitRollDuration);
+      clock.advance(kTapDebounce * 2);
+
+      await tapZone(tester, 0.1); // -1
+      await tester.pump(kDigitRollDuration ~/ 2);
+      expect(
+        tester
+            .widgetList<RollingDigit>(find.byType(RollingDigit))
+            .last
+            .rollingUp,
+        isFalse,
+        reason: 'in discesa il roll va al contrario',
+      );
+    });
+
+    testWidgets('passando a una cifra in piu le unita restano unita', (
+      WidgetTester tester,
+    ) async {
+      await pumpScreen(tester, await repoWith(99));
+
+      await tapZone(tester, 0.8); // 100
+      await tester.pump(kDigitRollDuration ~/ 2);
+
+      final List<RollingDigit> slots = tester
+          .widgetList<RollingDigit>(find.byType(RollingDigit))
+          .toList();
+      expect(slots, hasLength(3));
+      expect(
+        slots[0].previous,
+        '',
+        reason: 'la cifra nuova non viene da nulla',
+      );
+      expect(slots[2].previous, '9');
+      expect(slots[2].current, '0');
+    });
+
+    testWidgets('un tap durante un roll riparte dal numero visibile', (
+      WidgetTester tester,
+    ) async {
+      final FakeClock clock = await pumpScreen(tester, await repoWith(10));
+
+      await tapZone(tester, 0.8); // 11
+      await tester.pump(kDigitRollDuration ~/ 3); // roll ancora in corso
+      clock.advance(kTapDebounce * 2);
+      await tapZone(tester, 0.8); // 12, mentre il primo rolla ancora
+
+      await tester.pump(kDigitRollDuration ~/ 2);
+      final RollingDigit unita = tester
+          .widgetList<RollingDigit>(find.byType(RollingDigit))
+          .last;
+      expect(unita.previous, '1', reason: 'si riparte da quello che si vede');
+      expect(unita.current, '2');
     });
   });
 }

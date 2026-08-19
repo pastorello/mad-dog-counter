@@ -74,7 +74,13 @@ class _CounterScreenState extends ConsumerState<CounterScreen> {
     // uno stato di caricamento visibile. Il fallback esiste solo per sicurezza.
     final int total = ref
         .watch(counterTotalProvider)
-        .maybeWhen(data: (int value) => value, orElse: () => kInitialCount);
+        .maybeWhen(
+          data: (int value) => value,
+          // Non kInitialCount: il repository ha già il totale in memoria, e
+          // partire da zero per un frame farebbe rollare il numerone da 0 al
+          // totale salvato a ogni avvio.
+          orElse: () => ref.read(counterRepositoryProvider).total,
+        );
 
     // Tiene vivo il controllo del backup finché la schermata è a video.
     ref.watch(backupWatcherProvider);

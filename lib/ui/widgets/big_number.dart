@@ -19,6 +19,7 @@ import '../../config.dart';
 import '../../state/effect_triggers.dart';
 import '../effects/boobs_digits.dart';
 import '../effects/effect_catalog.dart';
+import 'rolling_digit.dart';
 
 class BigNumber extends StatefulWidget {
   const BigNumber({
@@ -49,9 +50,24 @@ class _BigNumberState extends State<BigNumber> with TickerProviderStateMixin {
     duration: kBoobsMorphDuration,
   );
 
+  /// Il roll delle cifre. Uno solo per tutto il numero: le cifre cambiano
+  /// tutte nello stesso istante, e quelle che non cambiano si disegnano ferme.
+  late final AnimationController _roll = AnimationController(
+    vsync: this,
+    duration: kDigitRollDuration,
+    value: 1, // a riposo: nessun roll in corso
+  );
+
+  /// Il numero da cui si sta rollando.
+  String _previousDigits = '';
+
+  /// Il contatore stava salendo. Guida il verso del roll.
+  bool _rollingUp = true;
+
   @override
   void initState() {
     super.initState();
+    _previousDigits = widget.total.toString();
     if (widget.boobsActive) _morph.value = 1;
     _startEffect();
   }
@@ -59,6 +75,14 @@ class _BigNumberState extends State<BigNumber> with TickerProviderStateMixin {
   @override
   void didUpdateWidget(BigNumber oldWidget) {
     super.didUpdateWidget(oldWidget);
+    if (widget.total != oldWidget.total) {
+      // Un tap può arrivare mentre il roll precedente è ancora in corso
+      // (le combo sono fatte apposta): si riparte da quello che si vede
+      // adesso, cioè dal numero vecchio, senza scatti.
+      _previousDigits = oldWidget.total.toString();
+      _rollingUp = widget.total > oldWidget.total;
+      _roll.forward(from: 0);
+    }
     if (widget.effect != oldWidget.effect) _startEffect();
     if (widget.boobsActive != oldWidget.boobsActive) {
       // Il morph vale in entrambi i versi: le cifre tornano normali
@@ -83,6 +107,7 @@ class _BigNumberState extends State<BigNumber> with TickerProviderStateMixin {
   void dispose() {
     _effectAnimation.dispose();
     _morph.dispose();
+    _roll.dispose();
     super.dispose();
   }
 
@@ -109,8 +134,20 @@ class _BigNumberState extends State<BigNumber> with TickerProviderStateMixin {
             kDigitSlotRatio;
         final double size = math.min(byHeight, byWidth);
 
+        // Le posizioni si contano dalle unità: passando da 99 a 100 le unità
+        // restano unità, mentre allineando a sinistra la prima cifra
+        // rollerebbe da 9 a 1.
+        final List<({String previous, String current})> aligned = alignDigits(
+          _previousDigits,
+          digits,
+        );
+
         return AnimatedBuilder(
-          animation: Listenable.merge(<Listenable>[_effectAnimation, _morph]),
+          animation: Listenable.merge(<Listenable>[
+            _effectAnimation,
+            _morph,
+            _roll,
+          ]),
           builder: (BuildContext context, Widget? _) {
             final DigitTransform? transform = widget.effect == null
                 ? null
@@ -146,7 +183,22 @@ class _BigNumberState extends State<BigNumber> with TickerProviderStateMixin {
               }
 
               slots.add(
-                _wrap(transform, i, digits.length, _digitSlot(digits[i], size)),
+                _wrap(
+                  transform,
+                  i,
+                  digits.length,
+                  SizedBox(
+                    width: size * kDigitSlotRatio,
+                    child: RollingDigit(
+                      previous: aligned[i].previous,
+                      current: aligned[i].current,
+                      progress: _roll.value,
+                      rollingUp: _rollingUp,
+                      height: size,
+                      builder: (String digit) => _digitGlyph(digit, size),
+                    ),
+                  ),
+                ),
               );
             }
 
@@ -177,7 +229,10 @@ class _BigNumberState extends State<BigNumber> with TickerProviderStateMixin {
     );
   }
 
-  Widget _digitSlot(String digit, double size) {
+  Widget _digitSlot(String digit, double size) =>
+      SizedBox(width: size * kDigitSlotRatio, child: _digitGlyph(digit, size));
+
+  Widget _digitGlyph(String digit, double size) {
     return SizedBox(
       width: size * kDigitSlotRatio,
       child: Text(
