@@ -219,6 +219,54 @@ void main() {
       );
     });
 
+    /// Il bagliore è dello schermo, non della sola area sotto il numerone:
+    /// anche la fascia sinistra del -1 si deve scaldare.
+    testWidgets('il bagliore copre tutto, zona -1 compresa', (
+      WidgetTester tester,
+    ) async {
+      tester.view.physicalSize = const Size(1920, 1200);
+      tester.view.devicePixelRatio = 1.0;
+      addTearDown(tester.view.reset);
+
+      final FakeClock clock = await pumpScreen(tester, await repoWith(0));
+      await tapIncrement(tester, clock, kComboMinCount);
+      await tester.pump();
+
+      expect(
+        tester.getRect(find.byKey(kComboGlowKey)),
+        const Rect.fromLTWH(0, 0, 1920, 1200),
+      );
+    });
+
+    /// I timbri escono ai due lati del marchio HoMD: sono grossi, e se
+    /// nascessero al centro se lo mangerebbero.
+    testWidgets('i timbri lasciano libero il marchio al centro', (
+      WidgetTester tester,
+    ) async {
+      tester.view.physicalSize = const Size(1920, 1200);
+      tester.view.devicePixelRatio = 1.0;
+      addTearDown(tester.view.reset);
+
+      final FakeClock clock = await pumpScreen(tester, await repoWith(0));
+      // Fuori lo splash: finche' e' a video i marchi a schermo sono due.
+      await tester.pump(kSplashHold);
+      await tester.pumpAndSettle();
+
+      await tapIncrement(tester, clock, kComboCiommoThreshold + 1);
+      await tester.pump(kComboStampDuration);
+
+      final Rect marchio = tester.getRect(find.byType(HomdMark));
+      expect(find.byType(Image), findsNWidgets(2));
+      for (int i = 0; i < 2; i++) {
+        final Rect timbro = tester.getRect(find.byType(Image).at(i));
+        expect(
+          timbro.left >= marchio.right || timbro.right <= marchio.left,
+          isTrue,
+          reason: 'il timbro sta tutto da un lato del marchio',
+        );
+      }
+    });
+
     testWidgets('scaduta la finestra la combo sfuma via', (
       WidgetTester tester,
     ) async {

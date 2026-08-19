@@ -260,12 +260,34 @@ const double kComboPitchMax = 1.8;
 /// Quanti timbri "Ciommo Approved" al massimo contemporaneamente a schermo.
 const int kComboCiommoMaxStamps = 5;
 
+/// Quanto rosso di fondo prende TUTTO lo schermo al culmine della combo:
+/// il bagliore non si ferma alle zone di tap, tinge anche la fascia -1.
+const double kComboGlowBaseAlpha = 0.10;
+
+/// Raggio del nucleo caldo attorno al numerone, in frazione del lato corto.
+/// Oltre 1 perché deve arrivare fino agli angoli, non spegnersi a metà.
+const double kComboGlowRadius = 1.2;
+
 /// Durata della dissolvenza a fine combo.
 /// «Gli effetti sfumano dolcemente» (ANIMATIONS_SPEC → Fine combo).
 const Duration kComboFadeDuration = Duration(milliseconds: 450);
 
-/// Durata dello schiaffo di timbro di Ciommo.
+/// Durata della salita di un timbro di Ciommo.
 const Duration kComboStampDuration = Duration(milliseconds: 260);
+
+/// Durata della discesa con cui il timbro esce di scena.
+const Duration kComboStampExitDuration = Duration(milliseconds: 320);
+
+/// Altezza di un timbro "Ciommo Approved". Grosso di proposito: è la firma
+/// della combo, si deve vedere dall'altra parte del bancone.
+const double kComboStampHeight = 288;
+
+/// Quanto resta sollevato dal bordo basso, per non finire sulla bandierina.
+const double kComboStampBottom = kDutchFlagHeight + 6;
+
+/// Distanza dal bordo alto del blocco combo (moltiplicatore + testo), che in
+/// alto al centro ci sta di casa.
+const double kTopOverlayTop = 40;
 
 // ---------------------------------------------------------------------------
 // Asset immagine
