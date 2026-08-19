@@ -251,6 +251,12 @@ const int kSfxPoolSize = 6;
 /// strike dei multipli di 1000. Corrisponde alla durata di `bowling_roll.wav`.
 const Duration kStrikeImpactDelay = Duration(milliseconds: 1800);
 
+/// La parola che sbatte in alto quando la palla colpisce.
+const String kStrikeText = 'STRIKE!';
+
+/// Corpo della parola: più grande dei testi combo, è il momento più epico.
+const double kStrikeTextSize = 88;
+
 // ---------------------------------------------------------------------------
 // Combo — parametri di taratura
 // ---------------------------------------------------------------------------

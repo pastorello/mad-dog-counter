@@ -22,7 +22,71 @@ import 'effect_catalog.dart';
 final double _impactAt =
     kStrikeImpactDelay.inMilliseconds / kStrikeDuration.inMilliseconds;
 
-Widget buildStrikeOverlay(BuildContext context) => const _BowlingBall();
+Widget buildStrikeOverlay(BuildContext context) => const _StrikeOverlay();
+
+/// I due pezzi dell'overlay: la palla che attraversa e la parola che sbatte
+/// in alto al centro, nella stessa fascia dei testi della combo.
+class _StrikeOverlay extends StatelessWidget {
+  const _StrikeOverlay();
+
+  @override
+  Widget build(BuildContext context) {
+    return const Stack(
+      children: <Widget>[
+        Positioned.fill(child: _BowlingBall()),
+        Positioned(
+          top: kTopOverlayTop,
+          left: 0,
+          right: 0,
+          child: _StrikeWord(),
+        ),
+      ],
+    );
+  }
+}
+
+/// «STRIKE!»: compare all'impatto, non prima — la palla deve arrivarci.
+class _StrikeWord extends StatelessWidget {
+  const _StrikeWord();
+
+  @override
+  Widget build(BuildContext context) {
+    return IgnorePointer(
+      child: TweenAnimationBuilder<double>(
+        tween: Tween<double>(begin: 0, end: 1),
+        duration: kStrikeDuration,
+        builder: (BuildContext context, double t, Widget? child) {
+          // Prima dell'impatto non c'è niente da vedere.
+          if (t < _impactAt) return const SizedBox.shrink();
+
+          // Tempo della parola: 0 all'impatto, 1 a fine effetto.
+          final double u = (t - _impactAt) / (1 - _impactAt);
+          // Entra di schianto e rimbalza appena, poi sfuma sul finale.
+          final double punch = u < 0.18 ? 1.6 - 0.6 * (u / 0.18) : 1;
+          final double opacity = u > 0.72 ? math.max(0, (1 - u) / 0.28) : 1;
+
+          return Opacity(
+            opacity: opacity,
+            child: Transform.scale(scale: punch, child: child),
+          );
+        },
+        child: const Text(
+          kStrikeText,
+          textAlign: TextAlign.center,
+          style: TextStyle(
+            fontFamily: kDisplayFont,
+            fontSize: kStrikeTextSize,
+            color: kCelebrationGold,
+            shadows: <Shadow>[
+              Shadow(color: kPrimaryRed, blurRadius: 24),
+              Shadow(color: kBackground, blurRadius: 8),
+            ],
+          ),
+        ),
+      ),
+    );
+  }
+}
 
 class _BowlingBall extends StatelessWidget {
   const _BowlingBall();

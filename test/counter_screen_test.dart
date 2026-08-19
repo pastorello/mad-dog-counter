@@ -368,6 +368,24 @@ void main() {
       await tester.pumpAndSettle();
     });
 
+    testWidgets('lo strike scrive STRIKE! in alto', (
+      WidgetTester tester,
+    ) async {
+      await pumpScreen(tester, await repoWith(999));
+      expect(find.text(kStrikeText), findsNothing);
+
+      await tapOnce(tester);
+      // La parola arriva con la palla, non prima.
+      expect(find.text(kStrikeText), findsNothing);
+
+      await tester.pump(kStrikeImpactDelay);
+      expect(find.text(kStrikeText), findsOneWidget);
+
+      await tester.pump(kStrikeDuration);
+      await tester.pumpAndSettle();
+      expect(find.text(kStrikeText), findsNothing);
+    });
+
     testWidgets('arrivare a 1000 fa lo strike, non i fuochi', (
       WidgetTester tester,
     ) async {
