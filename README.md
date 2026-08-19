@@ -46,8 +46,8 @@ Prima di ogni commit: `dart format lib test` e `flutter analyze` puliti. La CI r
 
 | | |
 |---|---|
-| ✅ Fatto | Contatore con persistenza, clamp a zero, log tap, zone di tap, landscape + wakelock, SoundManager, motore effetti con coda e kill switch, combo con Ciommo, i quattro easter egg del catalogo, faccina idle, pannello impostazioni, backup giornaliero, roll delle cifre, 166 test |
-| ⬜ Da fare | Splash. E la taratura di durate e ampiezze sul tablet vero: finora nessuno ha ancora visto girare l'app |
+| ✅ Fatto | Contatore con persistenza, clamp a zero, log tap, zone di tap, landscape + wakelock, SoundManager, motore effetti con coda e kill switch, combo con Ciommo, i quattro easter egg del catalogo, faccina idle, pannello impostazioni, backup giornaliero, roll delle cifre, splash di brand, 171 test |
+| ⬜ Da fare | Le feature MVP ci sono tutte. Resta la taratura di durate, ampiezze e volumi sul tablet vero: finora nessuno ha ancora visto girare l'app |
 
 Ordine di implementazione consigliato in [docs/ANIMATIONS_SPEC.md](docs/ANIMATIONS_SPEC.md) → Priorità.
 

@@ -13,7 +13,9 @@ import 'package:mad_dog_counter/ui/effects/boobs_digits.dart';
 import 'package:mad_dog_counter/ui/effects/combo_overlay.dart';
 import 'package:mad_dog_counter/ui/effects/idle_face.dart';
 import 'package:mad_dog_counter/ui/widgets/panic_button.dart';
+import 'package:mad_dog_counter/ui/widgets/homd_mark.dart';
 import 'package:mad_dog_counter/ui/widgets/rolling_digit.dart';
+import 'package:mad_dog_counter/ui/widgets/splash_overlay.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 
 Future<LocalCounterRepository> repoWith(int total) async {
@@ -552,6 +554,82 @@ void main() {
           .last;
       expect(unita.previous, '1', reason: 'si riparte da quello che si vede');
       expect(unita.current, '2');
+    });
+  });
+
+  group('splash', () {
+    Future<void> waitOutSplash(WidgetTester tester) async {
+      await tester.pump(kSplashHold);
+      // La dissolvenza parte al frame dopo che il timer e' scaduto, e
+      // onEnd arriva alla fine di quella: pumpAndSettle le copre entrambe.
+      await tester.pumpAndSettle();
+    }
+
+    testWidgets('all avvio mostra il logo', (WidgetTester tester) async {
+      await pumpScreen(tester, await repoWith(239338));
+
+      expect(find.byType(SplashOverlay), findsOneWidget);
+      expect(find.byType(HomdMark), findsOneWidget);
+      expect(find.text(kBrandNameLine1), findsOneWidget);
+      expect(find.text(kBrandNameLine2), findsOneWidget);
+      expect(find.text(kBrandPub), findsOneWidget);
+      expect(find.text(kBrandTagline), findsOneWidget);
+
+      await waitOutSplash(tester);
+    });
+
+    testWidgets('poi svanisce e lascia il contatore', (
+      WidgetTester tester,
+    ) async {
+      await pumpScreen(tester, await repoWith(1234));
+      await waitOutSplash(tester);
+
+      expect(find.byType(SplashOverlay), findsNothing);
+      expect(find.text('4'), findsOneWidget);
+    });
+
+    testWidgets('un tap mentre il logo e a video conta lo stesso', (
+      WidgetTester tester,
+    ) async {
+      // E' il punto che conta: lo splash non deve mai mangiare un cicchetto.
+      final LocalCounterRepository repo = await repoWith(100);
+      await pumpScreen(tester, repo);
+      expect(find.byType(SplashOverlay), findsOneWidget);
+
+      final Size size = tester.view.physicalSize / tester.view.devicePixelRatio;
+      await tester.tapAt(Offset(size.width * 0.8, size.height / 2));
+      await tester.pump();
+
+      expect(repo.total, 101);
+      await waitOutSplash(tester);
+    });
+
+    testWidgets('il logo sta dentro allo schermo del tablet', (
+      WidgetTester tester,
+    ) async {
+      tester.view.physicalSize = const Size(1920, 1200);
+      tester.view.devicePixelRatio = 1.0;
+      addTearDown(tester.view.reset);
+
+      await pumpScreen(tester, await repoWith(239338));
+      await tester.pump();
+
+      expect(tester.takeException(), isNull);
+      await waitOutSplash(tester);
+    });
+
+    testWidgets('e ci sta anche su uno schermo stretto', (
+      WidgetTester tester,
+    ) async {
+      tester.view.physicalSize = const Size(800, 480);
+      tester.view.devicePixelRatio = 1.0;
+      addTearDown(tester.view.reset);
+
+      await pumpScreen(tester, await repoWith(239338));
+      await tester.pump();
+
+      expect(tester.takeException(), isNull);
+      await waitOutSplash(tester);
     });
   });
 }
