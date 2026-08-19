@@ -478,6 +478,36 @@ void main() {
       expect(find.byType(IdleFace), findsOneWidget);
     });
 
+    testWidgets('sta in cima, non in mezzo al numerone', (
+      WidgetTester tester,
+    ) async {
+      tester.view.physicalSize = const Size(1920, 1200);
+      tester.view.devicePixelRatio = 1.0;
+      addTearDown(tester.view.reset);
+
+      await pumpScreen(tester, await repoWith(10));
+      await tester.pump(const Duration(minutes: kIdleMinutesDefault));
+      await tester.pump();
+
+      expect(find.byType(IdleFace), findsOneWidget);
+      // IdleFace occupa tutto lo schermo: quello che conta è dove finisce il
+      // disegno, cioè il riquadro da kIdleFaceSize.
+      final Rect faccia = tester.getRect(
+        find.descendant(
+          of: find.byType(IdleFace),
+          matching: find.byWidgetPredicate(
+            (Widget w) => w is SizedBox && w.height == kIdleFaceSize,
+          ),
+        ),
+      );
+      expect(
+        faccia.center.dy,
+        lessThan(1200 / 2),
+        reason: 'la faccina vive nella metà alta dello schermo',
+      );
+      expect(faccia.top, closeTo(kIdleFaceTop, 12), reason: 'sta in cima');
+    });
+
     testWidgets('un tap la sveglia e la manda via', (
       WidgetTester tester,
     ) async {

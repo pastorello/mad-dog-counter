@@ -395,6 +395,14 @@ const Duration kIdleBreathDuration = Duration(milliseconds: 3600);
 /// riferimento non è un colore di brand, questo sì e gli somiglia.
 const Color kIdleFaceColor = kCelebrationGold;
 
+/// L'azzurro della lacrima. Il blu di brand pieno, su fondo scuro, spariva:
+/// questo è lo stesso blu schiarito, resta di famiglia ma si vede.
+const Color kIdleTearBlue = Color(0xFF7FB2FF);
+
+/// Raggio della lacrima, in frazione dell'occhio. Raddoppiato: prima era una
+/// puntina e il dispiacere non si leggeva.
+const double kIdleTearRadiusFactor = 0.40;
+
 /// Il riflesso pallido in fondo agli occhioni. Bianco sporco, mai puro.
 const Color kIdleEyeSheen = kTextColor;
 

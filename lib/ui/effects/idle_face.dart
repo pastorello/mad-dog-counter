@@ -61,43 +61,48 @@ class _IdleFaceState extends State<IdleFace> with TickerProviderStateMixin {
   @override
   Widget build(BuildContext context) {
     return IgnorePointer(
-      child: Center(
-        child: AnimatedBuilder(
-          animation: Listenable.merge(<Listenable>[_breath, _wake]),
-          builder: (BuildContext context, Widget? _) {
-            final double breath = _breath.value;
-            final double wake = _wake.value;
+      child: Align(
+        // In cima al centro, nella fascia dei contatori della combo.
+        alignment: Alignment.topCenter,
+        child: Padding(
+          padding: const EdgeInsets.only(top: kIdleFaceTop),
+          child: AnimatedBuilder(
+            animation: Listenable.merge(<Listenable>[_breath, _wake]),
+            builder: (BuildContext context, Widget? _) {
+              final double breath = _breath.value;
+              final double wake = _wake.value;
 
-            // Uscita: un guizzo in su, poi si rimpicciolisce svanendo.
-            final double wakeScale = widget.waking ? 1 + wake * 0.6 : 1;
-            final double wakeOpacity = widget.waking ? 1 - wake : 1;
+              // Uscita: un guizzo in su, poi si rimpicciolisce svanendo.
+              final double wakeScale = widget.waking ? 1 + wake * 0.6 : 1;
+              final double wakeOpacity = widget.waking ? 1 - wake : 1;
 
-            // Respiro: sale e scende piano, e si gonfia appena. È il sospiro.
-            final double bob = math.sin(breath * 2 * math.pi) * 10;
-            final double breathScale =
-                1 + math.sin(breath * 2 * math.pi) * 0.025;
+              // Respiro: sale e scende piano, e si gonfia appena. È il sospiro.
+              final double bob = math.sin(breath * 2 * math.pi) * 10;
+              final double breathScale =
+                  1 + math.sin(breath * 2 * math.pi) * 0.025;
 
-            return Opacity(
-              opacity: wakeOpacity.clamp(0.0, 1.0),
-              child: Transform.translate(
-                offset: Offset(0, bob),
-                child: Transform.scale(
-                  scale: breathScale * wakeScale,
-                  child: SizedBox(
-                    width: kIdleFaceSize,
-                    height: kIdleFaceSize,
-                    child: CustomPaint(
-                      painter: _FacePainter(
-                        // La lacrima gonfia e cade una volta per respiro.
-                        tear: breath,
-                        joy: widget.waking ? wake : 0,
+              return Opacity(
+                opacity: wakeOpacity.clamp(0.0, 1.0),
+                child: Transform.translate(
+                  offset: Offset(0, bob),
+                  child: Transform.scale(
+                    scale: breathScale * wakeScale,
+                    child: SizedBox(
+                      width: kIdleFaceSize,
+                      height: kIdleFaceSize,
+                      child: CustomPaint(
+                        painter: _FacePainter(
+                          // La lacrima gonfia e cade una volta per respiro.
+                          tear: breath,
+                          joy: widget.waking ? wake : 0,
+                        ),
                       ),
                     ),
                   ),
                 ),
-              ),
-            );
-          },
+              );
+            },
+          ),
         ),
       ),
     );
@@ -192,33 +197,55 @@ class _FacePainter extends CustomPainter {
     final double dy = eyeR * 0.9 + fall * faceR * 1.05;
     final double opacity = fall < 0.75 ? 1 : (1 - fall) / 0.25;
     final Offset drop = Offset(eye.dx + eyeR * 0.30, eye.dy + dy);
-    final double dropR = eyeR * 0.20 * (1 - fall * 0.25);
+    final double r = eyeR * kIdleTearRadiusFactor * (1 - fall * 0.25);
+    final double alpha = opacity.clamp(0.0, 1.0);
 
-    final Paint water = Paint()
-      ..color = kAccentBlue.withValues(alpha: opacity.clamp(0.0, 1.0) * 0.85);
+    final Paint water = Paint()..color = kIdleTearBlue.withValues(alpha: alpha);
 
-    // Goccia: cerchio con la punta in su.
+    // Goccia vera: punta in alto, pancia tonda in basso. I due fianchi sono
+    // cubiche simmetriche che si chiudono sulla punta, non archi accostati:
+    // è quello che prima faceva un profilo storto.
+    final double tipY = drop.dy - r * 2.2;
     final Path path = Path()
-      ..moveTo(drop.dx, drop.dy - dropR * 2)
-      ..quadraticBezierTo(
-        drop.dx + dropR,
-        drop.dy - dropR * 0.4,
-        drop.dx + dropR * 0.75,
+      ..moveTo(drop.dx, tipY)
+      ..cubicTo(
+        drop.dx + r * 0.32,
+        tipY + r * 0.7,
+        drop.dx + r * 1.06,
+        drop.dy - r * 0.9,
+        drop.dx + r,
         drop.dy,
       )
       ..arcToPoint(
-        Offset(drop.dx - dropR * 0.75, drop.dy),
-        radius: Radius.circular(dropR),
+        Offset(drop.dx - r, drop.dy),
+        radius: Radius.circular(r),
         clockwise: false,
       )
-      ..quadraticBezierTo(
-        drop.dx - dropR,
-        drop.dy - dropR * 0.4,
+      ..cubicTo(
+        drop.dx - r * 1.06,
+        drop.dy - r * 0.9,
+        drop.dx - r * 0.32,
+        tipY + r * 0.7,
         drop.dx,
-        drop.dy - dropR * 2,
+        tipY,
       )
       ..close();
     canvas.drawPath(path, water);
+
+    // Bordo chiaro e riflesso: sul fondo scuro una goccia piatta sparisce,
+    // con un filo di luce sembra acqua.
+    canvas.drawPath(
+      path,
+      Paint()
+        ..color = kIdleEyeSheen.withValues(alpha: alpha * 0.35)
+        ..style = PaintingStyle.stroke
+        ..strokeWidth = r * 0.12,
+    );
+    canvas.drawCircle(
+      Offset(drop.dx - r * 0.32, drop.dy - r * 0.34),
+      r * 0.30,
+      Paint()..color = kIdleEyeSheen.withValues(alpha: alpha * 0.95),
+    );
   }
 
   /// Le due manine sotto il mento.
