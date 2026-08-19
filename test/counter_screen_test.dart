@@ -104,7 +104,11 @@ void main() {
     await tester.pumpAndSettle();
 
     expect(repo.total, 0);
-    expect(find.text('0'), findsOneWidget);
+    expect(
+      find.text('0'),
+      findsNWidgets(kCounterDigits),
+      reason: 'a zero il tabellone mostra 000000',
+    );
   });
 
   group('pulsante panico', () {
@@ -140,7 +144,7 @@ void main() {
       await tester.pumpAndSettle();
       expect(find.byType(PanicBlast), findsNothing);
       expect(find.text('1'), findsOneWidget);
-      expect(find.text('0'), findsOneWidget);
+      expect(find.text('0'), findsNWidgets(kCounterDigits - 1));
     });
 
     testWidgets('sta sopra la zona +1: un tap sull angolo non incrementa', (
@@ -260,7 +264,9 @@ void main() {
       expect(find.text('9'), findsOneWidget);
     });
 
-    testWidgets('con poche cifre il numero resta grande', (
+    /// Con gli zeri davanti gli slot sono sempre sei, quindi il numerone non
+    /// cambia piu' dimensione da un totale all'altro: e' un tabellone fisso.
+    testWidgets('la dimensione non dipende dal totale', (
       WidgetTester tester,
     ) async {
       tester.view.physicalSize = const Size(1920, 1200);
@@ -269,12 +275,28 @@ void main() {
 
       await pumpScreen(tester, await repoWith(7));
       await tester.pumpAndSettle();
-
-      final Text digit = tester.widget<Text>(find.text('7'));
       expect(
-        digit.style!.fontSize,
-        1200 * kBigNumberHeightFraction,
-        reason: 'con una cifra sola comanda l altezza, non la larghezza',
+        find.text('0'),
+        findsNWidgets(kCounterDigits - 1),
+        reason: 'il 7 arriva imbottito di zeri',
+      );
+      final double conUnaCifra = tester
+          .widget<Text>(find.text('7'))
+          .style!
+          .fontSize!;
+
+      await pumpScreen(tester, await repoWith(239338));
+      await tester.pumpAndSettle();
+      final double conSeiCifre = tester
+          .widget<Text>(find.text('2'))
+          .style!
+          .fontSize!;
+
+      expect(conUnaCifra, conSeiCifre);
+      expect(
+        conUnaCifra,
+        1920 * kBigNumberWidthFraction / kCounterDigits / kDigitSlotRatio,
+        reason: 'con sei slot comanda sempre la larghezza',
       );
     });
   });
@@ -528,14 +550,15 @@ void main() {
       final List<RollingDigit> slots = tester
           .widgetList<RollingDigit>(find.byType(RollingDigit))
           .toList();
-      expect(slots, hasLength(3));
+      expect(slots, hasLength(kCounterDigits));
       expect(
-        slots[0].previous,
-        '',
-        reason: 'la cifra nuova non viene da nulla',
+        slots[3].previous,
+        '0',
+        reason: 'la cifra nuova sale dallo zero di riempimento',
       );
-      expect(slots[2].previous, '9');
-      expect(slots[2].current, '0');
+      expect(slots[3].current, '1');
+      expect(slots.last.previous, '9');
+      expect(slots.last.current, '0');
     });
 
     testWidgets('un tap durante un roll riparte dal numero visibile', (

@@ -298,6 +298,11 @@ const String kSettingsInvalidNumber =
 // Numerone
 // ---------------------------------------------------------------------------
 
+/// Quante cifre mostra sempre il contatore, zeri davanti compresi: il
+/// numerone del pub è un tabellone, non un numero che cresce (`000000`,
+/// `000001`, …). Oltre questa larghezza il numero continua a crescere e basta.
+const int kCounterDigits = 6;
+
 /// Quanta altezza dello schermo può occupare una cifra.
 const double kBigNumberHeightFraction = 0.45;
 

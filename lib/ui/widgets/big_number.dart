@@ -3,7 +3,7 @@
 /// Sa fare tre cose e nient'altro:
 /// - disporre le cifre in slot a larghezza fissa, perché i font brush non
 ///   hanno cifre tabular e il numero ballerebbe a ogni cifra che cambia;
-/// - stare dentro allo schermo, anche col totale a sei cifre;
+/// - stare dentro allo schermo, col totale sempre a sei cifre;
 /// - applicare a ogni cifra la trasformazione dell'effetto in corso, presa
 ///   dal catalogo.
 ///
@@ -20,6 +20,10 @@ import '../../state/effect_triggers.dart';
 import '../effects/boobs_digits.dart';
 import '../effects/effect_catalog.dart';
 import 'rolling_digit.dart';
+
+/// Le cifre da disegnare per [total]: sempre [kCounterDigits], con gli zeri
+/// davanti. Oltre quella larghezza il numero si allunga da sé.
+String _digitsOf(int total) => total.toString().padLeft(kCounterDigits, '0');
 
 class BigNumber extends StatefulWidget {
   const BigNumber({
@@ -67,7 +71,7 @@ class _BigNumberState extends State<BigNumber> with TickerProviderStateMixin {
   @override
   void initState() {
     super.initState();
-    _previousDigits = widget.total.toString();
+    _previousDigits = _digitsOf(widget.total);
     if (widget.boobsActive) _morph.value = 1;
     _startEffect();
   }
@@ -79,7 +83,7 @@ class _BigNumberState extends State<BigNumber> with TickerProviderStateMixin {
       // Un tap può arrivare mentre il roll precedente è ancora in corso
       // (le combo sono fatte apposta): si riparte da quello che si vede
       // adesso, cioè dal numero vecchio, senza scatti.
-      _previousDigits = oldWidget.total.toString();
+      _previousDigits = _digitsOf(oldWidget.total);
       _rollingUp = widget.total > oldWidget.total;
       _roll.forward(from: 0);
     }
@@ -113,11 +117,14 @@ class _BigNumberState extends State<BigNumber> with TickerProviderStateMixin {
 
   @override
   Widget build(BuildContext context) {
-    final String digits = widget.total.toString();
+    final String digits = _digitsOf(widget.total);
+    // Gli zeri davanti spostano a destra le cifre vere, quindi gli indici che
+    // arrivano dal trigger (calcolati sul numero nudo) vanno traslati.
+    final int pad = digits.length - widget.total.toString().length;
     // Le coppie si calcolano sul totale corrente; durante il morph inverso
     // il disegno resta al suo posto perché l'opacità scende, non la struttura.
     final Set<int> pairStarts = widget.boobsActive
-        ? adjacentEightPairs(widget.total).toSet()
+        ? adjacentEightPairs(widget.total).map((int i) => i + pad).toSet()
         : const <int>{};
 
     return LayoutBuilder(
