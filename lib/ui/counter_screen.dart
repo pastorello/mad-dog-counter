@@ -76,6 +76,9 @@ class _CounterScreenState extends ConsumerState<CounterScreen> {
         .watch(counterTotalProvider)
         .maybeWhen(data: (int value) => value, orElse: () => kInitialCount);
 
+    // Tiene vivo il controllo del backup finché la schermata è a video.
+    ref.watch(backupWatcherProvider);
+
     final EffectsState effects = ref
         .watch(effectsStateProvider)
         .maybeWhen(

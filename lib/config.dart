@@ -325,3 +325,17 @@ const Color kIdleFaceColor = kCelebrationGold;
 
 /// Il riflesso pallido in fondo agli occhioni. Bianco sporco, mai puro.
 const Color kIdleEyeSheen = kTextColor;
+
+// ---------------------------------------------------------------------------
+// Backup giornaliero
+// ---------------------------------------------------------------------------
+
+/// Quanti file di backup tenere. Oltre, i più vecchi si cancellano.
+const int kBackupRetentionDays = 7;
+
+/// Chiave shared_preferences dell'ultimo giorno di cui esiste un backup,
+/// in formato `YYYYMMDD`.
+const String kPrefsLastBackupDay = 'last_backup_day';
+
+/// Sottocartella dei backup nella storage esterna dell'app.
+const String kBackupDirName = 'backups';

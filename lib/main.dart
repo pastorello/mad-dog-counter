@@ -1,12 +1,15 @@
 import 'dart:async';
+import 'dart:io';
 
 import 'package:flutter/material.dart';
+import 'package:path_provider/path_provider.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:wakelock_plus/wakelock_plus.dart';
 
 import 'audio/sound_manager.dart';
 import 'config.dart';
+import 'data/backup_service.dart';
 import 'data/counter_repository.dart';
 import 'data/settings_repository.dart';
 import 'data/tap_log.dart';
@@ -48,6 +51,25 @@ Future<void> main() async {
   final SettingsRepository settings = await SettingsRepository.open();
   sounds.enabled = settings.soundEnabled;
 
+  // Il backup e' l'unica rete sotto al conteggio finche' non arriva la fase 2.
+  // Se la storage esterna non c'e', l'app conta lo stesso: senza rete, ma
+  // conta (regola d'oro 2).
+  BackupService? backup;
+  try {
+    final Directory? external = await getExternalStorageDirectory();
+    if (external != null) {
+      backup = BackupService(
+        directory: Directory('${external.path}/$kBackupDirName'),
+        log: log,
+        readTotal: () => repository.total,
+        readLastBackupDay: () => settings.lastBackupDay,
+        writeLastBackupDay: settings.setLastBackupDay,
+      );
+    }
+  } catch (_) {
+    backup = null;
+  }
+
   runApp(
     ProviderScope(
       overrides: [
@@ -55,6 +77,7 @@ Future<void> main() async {
         counterRepositoryProvider.overrideWithValue(repository),
         soundManagerProvider.overrideWithValue(sounds),
         settingsRepositoryProvider.overrideWithValue(settings),
+        backupServiceProvider.overrideWithValue(backup),
       ],
       child: const MadDogCounterApp(),
     ),

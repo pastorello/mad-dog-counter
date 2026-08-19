@@ -69,6 +69,8 @@ Il subentro al vecchio counter **non è automatico**: il giorno dell'installazio
 
 Se il tablet muore o l'app viene disinstallata, il conteggio locale va perso. Mitigazione minima ed economica: ogni giorno alla prima apertura/scrittura, salvare una copia di `counter_total` e un dump del log in un file nella storage esterna dell'app (`backup_YYYYMMDD.json`, tenere gli ultimi 7). Non è un backup vero, ma salva dal 90% dei disastri. La soluzione definitiva è la fase 2.
 
+**Implementato** in `data/backup_service.dart`. Nota sul trigger: il controllo gira a ogni scrittura, non solo all'avvio. Il tablet resta acceso a muro per settimane, quindi legarlo all'apertura dell'app vorrebbe dire un backup al mese. Il controllo è un confronto di date, la scrittura è fire-and-forget: nessun tap aspetta il disco, e un backup fallito non segna il giorno, così si ritenta al tap successivo.
+
 ## Struttura progetto Flutter (indicativa)
 
 ```

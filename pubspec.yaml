@@ -41,6 +41,7 @@ dependencies:
   wakelock_plus: ^1.7.0
   confetti: ^0.8.0
   audioplayers: ^6.8.1
+  path_provider: ^2.1.6
 
 dev_dependencies:
   flutter_test:
