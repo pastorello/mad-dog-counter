@@ -230,3 +230,38 @@ const int kSfxPoolSize = 6;
 /// Ritardo tra il rotolamento della palla e l'impatto sui birilli, nello
 /// strike dei multipli di 1000. Corrisponde alla durata di `bowling_roll.wav`.
 const Duration kStrikeImpactDelay = Duration(milliseconds: 1800);
+
+// ---------------------------------------------------------------------------
+// Combo — parametri di taratura
+// ---------------------------------------------------------------------------
+
+/// Da quanti tap consecutivi si vede il moltiplicatore.
+/// Sotto questa soglia non c'è ancora "combo", c'è solo gente che conta.
+const int kComboMinCount = 2;
+
+/// Di quanto sale il pitch del pop a ogni tap della combo.
+/// Si riusa `tap_pop.wav` accelerandolo, invece di un file per livello.
+const double kComboPitchStep = 0.06;
+
+/// Tetto del pitch: oltre, il pop diventa un fischio.
+const double kComboPitchMax = 1.8;
+
+/// Quanti timbri "Ciommo Approved" al massimo contemporaneamente a schermo.
+const int kComboCiommoMaxStamps = 5;
+
+/// Durata della dissolvenza a fine combo.
+/// «Gli effetti sfumano dolcemente» (ANIMATIONS_SPEC → Fine combo).
+const Duration kComboFadeDuration = Duration(milliseconds: 450);
+
+/// Durata dello schiaffo di timbro di Ciommo.
+const Duration kComboStampDuration = Duration(milliseconds: 260);
+
+// ---------------------------------------------------------------------------
+// Asset immagine
+// ---------------------------------------------------------------------------
+
+/// Timbro "Ciommo Approved", line-art bianco sporco su fondo scuro.
+const String kImgCiommoApproved = 'assets/images/ciommo_approved.png';
+
+/// Variante badge rotonda dello stesso timbro.
+const String kImgCiommoSticker = 'assets/images/ciommo_sticker_round.png';

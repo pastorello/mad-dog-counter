@@ -13,6 +13,7 @@ import '../config.dart';
 import '../state/counter_provider.dart';
 import '../state/effect_triggers.dart';
 import '../state/effects_provider.dart';
+import 'effects/combo_overlay.dart';
 import 'effects/effect_catalog.dart';
 import 'widgets/dutch_flag_divider.dart';
 import 'widgets/panic_button.dart';
@@ -29,7 +30,7 @@ class _CounterScreenState extends ConsumerState<CounterScreen> {
 
   /// Debounce contro i doppi tocchi hardware, senza penalizzare le combo.
   bool _debounced() {
-    final DateTime now = DateTime.now();
+    final DateTime now = ref.read(clockProvider)();
     final DateTime? last = _lastTap;
     if (last != null && now.difference(last) < kTapDebounce) return true;
     _lastTap = now;
@@ -109,6 +110,10 @@ class _CounterScreenState extends ConsumerState<CounterScreen> {
             bottom: 0,
             child: DutchFlagDivider(),
           ),
+
+          // L'overlay della combo: sotto agli effetti in coda, sopra il
+          // numerone.
+          Positioned.fill(child: ComboOverlay(combo: effects.combo)),
 
           // L'effetto in scena. Il motore scandisce durate e suoni anche per
           // gli effetti che non hanno ancora un widget nel catalogo.

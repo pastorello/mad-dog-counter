@@ -5,6 +5,8 @@ import 'package:mad_dog_counter/config.dart';
 import 'package:mad_dog_counter/data/counter_repository.dart';
 import 'package:mad_dog_counter/state/counter_provider.dart';
 import 'package:mad_dog_counter/ui/counter_screen.dart';
+import 'package:mad_dog_counter/state/combo_machine.dart';
+import 'package:mad_dog_counter/ui/effects/combo_overlay.dart';
 import 'package:mad_dog_counter/ui/widgets/panic_button.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 
@@ -15,14 +17,32 @@ Future<LocalCounterRepository> repoWith(int total) async {
   return LocalCounterRepository.open();
 }
 
-Future<void> pumpScreen(WidgetTester tester, CounterRepository repo) async {
+/// Orologio pilotato a mano: il debounce dei tap non deve dipendere da quanto
+/// e' veloce la macchina che esegue i test.
+class FakeClock {
+  DateTime _now = DateTime(2026);
+
+  DateTime call() => _now;
+
+  void advance(Duration d) => _now = _now.add(d);
+}
+
+Future<FakeClock> pumpScreen(
+  WidgetTester tester,
+  CounterRepository repo,
+) async {
+  final FakeClock clock = FakeClock();
   await tester.pumpWidget(
     ProviderScope(
-      overrides: [counterRepositoryProvider.overrideWithValue(repo)],
+      overrides: [
+        counterRepositoryProvider.overrideWithValue(repo),
+        clockProvider.overrideWithValue(clock.call),
+      ],
       child: const MaterialApp(home: CounterScreen()),
     ),
   );
   await tester.pump();
+  return clock;
 }
 
 void main() {
@@ -123,6 +143,90 @@ void main() {
       await tester.pump();
 
       expect(repo.total, 10);
+    });
+  });
+
+  group('overlay della combo', () {
+    /// Tap ravvicinati ma oltre il debounce: e' il tapping di una combo.
+    Future<void> tapIncrement(
+      WidgetTester tester,
+      FakeClock clock,
+      int times,
+    ) async {
+      final Size size = tester.view.physicalSize / tester.view.devicePixelRatio;
+      for (int i = 0; i < times; i++) {
+        await tester.tapAt(Offset(size.width * 0.8, size.height / 2));
+        clock.advance(kTapDebounce * 2);
+        await tester.pump(const Duration(milliseconds: 16));
+      }
+    }
+
+    testWidgets('il moltiplicatore compare dal secondo tap', (
+      WidgetTester tester,
+    ) async {
+      final FakeClock clock = await pumpScreen(tester, await repoWith(0));
+      expect(find.text('x$kComboMinCount'), findsNothing);
+
+      // Un tap solo non e' ancora una combo.
+      await tapIncrement(tester, clock, 1);
+      await tester.pump();
+      expect(find.text('x1'), findsNothing);
+
+      await tapIncrement(tester, clock, 1);
+      await tester.pump();
+      expect(find.text('x$kComboMinCount'), findsOneWidget);
+    });
+
+    testWidgets('alla soglia compare il testo celebrativo', (
+      WidgetTester tester,
+    ) async {
+      final FakeClock clock = await pumpScreen(tester, await repoWith(0));
+      await tapIncrement(tester, clock, kComboThresholds[0]);
+      await tester.pump();
+
+      expect(find.text(kComboTexts[0]), findsOneWidget);
+    });
+
+    testWidgets('alla soglia di Ciommo compare il timbro', (
+      WidgetTester tester,
+    ) async {
+      final FakeClock clock = await pumpScreen(tester, await repoWith(0));
+      expect(find.byType(Image), findsNothing);
+
+      await tapIncrement(tester, clock, kComboCiommoThreshold);
+      await tester.pump();
+
+      expect(
+        find.byType(Image),
+        findsOneWidget,
+        reason: 'un timbro alla soglia esatta',
+      );
+    });
+
+    testWidgets('scaduta la finestra la combo sfuma via', (
+      WidgetTester tester,
+    ) async {
+      final FakeClock clock = await pumpScreen(tester, await repoWith(0));
+      await tapIncrement(tester, clock, kComboThresholds[0]);
+      await tester.pump();
+      expect(find.text(kComboTexts[0]), findsOneWidget);
+
+      await tester.pump(kComboWindow);
+      await tester.pumpAndSettle();
+
+      // Il testo esce di scena con la dissolvenza, non di scatto: resta nel
+      // tree mentre l'opacita' scende.
+      final ComboOverlay overlay = tester.widget<ComboOverlay>(
+        find.byType(ComboOverlay),
+      );
+      expect(overlay.combo, ComboState.idle);
+      expect(find.text(kComboTexts[0]), findsOneWidget);
+
+      await tester.pump(kComboFadeDuration);
+      final AnimatedOpacity fade = tester.widget<AnimatedOpacity>(
+        find.byType(AnimatedOpacity),
+      );
+      expect(fade.opacity, 0);
     });
   });
 }

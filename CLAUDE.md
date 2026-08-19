@@ -38,8 +38,8 @@ Istruzioni operative per Claude Code su questo progetto. Leggere prima i documen
 
 ## Domande aperte (chiedere al committente quando bloccanti)
 
-- Soglia esatta combo per far comparire Ciommo (≥ 5 tap? oppure variante "più di 3 cicchetti in sessione").
-- Testi celebrativi delle combo (lista dai baristi).
+- Soglia esatta combo per far comparire Ciommo. **Implementata col valore provvisorio `kComboCiommoThreshold = 5`**: è un numero in `config.dart`, cambiarlo non tocca il codice. La variante alternativa ("più di 3 cicchetti in sessione") richiederebbe invece un contatore di sessione, che oggi non esiste.
+- Testi celebrativi delle combo (lista dai baristi). Provvisori in `kComboTexts`, uno per soglia di `kComboThresholds`: un test verifica che le due liste restino della stessa lunghezza.
 - Minuti esatti di idle prima della faccina annoiata (default 10).
 
 ## Decisioni prese

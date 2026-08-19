@@ -54,6 +54,15 @@ final Provider<CounterActions> counterActionsProvider =
       (Ref ref) => CounterActions(ref.watch(counterRepositoryProvider)),
     );
 
+/// L'orologio usato dalla UI per il debounce dei tap.
+///
+/// È un provider e non `DateTime.now` diretto perché il debounce decide quali
+/// tap contano: va potuto testare che non mangi il tapping veloce di una
+/// combo, e con l'orologio di sistema il test dipenderebbe da quanto è veloce
+/// la macchina che lo esegue.
+final Provider<DateTime Function()> clockProvider =
+    Provider<DateTime Function()>((Ref ref) => DateTime.now);
+
 /// Il gestore audio. Sovrascritto in `main()` con quello vero; il default
 /// silenzioso fa sì che i test e un'inizializzazione audio fallita non
 /// impediscano all'app di contare.

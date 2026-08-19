@@ -44,8 +44,8 @@ Prima di ogni commit: `dart format lib test` e `flutter analyze` puliti. La CI r
 
 | | |
 |---|---|
-| ✅ Fatto | Contatore con persistenza, clamp a zero, log tap, zone di tap, landscape + wakelock, logica trigger pura, 28 test |
-| ⬜ Da fare | Motore effetti e coda, combo, easter egg, pulsante panico, pannello impostazioni, audio, roll delle cifre, backup giornaliero |
+| ✅ Fatto | Contatore con persistenza, clamp a zero, log tap, zone di tap, landscape + wakelock, logica trigger pura, SoundManager, motore effetti con coda e kill switch, combo con Ciommo, 85 test |
+| ⬜ Da fare | I widget dei singoli easter egg (fuochi, strike, shake, tette), pannello impostazioni, idle, roll delle cifre, backup giornaliero |
 
 Ordine di implementazione consigliato in [docs/ANIMATIONS_SPEC.md](docs/ANIMATIONS_SPEC.md) → Priorità.
 

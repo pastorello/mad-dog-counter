@@ -5,12 +5,15 @@ import 'package:mad_dog_counter/audio/sound_manager.dart';
 import 'package:mad_dog_counter/config.dart';
 import 'package:mad_dog_counter/data/counter_repository.dart';
 import 'package:mad_dog_counter/data/tap_log.dart';
+import 'package:mad_dog_counter/state/combo_machine.dart';
 import 'package:mad_dog_counter/state/effect_triggers.dart';
 import 'package:mad_dog_counter/state/effects_provider.dart';
 
 /// Registra cosa gli viene chiesto di suonare, senza suonare niente.
 class _SpySounds implements SoundManager {
   final List<String> played = <String>[];
+  final List<({String asset, double rate})> rates =
+      <({String asset, double rate})>[];
   int stopAllCalls = 0;
 
   @override
@@ -20,7 +23,10 @@ class _SpySounds implements SoundManager {
   Future<void> preload() async {}
 
   @override
-  void play(String asset, {double rate = 1.0}) => played.add(asset);
+  void play(String asset, {double rate = 1.0}) {
+    played.add(asset);
+    rates.add((asset: asset, rate: rate));
+  }
 
   @override
   void stopAll() => stopAllCalls++;
@@ -52,6 +58,25 @@ class _FakeClock {
     final List<void Function()> due = <void Function()>[];
     for (int i = 0; i < _pending.length; i++) {
       if (!_pending[i].cancelled) {
+        due.add(_pending[i].action);
+        _pending[i] = (
+          delay: _pending[i].delay,
+          action: _pending[i].action,
+          cancelled: true,
+        );
+      }
+    }
+    for (final void Function() action in due) {
+      action();
+    }
+  }
+
+  /// Fa scattare solo i timer programmati con questo ritardo. Serve a far
+  /// scadere la finestra della combo senza toccare i timer degli effetti.
+  void fire(Duration delay) {
+    final List<void Function()> due = <void Function()>[];
+    for (int i = 0; i < _pending.length; i++) {
+      if (!_pending[i].cancelled && _pending[i].delay == delay) {
         due.add(_pending[i].action);
         _pending[i] = (
           delay: _pending[i].delay,
@@ -272,8 +297,9 @@ void main() {
 
     test('cancella i timer in volo: niente effetti zombie', () {
       final b = build();
-      b.engine.onChange(tap(240000, 1)); // timer effetto + timer impatto
-      expect(b.clock.pendingCount, 2);
+      // timer dell'effetto + timer dell'impatto + finestra della combo
+      b.engine.onChange(tap(240000, 1));
+      expect(b.clock.pendingCount, 3);
 
       b.engine.killAll(silent: true);
       expect(b.clock.pendingCount, 0);
@@ -324,7 +350,9 @@ void main() {
       b.engine.onChange(tap(240002, 1));
 
       // Il pop si sente a ogni tap anche mentre lo strike e' in corso.
-      expect(b.sounds.played, <String>[kSfxTapPop, kSfxTapPop]);
+      // (Questi tap fanno anche salire la combo, che ha suoni suoi: qui
+      // interessa solo che il feedback base non venga saltato.)
+      expect(b.sounds.played.where((String s) => s == kSfxTapPop).length, 2);
       expect(b.engine.state.current, EffectKind.strike);
     });
   });
@@ -332,5 +360,125 @@ void main() {
   test('watch() emette subito lo stato corrente', () async {
     final b = build();
     expect((await b.engine.watch().first).isIdle, isTrue);
+  });
+
+  group('combo', () {
+    test('sale a ogni incremento consecutivo', () {
+      final b = build();
+      b.engine.onChange(tap(1, 1));
+      b.engine.onChange(tap(2, 1));
+      b.engine.onChange(tap(3, 1));
+      expect(b.engine.state.combo, const ComboState(3));
+      expect(b.engine.state.combo.multiplier, 3);
+    });
+
+    test('il pop sale di pitch a ogni tap della combo', () {
+      final _SpySounds sounds = _SpySounds();
+      final _FakeClock clock = _FakeClock();
+      final EffectsEngine engine = EffectsEngine(
+        sounds,
+        scheduler: clock.schedule,
+      );
+
+      engine.onChange(tap(1, 1));
+      engine.onChange(tap(2, 1));
+      engine.onChange(tap(3, 1));
+
+      final List<double> rates = sounds.rates
+          .where((({String asset, double rate}) r) => r.asset == kSfxTapPop)
+          .map((({String asset, double rate}) r) => r.rate)
+          .toList();
+      expect(rates.length, 3);
+      expect(rates[0], 1.0);
+      expect(rates[1], greaterThan(rates[0]));
+      expect(rates[2], greaterThan(rates[1]));
+    });
+
+    test('la soglia suona il ta-daa, i tap in mezzo no', () {
+      final b = build();
+      final int soglia = kComboThresholds[0];
+
+      for (int i = 1; i < soglia; i++) {
+        b.engine.onChange(tap(i, 1));
+      }
+      expect(b.sounds.played, isNot(contains(kSfxComboMilestone)));
+
+      b.engine.onChange(tap(soglia, 1)); // supera la soglia
+      expect(
+        b.sounds.played.where((String s) => s == kSfxComboMilestone).length,
+        1,
+      );
+
+      b.engine.onChange(tap(soglia + 1, 1)); // dentro lo stesso livello
+      expect(
+        b.sounds.played.where((String s) => s == kSfxComboMilestone).length,
+        1,
+      );
+    });
+
+    test('scaduta la finestra di 2 s la combo finisce', () {
+      final b = build();
+      b.engine.onChange(tap(1, 1));
+      b.engine.onChange(tap(2, 1));
+      expect(b.engine.state.combo.isActive, isTrue);
+
+      b.clock.fire(kComboWindow);
+      expect(b.engine.state.combo, ComboState.idle);
+    });
+
+    test('ogni tap fa ripartire la finestra, non ne accumula', () {
+      final b = build();
+      b.engine.onChange(tap(1, 1));
+      b.engine.onChange(tap(2, 1));
+      b.engine.onChange(tap(3, 1));
+
+      // Se le finestre dei tap precedenti non venissero cancellate, la prima
+      // a scadere ucciderebbe una combo ancora viva: due secondi dopo il
+      // PRIMO tap invece che dopo l'ultimo.
+      expect(b.clock.pendingCount, 1);
+      expect(b.engine.state.combo, const ComboState(3));
+    });
+
+    test('un decremento interrompe la combo all istante', () {
+      final b = build();
+      b.engine.onChange(tap(5, 1));
+      b.engine.onChange(tap(6, 1));
+      expect(b.engine.state.combo.isActive, isTrue);
+
+      b.engine.onChange(tap(5, -1));
+      expect(b.engine.state.combo, ComboState.idle);
+      expect(
+        b.sounds.played,
+        isNot(contains(kSfxComboMilestone)),
+        reason: 'il -1 non celebra niente',
+      );
+    });
+
+    test('il kill switch azzera anche la combo', () {
+      final b = build();
+      for (int i = 1; i <= kComboCiommoThreshold; i++) {
+        b.engine.onChange(tap(i, 1));
+      }
+      expect(b.engine.state.combo.showsCiommo, isTrue);
+
+      b.engine.killAll(silent: true);
+      expect(b.engine.state.combo, ComboState.idle);
+    });
+
+    test('una combo viva tiene il motore non-idle', () {
+      final b = build();
+      b.engine.onChange(tap(1, 1));
+      b.engine.onChange(tap(2, 1));
+      expect(b.engine.state.isIdle, isFalse);
+
+      b.clock.fire(kComboWindow);
+      expect(b.engine.state.isIdle, isTrue);
+    });
+
+    test('le scritture manuali non fanno combo', () {
+      final b = build();
+      b.engine.onChange(adjust(239338, 239338));
+      expect(b.engine.state.combo, ComboState.idle);
+    });
   });
 }

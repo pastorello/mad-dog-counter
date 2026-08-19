@@ -16,6 +16,8 @@ import '../audio/sound_manager.dart';
 import '../config.dart';
 import '../data/counter_repository.dart';
 import '../ui/effects/effect_catalog.dart';
+import 'combo_machine.dart';
+import 'combo_provider.dart';
 import 'effect_triggers.dart';
 
 /// Come programmare un'azione differita. Iniettabile: i test passano un
@@ -36,6 +38,7 @@ class EffectsState {
     this.boobsActive = false,
     this.panicking = false,
     this.killCount = 0,
+    this.combo = ComboState.idle,
   });
 
   /// L'effetto in scena adesso, se c'è.
@@ -51,11 +54,15 @@ class EffectsState {
   /// L'esplosione del pulsante panico è in corso.
   final bool panicking;
 
-  /// Quante volte è stato premuto il kill switch. È il seme a cui gli altri
-  /// moduli (a partire dalla combo) si agganciano per azzerarsi.
+  /// Quante volte è stato premuto il kill switch.
   final int killCount;
 
-  bool get isIdle => current == null && queue.isEmpty && !panicking;
+  /// Lo stato della combo. Non è in coda: è una proprietà del display, come
+  /// gli 8 adiacenti (regola 3).
+  final ComboState combo;
+
+  bool get isIdle =>
+      current == null && queue.isEmpty && !panicking && !combo.isActive;
 
   EffectsState copyWith({
     EffectKind? current,
@@ -64,6 +71,7 @@ class EffectsState {
     bool? boobsActive,
     bool? panicking,
     int? killCount,
+    ComboState? combo,
   }) {
     return EffectsState(
       current: clearCurrent ? null : (current ?? this.current),
@@ -71,6 +79,7 @@ class EffectsState {
       boobsActive: boobsActive ?? this.boobsActive,
       panicking: panicking ?? this.panicking,
       killCount: killCount ?? this.killCount,
+      combo: combo ?? this.combo,
     );
   }
 }
@@ -78,7 +87,16 @@ class EffectsState {
 /// Il motore.
 class EffectsEngine {
   EffectsEngine(this._sounds, {EffectScheduler scheduler = _realScheduler})
-    : _schedule = scheduler;
+    : _schedule = scheduler {
+    _combo = ComboController(
+      // La finestra è scaduta: il moltiplicatore sparisce e gli effetti
+      // sfumano (ANIMATIONS_SPEC → Fine combo).
+      () => _emit(_state.copyWith(combo: ComboState.idle)),
+      scheduler: _schedule,
+    );
+  }
+
+  late final ComboController _combo;
 
   final SoundManager _sounds;
   final EffectScheduler _schedule;
@@ -128,8 +146,14 @@ class EffectsEngine {
   }
 
   void _onIncrement(int total) {
+    // La combo avanza per prima: il pop va suonato col pitch di QUESTO tap,
+    // non di quello precedente.
+    final ComboOutcome combo = _combo.onIncrement();
+
     // Regola 2: il feedback base è istantaneo e non entra in coda.
-    _sounds.play(kSfxTapPop);
+    _sounds.play(kSfxTapPop, rate: combo.state.pitch);
+    if (combo.crossedThreshold) _sounds.play(kSfxComboMilestone);
+    _emit(_state.copyWith(combo: combo.state));
 
     // Regola 3: lo stato persistente si ricalcola, fuori dalla coda.
     final bool boobs = hasAdjacentEights(total);
@@ -148,6 +172,10 @@ class EffectsEngine {
 
   void _onDecrement(int total) {
     _sounds.play(kSfxTapDown);
+
+    // Il −1 interrompe subito la combo, senza effetti celebrativi.
+    _combo.reset();
+    _emit(_state.copyWith(combo: ComboState.idle));
 
     // Regola 0: un decremento può ROMPERE lo stato persistente, mai crearlo.
     // Non si ricalcola da zero: scendendo si può inciampare in una coppia di 8
@@ -198,6 +226,7 @@ class EffectsEngine {
   /// il pannello impostazioni.
   void killAll({bool silent = false}) {
     _cancelTimers();
+    _combo.reset();
     _sounds.stopAll();
 
     _emit(
@@ -206,6 +235,7 @@ class EffectsEngine {
         boobsActive: false,
         panicking: !silent,
         killCount: _state.killCount + 1,
+        combo: ComboState.idle,
       ),
     );
 
@@ -234,6 +264,7 @@ class EffectsEngine {
 
   Future<void> dispose() async {
     _cancelTimers();
+    _combo.dispose();
     await _states.close();
   }
 }
