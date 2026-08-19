@@ -2,7 +2,7 @@
 
 Materiale di brand per l'app. Riferimenti d'uso in `docs/UX_UI_SPEC.md`.
 
-⚠️ **Nota sui sorgenti**: tutti i file in `raw/` sono **render raster (JPEG)**, non vettoriali. I vettoriali originali (Illustrator/PDF di stampa) sono da richiedere al grafico del pub o alla tipografia Pubblicarrello (ordine n. 127461 del 21/09/2022). Finché non arrivano, gli asset in `processed/` sono sufficienti per lo sviluppo su tablet.
+⚠️ **Nota sui sorgenti**: tutti i file in `raw/` sono **render raster (JPEG)**, non vettoriali. I vettoriali originali sono stati richiesti alla tipografia Pubblicarrello (ordine n. 127461 del 21/09/2022) e **non arriveranno**: vanno ridisegnati internamente partendo dai raster. Gli asset in `processed/` sono sufficienti per lo sviluppo su tablet nel frattempo; il primo da rifare è il logo House of Mad Dogs, che è il logo principale dell'app.
 
 ## raw/ — materiale originale
 
@@ -19,7 +19,7 @@ Materiale di brand per l'app. Riferimenti d'uso in `docs/UX_UI_SPEC.md`.
 | `logo_the_dutch_since_1980.jpg` | Logo grande "The Dutch — Since 1980" | Riferimento |
 | `bozza_tshirt_specifiche_pantone.jpg` | Bozza tipografica t-shirt: riporta i **colori ufficiali BIANCO / PANTONE 186C / PANTONE 2728C** | Fonte autorevole della palette |
 | `bozza_felpa_specifiche.jpg` | Bozza tipografica felpa baristi | Riferimento |
-| `foto_counter_attuale_239338.jpg` | Foto del vecchio counter col valore **239338** | Documenta il valore di migrazione (`INITIAL_COUNT`) |
+| `foto_counter_attuale_239338.jpg` | Foto del vecchio counter col valore **239338** | Documentazione storica. L'app parte da zero: il valore di subentro si imposta a mano dal pannello |
 | `foto_poster_nel_locale.jpg` | Foto del poster appeso nel pub | Solo contesto (colori falsati dalla luce calda: NON usarla come riferimento colore) |
 | `idle_faccina_riferimento.jpg` | Faccina gialla triste con occhioni | Riferimento per l'animazione idle (da ridisegnare/animare) |
 

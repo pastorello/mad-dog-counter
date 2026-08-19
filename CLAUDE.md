@@ -4,10 +4,10 @@ Istruzioni operative per Claude Code su questo progetto. Leggere prima i documen
 
 ## Regole d'oro
 
-1. **Mai perdere il conteggio.** Il valore 239338 e ogni tap successivo sono sacri. Ogni modifica al layer dati (scrittura del totale, log, migrazione, backup) richiede test prima del merge.
+1. **Mai perdere il conteggio.** Il totale e ogni tap sono sacri. Ogni modifica al layer dati (scrittura del totale, log, migrazione, backup) richiede test prima del merge.
 2. **Il conteggio non si blocca mai.** Nessuna animazione, errore di rete o effetto può impedire o ritardare un tap. Gli effetti sono sempre fire-and-forget rispetto al conteggio.
 3. **Logica trigger pura e testata.** Tutte le condizioni easter egg (multipli, "finisce per 67", "8 adiacenti", stato combo) vivono in funzioni Dart pure, senza dipendenze da storage o widget, coperte da unit test. Regola madre: gli effetti scattano SOLO su incremento, mai su decremento (ANIMATIONS_SPEC → regola 0).
-4. **Costanti in `config.dart`**, mai sparse nel codice: `INITIAL_COUNT` (239338), finestra combo (2 s), soglie combo, durate animazioni, testi celebrativi, durata pressione lunga impostazioni (3 s). I valori regolabili dall'utente (audio on/off, minuti di idle) vivono invece in shared_preferences coi loro default.
+4. **Costanti in `config.dart`**, mai sparse nel codice: `INITIAL_COUNT` (0), finestra combo (2 s), soglie combo, durate animazioni, testi celebrativi, durata pressione lunga impostazioni (3 s). I valori regolabili dall'utente (audio on/off, minuti di idle) vivono invece in shared_preferences coi loro default.
 5. **Un effetto = un modulo.** Ogni easter egg è un widget/controller autonomo registrato nel catalogo effetti. Aggiungere un effetto nuovo non deve toccare quelli esistenti.
 
 ## Stack vincolato
@@ -41,4 +41,9 @@ Istruzioni operative per Claude Code su questo progetto. Leggere prima i documen
 - Soglia esatta combo per far comparire Ciommo (≥ 5 tap? oppure variante "più di 3 cicchetti in sessione").
 - Testi celebrativi delle combo (lista dai baristi).
 - Minuti esatti di idle prima della faccina annoiata (default 10).
-- **Suoni**: nessun file audio esiste ancora. Reperire/generare SFX royalty-free (pop, wobble, fuochi, rotolamento+strike, boing, giubilo) e farli approvare al committente prima di integrarli.
+
+## Decisioni prese
+
+- **`INITIAL_COUNT = 0`.** L'app parte da zero; il valore del vecchio counter si imposta a mano dal pannello impostazioni il giorno dell'installazione. Nessuna costante storica cablata nel codice (vedi FUNCTIONAL_SPEC → Migrazione).
+- **Suoni**: li fornisce il committente. Fino a quel momento il `SoundManager` va scritto e testato contro asset mancanti — nessun suono non deve mai essere un errore né bloccare un tap. Non cercare né generare SFX in autonomia.
+- **Vettoriali di brand**: la tipografia non li fornirà. Vanno ridisegnati internamente a partire dai raster in `design/raw/` (logo House of Mad Dogs per primo). Gli SVG già ricavati stanno in `design/processed/`.

@@ -50,8 +50,10 @@ Il pannello è pensato per crescere (fase 2: statistiche, export backup, gestion
 
 ## Migrazione
 
-- Primo avvio: se `counter_total` non esiste, inizializzarlo a **`INITIAL_COUNT = 239338`**.
-- Questo valore rappresenta la storia del pub: perderlo è il peggior bug possibile del progetto.
+- Primo avvio: se `counter_total` non esiste, inizializzarlo a **`INITIAL_COUNT = 0`**.
+- **Subentro manuale.** Il valore del vecchio counter non viene cablato nel codice: il giorno dell'installazione si legge il numero sul tablet vecchio e lo si scrive dal pannello impostazioni → "Imposta contatore". La modifica entra nel log come record `type='adjust'`.
+- Motivo: il vecchio counter resta in servizio fino allo switch e continua a salire, quindi una costante fissata oggi sarebbe già superata domani.
+- Da qui in avanti il totale rappresenta la storia del pub: perderlo è il peggior bug possibile del progetto.
 
 ## Avvio
 

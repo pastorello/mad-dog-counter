@@ -28,7 +28,7 @@
 
 ```
 shared_preferences:
-  counter_total : int      // fonte di verità. Inizializzato a 239338.
+  counter_total : int      // fonte di verità. Inizializzato a INITIAL_COUNT (0).
   sound_enabled : bool     // default true
   idle_minutes  : int      // default 10
 
@@ -61,7 +61,9 @@ La UI e il motore effetti dipendono **solo** dall'interfaccia. Nessun `import` d
 
 ## Migrazione / inizializzazione
 
-Al primo avvio, se `counter_total` non esiste, inizializzarlo a **`INITIAL_COUNT = 239338`** (valore storico del vecchio counter, fotografato il 28/07/2026). Costante in `config.dart`.
+Al primo avvio, se `counter_total` non esiste, inizializzarlo a **`INITIAL_COUNT = 0`**. Costante in `config.dart`.
+
+Il subentro al vecchio counter **non è automatico**: il giorno dell'installazione nel locale si legge il valore sul tablet vecchio e lo si scrive a mano dal pannello impostazioni (campo "Imposta contatore"), che registra un record `type='adjust'` col delta. Scelta deliberata: il vecchio counter continua a salire fino allo switch, quindi qualunque costante cablata nel codice sarebbe già sbagliata. Riferimento storico: 239338 al 28/07/2026 (`design/raw/foto_counter_attuale_239338.jpg`).
 
 ## Rischio noto (accettato per l'MVP)
 

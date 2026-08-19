@@ -35,3 +35,6 @@ test/failures/
 # Ambiente locale
 .env
 .env.local
+
+# Claude Code — impostazioni locali (le skill in .agents/ e .claude/skills/ sono versionate)
+.claude/settings.local.json

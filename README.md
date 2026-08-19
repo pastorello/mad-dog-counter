@@ -2,7 +2,9 @@
 
 App Android (Flutter) per il contatore dei cicchetti **Mad Dog** del pub **The Dutch** di Gaeta — brand del cicchetto **House of Mad Dogs**.
 
-Sostituisce il vecchio counter del tablet a muro preservandone il valore attuale: **239338**. Non è un gestionale: è un piccolo show da bancone, con animazioni, easter egg, combo e suoni.
+Sostituisce il vecchio counter del tablet a muro. Non è un gestionale: è un piccolo show da bancone, con animazioni, easter egg, combo e suoni.
+
+Il contatore **parte da zero** (`INITIAL_COUNT = 0`): il valore storico del vecchio counter si imposta a mano dal pannello impostazioni al momento dell'installazione nel locale.
 
 - **Device di produzione**: Samsung Galaxy Tab A8 (SM-X200), Android 14 / API 34, landscape bloccato, schermo sempre acceso.
 - **Stack**: Flutter + Dart, Riverpod, persistenza locale (`shared_preferences` per il totale + `sqflite` per il log tap) dietro l'interfaccia `CounterRepository`.

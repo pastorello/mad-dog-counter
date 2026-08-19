@@ -4,7 +4,7 @@
 
 App Android (tablet dedicato, montato a muro) per contare i cicchetti **Mad Dog** venduti al pub **The Dutch** di Gaeta (brand del cicchetto: **House of Mad Dogs**). Il Mad Dog è uno shot a base di vodka, sciroppo di amarena e Tabasco, con un rituale collettivo di bevuta (vedi `design/raw/poster_come_bere_il_mad_dog.jpg`).
 
-L'app sostituisce un counter Android esistente, molto basilare: tap a destra/centro incrementa, tap a sinistra decrementa. Il valore attuale del contatore è **239338** e va preservato (vedi FUNCTIONAL_SPEC.md → Migrazione).
+L'app sostituisce un counter Android esistente, molto basilare: tap a destra/centro incrementa, tap a sinistra decrementa. Il contatore parte da **zero** e il valore di subentro viene impostato a mano dal pannello impostazioni il giorno dell'installazione (vedi FUNCTIONAL_SPEC.md → Migrazione).
 
 ## Obiettivi
 

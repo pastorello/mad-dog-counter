@@ -73,7 +73,7 @@ La **bandierina olandese** (striscia rosso/bianco/blu) è il separatore firma de
 | Poster rituale | `design/raw/poster_come_bere_il_mad_dog.jpg` | Riferimento di stile per il lettering brush |
 | Faccina annoiata | `design/raw/idle_faccina_riferimento.jpg` | Riferimento per l'animazione idle (da ridisegnare/animare) |
 | Bozza di stampa | `design/raw/bozza_tshirt_specifiche_pantone.jpg` | Fonte dei Pantone ufficiali (186C / 2728C / bianco) |
-| Foto counter attuale | `design/raw/foto_counter_attuale_239338.jpg` | Documentazione: valore di migrazione 239338 |
+| Foto counter attuale | `design/raw/foto_counter_attuale_239338.jpg` | Documentazione storica del vecchio counter (239338 al 28/07/2026) |
 
 Mappa completa e note in `design/README.md`. La cartella `design/` è **materiale sorgente**: gli asset effettivamente usati dall'app vanno esportati/ottimizzati in `assets/` del progetto Flutter (PNG trasparenti ad alta risoluzione o SVG), mai referenziare `design/` dal codice.
 
