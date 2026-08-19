@@ -580,6 +580,43 @@ void main() {
     });
   });
 
+  group('marchio HoMD', () {
+    testWidgets('resta in basso al centro anche dopo lo splash', (
+      WidgetTester tester,
+    ) async {
+      tester.view.physicalSize = const Size(1920, 1200);
+      tester.view.devicePixelRatio = 1.0;
+      addTearDown(tester.view.reset);
+
+      await pumpScreen(tester, await repoWith(1234));
+      await tester.pump(kSplashHold);
+      await tester.pumpAndSettle();
+
+      expect(find.byType(SplashOverlay), findsNothing);
+      expect(find.byType(HomdMark), findsOneWidget);
+
+      final Rect mark = tester.getRect(find.byType(HomdMark));
+      expect(mark.center.dx, closeTo(1920 / 2, 1));
+      expect(mark.bottom, closeTo(1200 - kHomdMarkBottom, 1));
+    });
+
+    testWidgets('non ruba tap alla zona +1', (WidgetTester tester) async {
+      tester.view.physicalSize = const Size(1920, 1200);
+      tester.view.devicePixelRatio = 1.0;
+      addTearDown(tester.view.reset);
+
+      final LocalCounterRepository repo = await repoWith(10);
+      await pumpScreen(tester, repo);
+      await tester.pump(kSplashHold);
+      await tester.pumpAndSettle();
+
+      await tester.tapAt(tester.getCenter(find.byType(HomdMark)));
+      await tester.pumpAndSettle();
+
+      expect(repo.total, 11, reason: 'il marchio e decorativo, il tap passa');
+    });
+  });
+
   group('splash', () {
     Future<void> waitOutSplash(WidgetTester tester) async {
       await tester.pump(kSplashHold);
@@ -592,7 +629,13 @@ void main() {
       await pumpScreen(tester, await repoWith(239338));
 
       expect(find.byType(SplashOverlay), findsOneWidget);
-      expect(find.byType(HomdMark), findsOneWidget);
+      expect(
+        find.descendant(
+          of: find.byType(SplashOverlay),
+          matching: find.byType(HomdMark),
+        ),
+        findsOneWidget,
+      );
       expect(find.text(kBrandNameLine1), findsOneWidget);
       expect(find.text(kBrandNameLine2), findsOneWidget);
       expect(find.text(kBrandPub), findsOneWidget);

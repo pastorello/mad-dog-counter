@@ -19,6 +19,7 @@ import 'effects/idle_face.dart';
 import 'settings_panel.dart';
 import 'widgets/big_number.dart';
 import 'widgets/dutch_flag_divider.dart';
+import 'widgets/homd_mark.dart';
 import 'widgets/panic_button.dart';
 import 'widgets/settings_gear.dart';
 import 'widgets/splash_overlay.dart';
@@ -161,6 +162,19 @@ class _CounterScreenState extends ConsumerState<CounterScreen> {
           if (effects.current case final EffectKind kind)
             if (effectOverlays[kind] case final WidgetBuilder build)
               Positioned.fill(child: IgnorePointer(child: build(context))),
+
+          // Il marchio del locale, fisso in basso al centro: in alto al
+          // centro ci vanno il moltiplicatore e i testi della combo. Sta
+          // sopra agli effetti perché non deve sparire mai, e non intercetta
+          // tocchi: la zona +1 sopra di lui conta come tutto il resto.
+          const Positioned(
+            bottom: kHomdMarkBottom,
+            left: 0,
+            right: 0,
+            child: IgnorePointer(
+              child: Center(child: HomdMark(size: kHomdMarkSize)),
+            ),
+          ),
 
           // Il pulsante panico sta sopra le zone di tap: i suoi tocchi non
           // devono mai finire nel contatore.

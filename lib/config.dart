@@ -134,6 +134,17 @@ const Color kTextColor = Color(0xFFF0F0F0);
 /// Oro/ambra dei momenti epici: fuochi, glow della combo.
 const Color kCelebrationGold = Color(0xFFF0A830);
 
+/// Rosa carne delle tette (effetto 8 adiacenti) e rosa dei cuoricini.
+/// Sono l'unica eccezione al "niente rosa" della palette (UX_UI_SPEC →
+/// Palette): lì il divieto nasce da una foto con dominante calda, qui il rosa
+/// è la battuta — un 88 rosso non si legge come una tetta.
+const Color kFleshPink = Color(0xFFEFA79B);
+const Color kHeartPink = Color(0xFFE86A8A);
+
+/// Altezza della bandierina olandese in fondo allo schermo. Tre strisce: sotto
+/// una certa altezza, da dietro il bancone, non si vedono proprio.
+const double kDutchFlagHeight = 12;
+
 // ---------------------------------------------------------------------------
 // Tipografia
 // ---------------------------------------------------------------------------
@@ -295,6 +306,20 @@ const String kSettingsInvalidNumber =
     'Serve un numero tra 0 e $kMaxSettableTotal';
 
 // ---------------------------------------------------------------------------
+// Marchio House of Mad Dogs
+// ---------------------------------------------------------------------------
+
+/// Altezza del bicchiere HoMD fisso in fondo alla schermata.
+const double kHomdMarkSize = 64;
+
+/// Quanto sta sollevato dal bordo basso: sopra la bandierina, non a filo.
+const double kHomdMarkBottom = kDutchFlagHeight + 8;
+
+/// Larghezza riservata al marchio nella fila dei timbri di Ciommo, che gli
+/// escono ai due lati senza mai passarci sopra.
+const double kHomdMarkLane = 160;
+
+// ---------------------------------------------------------------------------
 // Numerone
 // ---------------------------------------------------------------------------
 
@@ -318,8 +343,13 @@ const double kDigitSlotRatio = 0.62;
 // Idle — la faccina annoiata
 // ---------------------------------------------------------------------------
 
-/// Lato del quadrato in cui sta la faccina.
-const double kIdleFaceSize = 320;
+/// Lato del quadrato in cui sta la faccina. Cresciuta del 15% rispetto ai
+/// 320 iniziali: da dietro il bancone era piccolina.
+const double kIdleFaceSize = 368;
+
+/// Quanto scende dal bordo alto: la faccina sta in cima, nella stessa fascia
+/// dei contatori della combo, non piantata in mezzo al numerone.
+const double kIdleFaceTop = kTopOverlayTop;
 
 /// Durata di un ciclo di respiro: sale, sospira, scende. Lento di proposito.
 const Duration kIdleBreathDuration = Duration(milliseconds: 3600);

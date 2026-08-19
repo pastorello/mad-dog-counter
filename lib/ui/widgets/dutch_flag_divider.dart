@@ -6,7 +6,7 @@ import 'package:flutter/material.dart';
 import '../../config.dart';
 
 class DutchFlagDivider extends StatelessWidget {
-  const DutchFlagDivider({super.key, this.height = 6});
+  const DutchFlagDivider({super.key, this.height = kDutchFlagHeight});
 
   final double height;
 
