@@ -1,4 +1,5 @@
-/// L'ingranaggio delle impostazioni: si apre SOLO con una pressione lunga.
+/// L'ingranaggio delle impostazioni: si apre SOLO con una pressione lunga
+/// (`kSettingsLongPress`).
 ///
 /// Il tap semplice è ignorato di proposito (FUNCTIONAL_SPEC → Pannello
 /// impostazioni): è a prova di dita ubriache. Sta sopra le zone di tap, così i
@@ -64,7 +65,7 @@ class _SettingsGearState extends State<SettingsGear> {
             alignment: Alignment.center,
             children: <Widget>[
               // Anello che si riempie mentre si tiene premuto: senza, tenere
-              // il dito su un'icona spenta per tre secondi sembra rotto.
+              // il dito su un'icona spenta per un paio di secondi sembra rotto.
               SizedBox(
                 width: 40,
                 height: 40,
@@ -74,7 +75,7 @@ class _SettingsGearState extends State<SettingsGear> {
                   builder: (BuildContext context, double value, Widget? _) =>
                       CircularProgressIndicator(
                         value: value,
-                        strokeWidth: 2,
+                        strokeWidth: kSettingsRingStroke,
                         color: kPrimaryRed.withValues(alpha: 0.7),
                         backgroundColor: Colors.transparent,
                       ),

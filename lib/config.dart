@@ -89,6 +89,15 @@ const Duration kFireworksDuration = Duration(milliseconds: 3500);
 /// Palla da bowling + ricomposizione sui multipli di 1000.
 const Duration kStrikeDuration = Duration(milliseconds: 5500);
 
+/// Durata della pioggia di cuoricini che accompagna le tette.
+const Duration kHeartsBurstDuration = Duration(milliseconds: 900);
+
+/// Quanti cuoricini partono nella salva.
+const int kHeartsCount = 18;
+
+/// Gravità dei cuoricini: devono ricadere, non galleggiare.
+const double kHeartsGravity = 0.45;
+
 /// Morph delle cifre quando una coppia di 8 adiacenti si forma o si rompe.
 const Duration kBoobsMorphDuration = Duration(milliseconds: 400);
 
@@ -104,7 +113,11 @@ const Duration kIdleWakeDuration = Duration(milliseconds: 1000);
 
 /// Durata della pressione lunga sull'ingranaggio per aprire le impostazioni.
 /// Il tap semplice non fa nulla: è a prova di dita ubriache.
-const Duration kSettingsLongPress = Duration(seconds: 3);
+const Duration kSettingsLongPress = Duration(seconds: 2);
+
+/// Spessore dell'anello rosso che si riempie mentre si tiene premuto:
+/// sottile non si notava, e la pressione lunga sembrava non fare niente.
+const double kSettingsRingStroke = 4;
 
 /// Frazione di larghezza schermo occupata dalla zona di decremento (sinistra).
 /// Il resto è zona di incremento.
@@ -133,6 +146,17 @@ const Color kTextColor = Color(0xFFF0F0F0);
 
 /// Oro/ambra dei momenti epici: fuochi, glow della combo.
 const Color kCelebrationGold = Color(0xFFF0A830);
+
+/// Rosa carne delle tette (effetto 8 adiacenti) e rosa dei cuoricini.
+/// Sono l'unica eccezione al "niente rosa" della palette (UX_UI_SPEC →
+/// Palette): lì il divieto nasce da una foto con dominante calda, qui il rosa
+/// è la battuta — un 88 rosso non si legge come una tetta.
+const Color kFleshPink = Color(0xFFEFA79B);
+const Color kHeartPink = Color(0xFFE86A8A);
+
+/// Altezza della bandierina olandese in fondo allo schermo. Tre strisce: sotto
+/// una certa altezza, da dietro il bancone, non si vedono proprio.
+const double kDutchFlagHeight = 12;
 
 // ---------------------------------------------------------------------------
 // Tipografia
@@ -231,6 +255,12 @@ const int kSfxPoolSize = 6;
 /// strike dei multipli di 1000. Corrisponde alla durata di `bowling_roll.wav`.
 const Duration kStrikeImpactDelay = Duration(milliseconds: 1800);
 
+/// La parola che sbatte in alto quando la palla colpisce.
+const String kStrikeText = 'STRIKE!';
+
+/// Corpo della parola: più grande dei testi combo, è il momento più epico.
+const double kStrikeTextSize = 88;
+
 // ---------------------------------------------------------------------------
 // Combo — parametri di taratura
 // ---------------------------------------------------------------------------
@@ -249,12 +279,34 @@ const double kComboPitchMax = 1.8;
 /// Quanti timbri "Ciommo Approved" al massimo contemporaneamente a schermo.
 const int kComboCiommoMaxStamps = 5;
 
+/// Quanto rosso di fondo prende TUTTO lo schermo al culmine della combo:
+/// il bagliore non si ferma alle zone di tap, tinge anche la fascia -1.
+const double kComboGlowBaseAlpha = 0.10;
+
+/// Raggio del nucleo caldo attorno al numerone, in frazione del lato corto.
+/// Oltre 1 perché deve arrivare fino agli angoli, non spegnersi a metà.
+const double kComboGlowRadius = 1.2;
+
 /// Durata della dissolvenza a fine combo.
 /// «Gli effetti sfumano dolcemente» (ANIMATIONS_SPEC → Fine combo).
 const Duration kComboFadeDuration = Duration(milliseconds: 450);
 
-/// Durata dello schiaffo di timbro di Ciommo.
+/// Durata della salita di un timbro di Ciommo.
 const Duration kComboStampDuration = Duration(milliseconds: 260);
+
+/// Durata della discesa con cui il timbro esce di scena.
+const Duration kComboStampExitDuration = Duration(milliseconds: 320);
+
+/// Altezza di un timbro "Ciommo Approved". Grosso di proposito: è la firma
+/// della combo, si deve vedere dall'altra parte del bancone.
+const double kComboStampHeight = 288;
+
+/// Quanto resta sollevato dal bordo basso, per non finire sulla bandierina.
+const double kComboStampBottom = kDutchFlagHeight + 6;
+
+/// Distanza dal bordo alto del blocco combo (moltiplicatore + testo), che in
+/// alto al centro ci sta di casa.
+const double kTopOverlayTop = 40;
 
 // ---------------------------------------------------------------------------
 // Asset immagine
@@ -295,8 +347,27 @@ const String kSettingsInvalidNumber =
     'Serve un numero tra 0 e $kMaxSettableTotal';
 
 // ---------------------------------------------------------------------------
+// Marchio House of Mad Dogs
+// ---------------------------------------------------------------------------
+
+/// Altezza del bicchiere HoMD fisso in fondo alla schermata.
+const double kHomdMarkSize = 64;
+
+/// Quanto sta sollevato dal bordo basso: sopra la bandierina, non a filo.
+const double kHomdMarkBottom = kDutchFlagHeight + 8;
+
+/// Larghezza riservata al marchio nella fila dei timbri di Ciommo, che gli
+/// escono ai due lati senza mai passarci sopra.
+const double kHomdMarkLane = 160;
+
+// ---------------------------------------------------------------------------
 // Numerone
 // ---------------------------------------------------------------------------
+
+/// Quante cifre mostra sempre il contatore, zeri davanti compresi: il
+/// numerone del pub è un tabellone, non un numero che cresce (`000000`,
+/// `000001`, …). Oltre questa larghezza il numero continua a crescere e basta.
+const int kCounterDigits = 6;
 
 /// Quanta altezza dello schermo può occupare una cifra.
 const double kBigNumberHeightFraction = 0.45;
@@ -313,8 +384,13 @@ const double kDigitSlotRatio = 0.62;
 // Idle — la faccina annoiata
 // ---------------------------------------------------------------------------
 
-/// Lato del quadrato in cui sta la faccina.
-const double kIdleFaceSize = 320;
+/// Lato del quadrato in cui sta la faccina. Cresciuta del 15% rispetto ai
+/// 320 iniziali: da dietro il bancone era piccolina.
+const double kIdleFaceSize = 368;
+
+/// Quanto scende dal bordo alto: la faccina sta in cima, nella stessa fascia
+/// dei contatori della combo, non piantata in mezzo al numerone.
+const double kIdleFaceTop = kTopOverlayTop;
 
 /// Durata di un ciclo di respiro: sale, sospira, scende. Lento di proposito.
 const Duration kIdleBreathDuration = Duration(milliseconds: 3600);
@@ -322,6 +398,14 @@ const Duration kIdleBreathDuration = Duration(milliseconds: 3600);
 /// L'ambra della faccina. È l'oro celebrativo della palette: l'arancio del
 /// riferimento non è un colore di brand, questo sì e gli somiglia.
 const Color kIdleFaceColor = kCelebrationGold;
+
+/// L'azzurro della lacrima. Il blu di brand pieno, su fondo scuro, spariva:
+/// questo è lo stesso blu schiarito, resta di famiglia ma si vede.
+const Color kIdleTearBlue = Color(0xFF7FB2FF);
+
+/// Raggio della lacrima, in frazione dell'occhio. Raddoppiato: prima era una
+/// puntina e il dispiacere non si leggeva.
+const double kIdleTearRadiusFactor = 0.40;
 
 /// Il riflesso pallido in fondo agli occhioni. Bianco sporco, mai puro.
 const Color kIdleEyeSheen = kTextColor;

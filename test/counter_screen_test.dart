@@ -104,7 +104,11 @@ void main() {
     await tester.pumpAndSettle();
 
     expect(repo.total, 0);
-    expect(find.text('0'), findsOneWidget);
+    expect(
+      find.text('0'),
+      findsNWidgets(kCounterDigits),
+      reason: 'a zero il tabellone mostra 000000',
+    );
   });
 
   group('pulsante panico', () {
@@ -140,7 +144,7 @@ void main() {
       await tester.pumpAndSettle();
       expect(find.byType(PanicBlast), findsNothing);
       expect(find.text('1'), findsOneWidget);
-      expect(find.text('0'), findsOneWidget);
+      expect(find.text('0'), findsNWidgets(kCounterDigits - 1));
     });
 
     testWidgets('sta sopra la zona +1: un tap sull angolo non incrementa', (
@@ -215,6 +219,54 @@ void main() {
       );
     });
 
+    /// Il bagliore è dello schermo, non della sola area sotto il numerone:
+    /// anche la fascia sinistra del -1 si deve scaldare.
+    testWidgets('il bagliore copre tutto, zona -1 compresa', (
+      WidgetTester tester,
+    ) async {
+      tester.view.physicalSize = const Size(1920, 1200);
+      tester.view.devicePixelRatio = 1.0;
+      addTearDown(tester.view.reset);
+
+      final FakeClock clock = await pumpScreen(tester, await repoWith(0));
+      await tapIncrement(tester, clock, kComboMinCount);
+      await tester.pump();
+
+      expect(
+        tester.getRect(find.byKey(kComboGlowKey)),
+        const Rect.fromLTWH(0, 0, 1920, 1200),
+      );
+    });
+
+    /// I timbri escono ai due lati del marchio HoMD: sono grossi, e se
+    /// nascessero al centro se lo mangerebbero.
+    testWidgets('i timbri lasciano libero il marchio al centro', (
+      WidgetTester tester,
+    ) async {
+      tester.view.physicalSize = const Size(1920, 1200);
+      tester.view.devicePixelRatio = 1.0;
+      addTearDown(tester.view.reset);
+
+      final FakeClock clock = await pumpScreen(tester, await repoWith(0));
+      // Fuori lo splash: finche' e' a video i marchi a schermo sono due.
+      await tester.pump(kSplashHold);
+      await tester.pumpAndSettle();
+
+      await tapIncrement(tester, clock, kComboCiommoThreshold + 1);
+      await tester.pump(kComboStampDuration);
+
+      final Rect marchio = tester.getRect(find.byType(HomdMark));
+      expect(find.byType(Image), findsNWidgets(2));
+      for (int i = 0; i < 2; i++) {
+        final Rect timbro = tester.getRect(find.byType(Image).at(i));
+        expect(
+          timbro.left >= marchio.right || timbro.right <= marchio.left,
+          isTrue,
+          reason: 'il timbro sta tutto da un lato del marchio',
+        );
+      }
+    });
+
     testWidgets('scaduta la finestra la combo sfuma via', (
       WidgetTester tester,
     ) async {
@@ -260,7 +312,9 @@ void main() {
       expect(find.text('9'), findsOneWidget);
     });
 
-    testWidgets('con poche cifre il numero resta grande', (
+    /// Con gli zeri davanti gli slot sono sempre sei, quindi il numerone non
+    /// cambia piu' dimensione da un totale all'altro: e' un tabellone fisso.
+    testWidgets('la dimensione non dipende dal totale', (
       WidgetTester tester,
     ) async {
       tester.view.physicalSize = const Size(1920, 1200);
@@ -269,12 +323,28 @@ void main() {
 
       await pumpScreen(tester, await repoWith(7));
       await tester.pumpAndSettle();
-
-      final Text digit = tester.widget<Text>(find.text('7'));
       expect(
-        digit.style!.fontSize,
-        1200 * kBigNumberHeightFraction,
-        reason: 'con una cifra sola comanda l altezza, non la larghezza',
+        find.text('0'),
+        findsNWidgets(kCounterDigits - 1),
+        reason: 'il 7 arriva imbottito di zeri',
+      );
+      final double conUnaCifra = tester
+          .widget<Text>(find.text('7'))
+          .style!
+          .fontSize!;
+
+      await pumpScreen(tester, await repoWith(239338));
+      await tester.pumpAndSettle();
+      final double conSeiCifre = tester
+          .widget<Text>(find.text('2'))
+          .style!
+          .fontSize!;
+
+      expect(conUnaCifra, conSeiCifre);
+      expect(
+        conUnaCifra,
+        1920 * kBigNumberWidthFraction / kCounterDigits / kDigitSlotRatio,
+        reason: 'con sei slot comanda sempre la larghezza',
       );
     });
   });
@@ -296,6 +366,24 @@ void main() {
       expect(find.byType(ConfettiWidget), findsWidgets);
       await tester.pump(kFireworksDuration);
       await tester.pumpAndSettle();
+    });
+
+    testWidgets('lo strike scrive STRIKE! in alto', (
+      WidgetTester tester,
+    ) async {
+      await pumpScreen(tester, await repoWith(999));
+      expect(find.text(kStrikeText), findsNothing);
+
+      await tapOnce(tester);
+      // La parola arriva con la palla, non prima.
+      expect(find.text(kStrikeText), findsNothing);
+
+      await tester.pump(kStrikeImpactDelay);
+      expect(find.text(kStrikeText), findsOneWidget);
+
+      await tester.pump(kStrikeDuration);
+      await tester.pumpAndSettle();
+      expect(find.text(kStrikeText), findsNothing);
     });
 
     testWidgets('arrivare a 1000 fa lo strike, non i fuochi', (
@@ -388,6 +476,36 @@ void main() {
       await tester.pump();
 
       expect(find.byType(IdleFace), findsOneWidget);
+    });
+
+    testWidgets('sta in cima, non in mezzo al numerone', (
+      WidgetTester tester,
+    ) async {
+      tester.view.physicalSize = const Size(1920, 1200);
+      tester.view.devicePixelRatio = 1.0;
+      addTearDown(tester.view.reset);
+
+      await pumpScreen(tester, await repoWith(10));
+      await tester.pump(const Duration(minutes: kIdleMinutesDefault));
+      await tester.pump();
+
+      expect(find.byType(IdleFace), findsOneWidget);
+      // IdleFace occupa tutto lo schermo: quello che conta è dove finisce il
+      // disegno, cioè il riquadro da kIdleFaceSize.
+      final Rect faccia = tester.getRect(
+        find.descendant(
+          of: find.byType(IdleFace),
+          matching: find.byWidgetPredicate(
+            (Widget w) => w is SizedBox && w.height == kIdleFaceSize,
+          ),
+        ),
+      );
+      expect(
+        faccia.center.dy,
+        lessThan(1200 / 2),
+        reason: 'la faccina vive nella metà alta dello schermo',
+      );
+      expect(faccia.top, closeTo(kIdleFaceTop, 12), reason: 'sta in cima');
     });
 
     testWidgets('un tap la sveglia e la manda via', (
@@ -528,14 +646,15 @@ void main() {
       final List<RollingDigit> slots = tester
           .widgetList<RollingDigit>(find.byType(RollingDigit))
           .toList();
-      expect(slots, hasLength(3));
+      expect(slots, hasLength(kCounterDigits));
       expect(
-        slots[0].previous,
-        '',
-        reason: 'la cifra nuova non viene da nulla',
+        slots[3].previous,
+        '0',
+        reason: 'la cifra nuova sale dallo zero di riempimento',
       );
-      expect(slots[2].previous, '9');
-      expect(slots[2].current, '0');
+      expect(slots[3].current, '1');
+      expect(slots.last.previous, '9');
+      expect(slots.last.current, '0');
     });
 
     testWidgets('un tap durante un roll riparte dal numero visibile', (
@@ -557,6 +676,43 @@ void main() {
     });
   });
 
+  group('marchio HoMD', () {
+    testWidgets('resta in basso al centro anche dopo lo splash', (
+      WidgetTester tester,
+    ) async {
+      tester.view.physicalSize = const Size(1920, 1200);
+      tester.view.devicePixelRatio = 1.0;
+      addTearDown(tester.view.reset);
+
+      await pumpScreen(tester, await repoWith(1234));
+      await tester.pump(kSplashHold);
+      await tester.pumpAndSettle();
+
+      expect(find.byType(SplashOverlay), findsNothing);
+      expect(find.byType(HomdMark), findsOneWidget);
+
+      final Rect mark = tester.getRect(find.byType(HomdMark));
+      expect(mark.center.dx, closeTo(1920 / 2, 1));
+      expect(mark.bottom, closeTo(1200 - kHomdMarkBottom, 1));
+    });
+
+    testWidgets('non ruba tap alla zona +1', (WidgetTester tester) async {
+      tester.view.physicalSize = const Size(1920, 1200);
+      tester.view.devicePixelRatio = 1.0;
+      addTearDown(tester.view.reset);
+
+      final LocalCounterRepository repo = await repoWith(10);
+      await pumpScreen(tester, repo);
+      await tester.pump(kSplashHold);
+      await tester.pumpAndSettle();
+
+      await tester.tapAt(tester.getCenter(find.byType(HomdMark)));
+      await tester.pumpAndSettle();
+
+      expect(repo.total, 11, reason: 'il marchio e decorativo, il tap passa');
+    });
+  });
+
   group('splash', () {
     Future<void> waitOutSplash(WidgetTester tester) async {
       await tester.pump(kSplashHold);
@@ -569,7 +725,13 @@ void main() {
       await pumpScreen(tester, await repoWith(239338));
 
       expect(find.byType(SplashOverlay), findsOneWidget);
-      expect(find.byType(HomdMark), findsOneWidget);
+      expect(
+        find.descendant(
+          of: find.byType(SplashOverlay),
+          matching: find.byType(HomdMark),
+        ),
+        findsOneWidget,
+      );
       expect(find.text(kBrandNameLine1), findsOneWidget);
       expect(find.text(kBrandNameLine2), findsOneWidget);
       expect(find.text(kBrandPub), findsOneWidget);

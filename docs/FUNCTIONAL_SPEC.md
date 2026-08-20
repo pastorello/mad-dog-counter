@@ -11,12 +11,13 @@ L'app è una sola schermata, landscape, sempre accesa (wakelock). Nessuna naviga
 | Tap | Zona destra + centrale (≈ 75% dello schermo) | **+1** al contatore |
 | Tap | Zona sinistra (≈ 25% dello schermo) | **−1** al contatore (correzione errori) |
 | Tap | **Pulsante panico** (angolo alto destro) | **Kill switch effetti** (vedi sotto). NON tocca il contatore. |
-| **Pressione lunga (3 s)** | **Ingranaggio impostazioni** (angolo basso destro) | Apre il pannello impostazioni (vedi sotto). Il tap semplice non fa nulla. |
+| **Pressione lunga (2 s)** | **Ingranaggio impostazioni** (angolo basso destro) | Apre il pannello impostazioni (vedi sotto). Il tap semplice non fa nulla. |
 
 - Il decremento è un **tap semplice, senza conferma** (decisione esplicita del committente: ambiente informale, la semplicità vince).
 - Le due zone devono essere enormi e a prova di mira ubriaca. Feedback visivo immediato su ogni tap (il numerone pulsa) + feedback aptico (vibrazione breve) se il tablet lo supporta + suono.
 - Il decremento ha un feedback visivamente distinto (es. pulsazione "in giù", tinta blu) per far capire che si è tolto, non aggiunto. **Il decremento non attiva MAI animazioni/easter egg** (vedi ANIMATIONS_SPEC.md → regola 0).
 - Il contatore non scende mai sotto 0.
+- Il totale si mostra sempre su **sei cifre** con gli zeri davanti (`kCounterDigits`): sotto lo zero riempitivo il numero vero resta leggibile e il tabellone non balla.
 - Anti-doppio-conteggio: debounce di ~80 ms sui tap per evitare doppi tocchi hardware, ma senza penalizzare il tapping veloce delle combo (vedi ANIMATIONS_SPEC.md → Combo).
 
 ## Pulsante panico (kill switch effetti)
@@ -30,7 +31,7 @@ Con tante animazioni concatenabili serve un freno d'emergenza utilizzabile in te
 
 ## Pannello impostazioni
 
-Accessibile SOLO con pressione lunga di 3 secondi sull'icona ingranaggio (angolo basso destro, piccola, opacità ridotta): il tap semplice è ignorato, per essere a prova di dita ubriache. Si apre come overlay sopra la schermata; mentre è aperto i tap sul contatore sono disabilitati e gli effetti in corso vengono fermati (equivalente a un `killAll()` silenzioso, senza esplosione).
+Accessibile SOLO con pressione lunga di 2 secondi sull'icona ingranaggio (angolo basso destro, piccola, opacità ridotta): il tap semplice è ignorato, per essere a prova di dita ubriache. Si apre come overlay sopra la schermata; mentre è aperto i tap sul contatore sono disabilitati e gli effetti in corso vengono fermati (equivalente a un `killAll()` silenzioso, senza esplosione).
 
 Contenuto MVP, volutamente minimale:
 

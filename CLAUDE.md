@@ -7,7 +7,7 @@ Istruzioni operative per Claude Code su questo progetto. Leggere prima i documen
 1. **Mai perdere il conteggio.** Il totale e ogni tap sono sacri. Ogni modifica al layer dati (scrittura del totale, log, migrazione, backup) richiede test prima del merge.
 2. **Il conteggio non si blocca mai.** Nessuna animazione, errore di rete o effetto può impedire o ritardare un tap. Gli effetti sono sempre fire-and-forget rispetto al conteggio.
 3. **Logica trigger pura e testata.** Tutte le condizioni easter egg (multipli, "finisce per 67", "8 adiacenti", stato combo) vivono in funzioni Dart pure, senza dipendenze da storage o widget, coperte da unit test. Regola madre: gli effetti scattano SOLO su incremento, mai su decremento (ANIMATIONS_SPEC → regola 0).
-4. **Costanti in `config.dart`**, mai sparse nel codice: `INITIAL_COUNT` (0), finestra combo (2 s), soglie combo, durate animazioni, testi celebrativi, durata pressione lunga impostazioni (3 s). I valori regolabili dall'utente (audio on/off, minuti di idle) vivono invece in shared_preferences coi loro default.
+4. **Costanti in `config.dart`**, mai sparse nel codice: `INITIAL_COUNT` (0), finestra combo (2 s), soglie combo, durate animazioni, testi celebrativi, durata pressione lunga impostazioni (2 s). I valori regolabili dall'utente (audio on/off, minuti di idle) vivono invece in shared_preferences coi loro default.
 5. **Un effetto = un modulo.** Ogni easter egg è un widget/controller autonomo registrato nel catalogo effetti. Aggiungere un effetto nuovo non deve toccare quelli esistenti.
 
 ## Tooling agenti

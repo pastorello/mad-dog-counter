@@ -89,7 +89,7 @@ void main() {
       expect(find.byType(SettingsPanel), findsNothing);
     });
 
-    testWidgets('la pressione lunga di 3 s apre il pannello', (
+    testWidgets('la pressione lunga apre il pannello', (
       WidgetTester tester,
     ) async {
       await pumpApp(tester);
