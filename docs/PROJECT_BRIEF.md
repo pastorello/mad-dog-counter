@@ -18,6 +18,7 @@ L'app sostituisce un counter Android esistente, molto basilare: tap a destra/cen
 - Nessuna autenticazione utente o multi-utente.
 - Nessun conteggio per cicchetti diversi: **un solo contatore globale**, per il solo Mad Dog, su un tablet dedicato.
 - Nessuna modalità kiosk totale (basta lo schermo sempre acceso).
+- Nessun white label: l'app è vestita The Dutch. L'idea di renderla configurabile per altri bar è raccolta in WHITE_LABEL.md, da riprendere a lavori chiusi e dopo una nuova intervista.
 - Nessun backend online nell'MVP: la persistenza remota (e con lei il vecchio requisito di consultabilità da remoto) slitta alla fase 2.
 
 ## Contesto d'uso

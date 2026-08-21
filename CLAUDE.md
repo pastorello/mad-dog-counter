@@ -36,6 +36,7 @@ I plugin di Claude Code sono installati **globalmente** e accesi **per progetto*
 ## Cosa NON fare
 
 - Non implementare la fase 2 (persistenza online, statistiche, sito pubblico): solo predisporre il log tap locale e l'interfaccia repository.
+- Non implementare il white label (temi configurabili, modalità Dutch/Custom): l'idea è congelata in `docs/WHITE_LABEL.md` e richiede una nuova intervista al committente prima di diventare codice.
 - Non aggiungere autenticazione utente né schermate extra oltre al pannello impostazioni specificato in FUNCTIONAL_SPEC (e non estendere il pannello oltre le voci MVP elencate lì).
 - Non usare bianco puro né rosa nella UI (vedi UX_UI_SPEC → palette).
 - Non chiedere conferma per il decremento: è un tap semplice per scelta di prodotto.
