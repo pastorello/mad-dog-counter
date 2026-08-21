@@ -19,7 +19,10 @@ Future<void> main() async {
     DeviceOrientation.landscapeRight,
   ]);
   await SystemChrome.setEnabledSystemUIMode(SystemUiMode.immersiveSticky);
-  unawaited(WakelockPlus.enable());
+  // Fire-and-forget come tutto il resto dell'inizializzazione (regola d'oro
+  // 2): sul web l'API Wake Lock puo' rifiutare la richiesta (es. tab non
+  // visibile), e non deve diventare un'eccezione non gestita in console.
+  unawaited(WakelockPlus.enable().catchError((_) {}));
 
   final AppDependencies deps = await buildAppDependencies();
 
