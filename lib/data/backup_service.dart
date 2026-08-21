@@ -16,6 +16,7 @@ library;
 
 import 'dart:convert';
 import 'dart:io';
+import 'dart:isolate';
 
 import '../config.dart';
 import 'tap_log.dart';
@@ -97,7 +98,12 @@ class BackupService {
       await _directory.create(recursive: true);
     }
     final File file = File('${_directory.path}/${fileNameFor(day)}');
-    return file.writeAsString(jsonEncode(payload), flush: true);
+    // L'encode di un dump grande costa (decine/centinaia di ms su un tablet):
+    // fuori dall'isolate della UI, cosi' il primo tap della giornata non se
+    // lo porta dietro (S2 dell'audit prestazioni). `payload` e' solo
+    // String/int/bool/List/Map, quindi passa l'isolate senza problemi.
+    final String encoded = await Isolate.run(() => jsonEncode(payload));
+    return file.writeAsString(encoded, flush: true);
   }
 
   /// Tiene solo gli ultimi [kBackupRetentionDays] file.
