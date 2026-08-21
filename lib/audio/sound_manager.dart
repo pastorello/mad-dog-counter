@@ -38,11 +38,15 @@ abstract class SoundManager {
 /// Usa un pool di player in round-robin: durante una combo i pop si
 /// sovrappongono, e un player solo taglierebbe il suono precedente a ogni tap.
 class AudioPlayersSoundManager implements SoundManager {
-  AudioPlayersSoundManager({int poolSize = kSfxPoolSize})
-    : _players = List<AudioPlayer>.generate(
-        poolSize,
-        (_) => AudioPlayer()..setPlayerMode(PlayerMode.lowLatency),
-      );
+  AudioPlayersSoundManager({
+    int poolSize = kSfxPoolSize,
+    AudioPlayer Function() playerFactory = _defaultPlayer,
+  }) : _players = List<AudioPlayer>.generate(poolSize, (_) => playerFactory());
+
+  /// Player di default: gli si passa a mano solo nei test, per iniettare
+  /// finti player senza toccare il pool round-robin sottostante.
+  static AudioPlayer _defaultPlayer() =>
+      AudioPlayer()..setPlayerMode(PlayerMode.lowLatency);
 
   final List<AudioPlayer> _players;
   int _next = 0;
@@ -89,7 +93,12 @@ class AudioPlayersSoundManager implements SoundManager {
   @override
   void stopAll() {
     for (final AudioPlayer player in _players) {
-      unawaited(player.stop().catchError((Object _) {}));
+      try {
+        unawaited(player.stop().catchError((Object _) {}));
+      } catch (_) {
+        // stop() puo' anche lanciare in modo sincrono, prima di restituire
+        // il Future su cui aggancia catchError: va inghiottito anche quello.
+      }
     }
   }
 
