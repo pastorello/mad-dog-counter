@@ -101,12 +101,17 @@ class _CounterScreenState extends ConsumerState<CounterScreen> {
       body: Stack(
         children: <Widget>[
           // Il numerone sta sotto: le zone di tap ci passano sopra.
+          // RepaintBoundary perche' rolla a ogni tap e ha un glow sfocato
+          // (raster costoso): senza confine, ogni suo frame sporca anche
+          // marchio e bagliore della combo (P2 dell'audit prestazioni).
           Positioned.fill(
             child: Center(
-              child: BigNumber(
-                total: total,
-                effect: effects.current,
-                boobsActive: effects.boobsActive,
+              child: RepaintBoundary(
+                child: BigNumber(
+                  total: total,
+                  effect: effects.current,
+                  boobsActive: effects.boobsActive,
+                ),
               ),
             ),
           ),
@@ -159,8 +164,14 @@ class _CounterScreenState extends ConsumerState<CounterScreen> {
           if (effects.boobsActive) const Positioned.fill(child: HeartsBurst()),
 
           // La faccina annoiata: sopra il numerone, sotto agli effetti.
+          // RepaintBoundary perche' respira in loop (P2 dell'audit
+          // prestazioni): non deve sporcare il resto a ogni frame.
           if (effects.idleFaceVisible || effects.idleWaking)
-            Positioned.fill(child: IdleFace(waking: effects.idleWaking)),
+            Positioned.fill(
+              child: RepaintBoundary(
+                child: IdleFace(waking: effects.idleWaking),
+              ),
+            ),
 
           // L'overlay a tutto schermo dell'effetto in scena, per gli effetti
           // che ne hanno uno. Quelli che trasformano solo le cifre agiscono
@@ -178,7 +189,9 @@ class _CounterScreenState extends ConsumerState<CounterScreen> {
             left: 0,
             right: 0,
             child: IgnorePointer(
-              child: Center(child: HomdMark(size: kHomdMarkSize)),
+              child: Center(
+                child: RepaintBoundary(child: HomdMark(size: kHomdMarkSize)),
+              ),
             ),
           ),
 
