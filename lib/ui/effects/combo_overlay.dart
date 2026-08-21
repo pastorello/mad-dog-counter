@@ -6,6 +6,7 @@
 /// combo è viva (ANIMATIONS_SPEC → regola 3).
 library;
 
+import 'dart:async';
 import 'dart:math' as math;
 
 import 'package:flutter/material.dart';
@@ -30,16 +31,41 @@ class _ComboOverlayState extends State<ComboOverlay> {
   /// chiede invece che «gli effetti sfumano dolcemente».
   ComboState _visible = ComboState.idle;
 
+  /// Smonta l'overlay a dissolvenza conclusa: senza, bagliore e timbri
+  /// restano nell'albero (a opacità/fuori schermo) fino alla fine della
+  /// sessione, tenendo vive le immagini dei timbri per niente (P3
+  /// dell'audit prestazioni).
+  Timer? _dismissTimer;
+
   @override
   void didUpdateWidget(ComboOverlay oldWidget) {
     super.didUpdateWidget(oldWidget);
-    if (widget.combo.isActive) _visible = widget.combo;
+    if (widget.combo.isActive) {
+      _dismissTimer?.cancel();
+      _dismissTimer = null;
+      _visible = widget.combo;
+    } else if (oldWidget.combo.isActive) {
+      _scheduleDismiss();
+    }
   }
 
   @override
   void initState() {
     super.initState();
     if (widget.combo.isActive) _visible = widget.combo;
+  }
+
+  @override
+  void dispose() {
+    _dismissTimer?.cancel();
+    super.dispose();
+  }
+
+  void _scheduleDismiss() {
+    _dismissTimer?.cancel();
+    _dismissTimer = Timer(kComboDismissDelay, () {
+      if (mounted) setState(() => _visible = ComboState.idle);
+    });
   }
 
   @override
@@ -198,8 +224,9 @@ class _CiommoRow extends StatelessWidget {
   Widget build(BuildContext context) {
     // Indici pari a sinistra, dispari a destra. A sinistra si stampano in
     // ordine inverso, così i timbri nuovi finiscono sempre verso l'esterno.
-    final List<int> left = <int>[for (int i = 0; i < count; i += 2) i].reversed
-        .toList();
+    final List<int> left = <int>[
+      for (int i = 0; i < count; i += 2) i,
+    ].reversed.toList();
     final List<int> right = <int>[for (int i = 1; i < count; i += 2) i];
 
     return FittedBox(
@@ -252,17 +279,29 @@ class _CiommoStamp extends StatelessWidget {
           child: child,
         );
       },
-      child: Transform.rotate(
-        angle: angle,
-        child: Image.asset(
-          kImgCiommoApproved,
-          height: kComboStampHeight,
-          // L'asset e' line-art bianca: la tingiamo del rosso di brand.
-          color: kPrimaryRed,
-          colorBlendMode: BlendMode.srcIn,
-          errorBuilder: (BuildContext _, Object _, StackTrace? _) =>
-              const SizedBox.shrink(),
-        ),
+      child: Builder(
+        builder: (BuildContext context) {
+          // L'asset e' 924x1316: senza cacheHeight Flutter lo decodifica a
+          // piena risoluzione (~4,9 MB in RAM) per poi disegnarlo alto
+          // kComboStampHeight. In fisici, cosi' resta nitido anche sul
+          // tablet ad alta densita' (P1 dell'audit prestazioni).
+          final int cacheHeight =
+              (kComboStampHeight * MediaQuery.devicePixelRatioOf(context))
+                  .round();
+          return Transform.rotate(
+            angle: angle,
+            child: Image.asset(
+              kImgCiommoApproved,
+              height: kComboStampHeight,
+              cacheHeight: cacheHeight,
+              // L'asset e' line-art bianca: la tingiamo del rosso di brand.
+              color: kPrimaryRed,
+              colorBlendMode: BlendMode.srcIn,
+              errorBuilder: (BuildContext _, Object _, StackTrace? _) =>
+                  const SizedBox.shrink(),
+            ),
+          );
+        },
       ),
     );
   }

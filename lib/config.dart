@@ -297,6 +297,13 @@ const Duration kComboStampDuration = Duration(milliseconds: 260);
 /// Durata della discesa con cui il timbro esce di scena.
 const Duration kComboStampExitDuration = Duration(milliseconds: 320);
 
+/// Quanto aspetta `ComboOverlay`, dopo che la combo finisce, prima di
+/// smontarsi del tutto (torna a `SizedBox.shrink()`). Deve coprire sia la
+/// dissolvenza di bagliore/testo ([kComboFadeDuration]) sia l'uscita dei
+/// timbri ([kComboStampExitDuration]), con un margine: se fosse uguale al
+/// piu' lento dei due, lo smontaggio rischierebbe di tagliarlo a meta'.
+const Duration kComboDismissDelay = Duration(milliseconds: 600);
+
 /// Altezza di un timbro "Ciommo Approved". Grosso di proposito: è la firma
 /// della combo, si deve vedere dall'altra parte del bancone.
 const double kComboStampHeight = 288;

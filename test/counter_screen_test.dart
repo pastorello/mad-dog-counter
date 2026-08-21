@@ -267,16 +267,21 @@ void main() {
       }
     });
 
-    testWidgets('scaduta la finestra la combo sfuma via', (
+    testWidgets('scaduta la finestra la combo sfuma via, poi si smonta', (
       WidgetTester tester,
     ) async {
       final FakeClock clock = await pumpScreen(tester, await repoWith(0));
+      // Fuori lo splash: ha un suo AnimatedOpacity, che confonderebbe le
+      // asserzioni piu' sotto se fosse ancora a meta' dissolvenza.
+      await tester.pump(kSplashHold);
+      await tester.pumpAndSettle();
+
       await tapIncrement(tester, clock, kComboThresholds[0]);
       await tester.pump();
       expect(find.text(kComboTexts[0]), findsOneWidget);
 
       await tester.pump(kComboWindow);
-      await tester.pumpAndSettle();
+      await tester.pump();
 
       // Il testo esce di scena con la dissolvenza, non di scatto: resta nel
       // tree mentre l'opacita' scende.
@@ -291,6 +296,20 @@ void main() {
         find.byType(AnimatedOpacity),
       );
       expect(fade.opacity, 0);
+      // A dissolvenza visiva conclusa e' ancora montato: si smonta solo
+      // dopo kComboDismissDelay, non subito (il margine copre anche
+      // l'uscita dei timbri).
+      expect(find.byType(AnimatedOpacity), findsOneWidget);
+
+      // A dissolvenza (bagliore/testo e timbri) davvero conclusa, l'overlay
+      // si smonta: non resta in scena per sempre (P3 dell'audit
+      // prestazioni). Lo smontaggio e' un Timer, non un'animazione: non
+      // schedula frame da solo, quindi va superato con un pump esplicito e
+      // non con pumpAndSettle (che si fermerebbe appena i ticker si
+      // esauriscono).
+      await tester.pump(kComboDismissDelay - kComboFadeDuration);
+      expect(find.byType(AnimatedOpacity), findsNothing);
+      expect(find.text(kComboTexts[0]), findsNothing);
     });
   });
 
