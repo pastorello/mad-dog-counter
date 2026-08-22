@@ -27,6 +27,10 @@ I plugin di Claude Code sono installati **globalmente** e accesi **per progetto*
 - Niente numeri magici, niente stringhe UI hardcodate fuori da config.
 - Commit piccoli e tematici (un effetto/una feature per commit).
 
+## Workflow git
+
+- **Mai push diretto su `main`.** Il lavoro va su un branch a parte, con una pull request aperta per farla rivedere e mergiare dal committente — anche per commit piccoli e già testati. Vale per il codice; il branch `gh-pages` fa eccezione, perché non è codice sorgente ma solo l'artefatto compilato della demo pubblica.
+
 ## Testing
 
 - Unit test obbligatori per: trigger easter egg, macchina a stati combo, ordinamento coda effetti (durata crescente), regola "il multiplo di 1000 assorbe il multiplo di 100", clamp a zero del contatore.
