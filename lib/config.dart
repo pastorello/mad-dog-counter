@@ -313,6 +313,18 @@ const Duration kComboDismissDelay = Duration(milliseconds: 600);
 /// della combo, si deve vedere dall'altra parte del bancone.
 const double kComboStampHeight = 288;
 
+/// Proporzioni dell'asset del timbro (924×1316 px).
+///
+/// Lo slot del timbro si dimensiona da qui invece di lasciarlo dedurre
+/// all'immagine: così il layout è identico prima e dopo che il PNG si è
+/// decodificato, e resta sano anche se l'asset non si carica affatto — un
+/// figlio a larghezza zero manderebbe in NaN la scala del `FittedBox` che lo
+/// contiene.
+const double kComboStampAspect = 924 / 1316;
+
+/// Larghezza dello slot di un timbro, derivata dalle sue proporzioni.
+const double kComboStampWidth = kComboStampHeight * kComboStampAspect;
+
 /// Quanto resta sollevato dal bordo basso, per non finire sulla bandierina.
 const double kComboStampBottom = kDutchFlagHeight + 6;
 
@@ -324,8 +336,8 @@ const double kTopOverlayTop = 40;
 // Combo — pioggia di bicchierini
 // ---------------------------------------------------------------------------
 // Sullo sfondo, dietro a moltiplicatore/testo e timbri Ciommo: sono loro
-// l'evento, la pioggia è solo atmosfera. Per questo sono pochi, piccoli e
-// mai a piena opacità.
+// l'evento, la pioggia è l'atmosfera attorno. Per questo restano pochi e mai
+// a piena opacità — ma devono vedersi, non essere puntini.
 
 /// Quanti bicchierini cadono in loop finché la combo resta viva.
 const int kComboRainDropCount = 6;
@@ -334,11 +346,12 @@ const int kComboRainDropCount = 6;
 /// in basso, prima di ricominciare dall'alto.
 const Duration kComboRainCycleDuration = Duration(milliseconds: 2600);
 
-/// Altezza di un bicchierino della pioggia. Piccolo apposta: è sfondo, non
-/// deve competere con `kComboStampHeight`.
-const double kComboRainDropSize = 34;
+/// Altezza di un bicchierino della pioggia. Triplicata rispetto ai 34
+/// iniziali: da dietro il bancone non si vedevano proprio.
+const double kComboRainDropSize = 102;
 
-/// Trasparenza dei bicchierini della pioggia.
+/// Trasparenza dei bicchierini della pioggia. Restano dietro ai timbri di
+/// Ciommo, che sono l'evento vero della combo lunga.
 const double kComboRainOpacity = 0.30;
 
 // ---------------------------------------------------------------------------
@@ -386,32 +399,60 @@ const String kSettingsInvalidNumber =
 /// Altezza del solo bicchiere, dentro al marchio fisso in fondo alla
 /// schermata (`HomdBrandMark`: bicchiere + "HOUSE OF MAD DOGS" + tagline,
 /// come nel sottobicchiere ufficiale).
-const double kHomdMarkSize = 64;
+///
+/// Raddoppiata rispetto ai 64 iniziali: il marchio era corretto ma si
+/// leggeva appena da dietro il bancone.
+const double kHomdMarkSize = 128;
 
 /// Quanto sta sollevato dal bordo basso l'intero marchio (bicchiere, testo e
 /// tagline insieme): sopra la bandierina, non a filo.
 const double kHomdMarkBottom = kDutchFlagHeight + 8;
 
 /// Spazio tra il bicchiere e "HOUSE OF MAD DOGS".
-const double kHomdWordmarkGap = 2;
+const double kHomdWordmarkGap = 4;
 
-/// Corpo di "HOUSE OF MAD DOGS" sotto al bicchiere. Piccolo di proposito:
-/// è la firma del marchio, non un testo da leggere dall'altra parte del
-/// bancone — quello è il numerone.
-const double kHomdWordmarkSize = 15;
+/// Corpo di "HOUSE OF MAD DOGS" sotto al bicchiere.
+const double kHomdWordmarkSize = 30;
+
+/// Spaziatura tra le lettere del wordmark, come nel sottobicchiere.
+const double kHomdWordmarkTracking = 2;
 
 /// Spazio tra "HOUSE OF MAD DOGS" e la tagline.
-const double kHomdTaglineGap = 3;
+const double kHomdTaglineGap = 6;
 
 /// Corpo della tagline "MAY CAUSE UNFORGETTABLE NIGHTS", più piccolo del
 /// wordmark come nel sottobicchiere ufficiale.
-const double kHomdTaglineSize = 7.5;
+const double kHomdTaglineSize = 15;
 
-/// Larghezza riservata al marchio nella fila dei timbri di Ciommo, che gli
-/// escono ai due lati senza mai passarci sopra. Più larga di quanto serva al
-/// solo bicchiere: deve ospitare anche la tagline, la riga più larga del
-/// marchio completo.
-const double kHomdMarkLane = 320;
+/// Spaziatura tra le lettere della tagline.
+const double kHomdTaglineTracking = 1.2;
+
+/// Quanta altezza dello schermo può occupare al massimo il marchio completo.
+///
+/// Sotto al numerone resta libero `(1 - kBigNumberHeightFraction) / 2` di
+/// altezza, cioè 0,275: questo tetto sta sotto quella soglia col margine di
+/// `kHomdMarkBottom`. Sul tablet di produzione non morde mai — il marchio a
+/// grandezza piena ci sta comodo — ma su uno schermo basso lo rimpicciolisce
+/// invece di lasciarlo salire fin sul numerone.
+const double kHomdMarkMaxHeightFraction = 0.24;
+
+/// Frazione della larghezza schermo riservata al marchio nella fila dei
+/// timbri di Ciommo, che gli escono ai due lati senza mai passarci sopra.
+///
+/// È una frazione e non una misura fissa perché la stessa corsia governa
+/// due cose che devono restare d'accordo: il marchio non la supera mai (si
+/// rimpicciolisce se serve) e i timbri hanno sempre tutto il resto dello
+/// schermo. Così su nessuna larghezza uno mangia lo spazio dell'altro.
+/// Sul tablet di produzione la corsia è larga a sufficienza perché il
+/// marchio ci stia a grandezza piena.
+///
+/// **La corsia vive fuori dal `FittedBox` che rimpicciolisce i timbri**: se
+/// stesse dentro si rimpicciolirebbe con loro, e i timbri finirebbero
+/// addosso al marchio.
+const double kHomdMarkLaneFraction = 0.30;
+
+/// Respiro tra il marchio e i timbri che gli passano ai lati.
+const double kHomdMarkLaneMargin = 20;
 
 // ---------------------------------------------------------------------------
 // Numerone
