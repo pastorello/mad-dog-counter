@@ -86,6 +86,39 @@ const Duration kShake67Duration = Duration(milliseconds: 1500);
 /// Fuochi d'artificio sui multipli di 100.
 const Duration kFireworksDuration = Duration(milliseconds: 3500);
 
+// Le due salve partono dai angoli bassi e sparano verso il centro alto: una
+// copre la meta' sinistra dello schermo, l'altra la meta' destra. I valori
+// sotto servono a farle ARRIVARE al centro — con la forza iniziale la salva
+// si spegneva a un quarto di schermo e i coriandoli si notavano appena.
+
+/// Spinta iniziale di un coriandolo dei fuochi, minima e massima.
+///
+/// Tarata a schermo sul tablet: sotto i 120 la salva si spegneva
+/// nell'angolo senza arrivare al centro, sopra i 300 lo attraversava in
+/// mezzo secondo e usciva dal bordo alto. Qui i coriandoli fanno l'arco e
+/// restano in scena per la durata dell'effetto.
+const double kFireworksBlastForceMin = 110;
+const double kFireworksBlastForceMax = 220;
+
+/// Inclinazione del tiro rispetto all'orizzonte, in radianti (45°).
+///
+/// Conta quanto la forza: a 60° i coriandoli salivano quasi dritti e
+/// ricadevano vicino all'angolo. A 45° la componente orizzontale e quella
+/// verticale sono uguali, e la salva spazza davvero la sua metà schermo.
+const double kFireworksBlastAngle = 0.7853981633974483; // pi / 4
+
+/// Attrito dell'aria: sotto il default del pacchetto (0,05), altrimenti i
+/// coriandoli frenano prima di arrivare a meta' schermo.
+const double kFireworksDrag = 0.015;
+
+/// Quanto in fretta ricadono. Bassa: devono attraversare in arco, non
+/// tuffarsi subito né sfilare dritti fuori dal bordo alto.
+const double kFireworksGravity = 0.15;
+
+/// Quanti coriandoli per salva, e ogni quanto ne parte uno.
+const int kFireworksParticles = 20;
+const double kFireworksEmissionFrequency = 0.05;
+
 /// Palla da bowling + ricomposizione sui multipli di 1000.
 const Duration kStrikeDuration = Duration(milliseconds: 5500);
 

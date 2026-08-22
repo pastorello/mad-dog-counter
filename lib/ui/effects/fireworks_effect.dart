@@ -55,36 +55,49 @@ class _FireworksState extends State<_Fireworks> {
     return IgnorePointer(
       child: Stack(
         children: <Widget>[
-          // Le due salve partono dai bordi bassi e sparano verso il centro
-          // alto, così i coriandoli attraversano il numerone.
+          // Le due salve partono dagli angoli bassi e sparano verso il
+          // centro alto: quella di sinistra copre la metà sinistra dello
+          // schermo, quella di destra la metà destra, e si incontrano in
+          // mezzo attraversando il numerone.
           Align(
             alignment: Alignment.bottomLeft,
-            child: ConfettiWidget(
-              confettiController: _left,
-              blastDirection: -math.pi / 3,
-              emissionFrequency: 0.06,
-              numberOfParticles: 14,
-              maxBlastForce: 32,
-              minBlastForce: 12,
-              gravity: 0.25,
-              colors: _confettiColors,
-            ),
+            child: _Blast(controller: _left, direction: -kFireworksBlastAngle),
           ),
           Align(
             alignment: Alignment.bottomRight,
-            child: ConfettiWidget(
-              confettiController: _right,
-              blastDirection: -2 * math.pi / 3,
-              emissionFrequency: 0.06,
-              numberOfParticles: 14,
-              maxBlastForce: 32,
-              minBlastForce: 12,
-              gravity: 0.25,
-              colors: _confettiColors,
+            child: _Blast(
+              controller: _right,
+              direction: -(math.pi - kFireworksBlastAngle),
             ),
           ),
         ],
       ),
+    );
+  }
+}
+
+/// Una delle due salve. Le due differiscono solo per angolo di tiro: tutto
+/// il resto della taratura è identico e vive in `config.dart`.
+class _Blast extends StatelessWidget {
+  const _Blast({required this.controller, required this.direction});
+
+  final ConfettiController controller;
+
+  /// Verso cui spara, in radianti.
+  final double direction;
+
+  @override
+  Widget build(BuildContext context) {
+    return ConfettiWidget(
+      confettiController: controller,
+      blastDirection: direction,
+      emissionFrequency: kFireworksEmissionFrequency,
+      numberOfParticles: kFireworksParticles,
+      maxBlastForce: kFireworksBlastForceMax,
+      minBlastForce: kFireworksBlastForceMin,
+      particleDrag: kFireworksDrag,
+      gravity: kFireworksGravity,
+      colors: _confettiColors,
     );
   }
 }
