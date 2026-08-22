@@ -27,6 +27,7 @@ I suoni citati qui sotto esistono già come file: mappa evento→WAV in `assets/
 - **Effetto**: moltiplicatore visivo che sale (x2, x3, x5...), scritte celebrative sempre più esaltate che appaiono a schermo (es. «Bello!», «Fantastico!», «LEGGENDARIO!» — testi da definire coi baristi, tenerli in una lista in `config.dart`), l'ambiente attorno al numero si scalda: glow crescente, particelle più fitte.
 - **Combo lunga** (soglia da tarare, es. ≥ 5): timbri **"Ciommo Approved"** (asset `design/processed/ciommo_approved.svg`, fill bianco sporco; variante badge: `ciommo_sticker_round.png`) che spuntano dai lati del display con effetto stamp (schiaffo di timbro + leggera rotazione random). Più la combo cresce, più Ciommo appare.
   - Variante segnata da valutare coi baristi: Ciommo compare quando i cicchetti della sessione superano 3.
+- **Pioggia di bicchierini** (`lib/ui/effects/combo_rain.dart`): sullo sfondo, dietro a moltiplicatore/testo e ai timbri Ciommo, alcuni bicchierini piccoli e trasparenti (`ShotGlassPainter`, lo stesso disegno del marchio HoMD) cadono in loop finché la combo resta viva. È atmosfera, non l'evento: piccola, poca opacità, non compete coi timbri.
 - **Suono**: pitch dei pop che sale con la combo; "voce"/effetto trionfale sulle soglie.
 - **Fine combo**: gli effetti sfumano dolcemente, il moltiplicatore scompare.
 
@@ -60,6 +61,7 @@ I suoni citati qui sotto esistono già come file: mappa evento→WAV in `assets/
 - **Trigger**: nessun tap da N minuti (default suggerito: 10 min, costante in config).
 - **Posizione**: in alto al centro, nella stessa fascia dei contatori della combo (non in mezzo al numerone).
 - **Effetto**: compare la **faccina gialla triste con gli occhioni lucidi** (asset di riferimento: `design/raw/idle_faccina_riferimento.jpg`, da rielaborare in stile coerente) che guarda il contatore, sospira, magari bussa sul vetro dello schermo. Loop dolce finché non arriva un tap.
+- **Nuvole** (`lib/ui/effects/idle_clouds.dart`): dietro alla faccina, tre nuvole disegnate (nessun asset) attraversano lo schermo in loop, lente come il suo respiro. Vivono e muoiono con lei, ma spariscono un istante prima: al tap il cielo si schiarisce subito, mentre la faccina è ancora in scena a esplodere di gioia.
 - **Al tap dopo l'idle**: la faccina esplode di gioia e sparisce (micro-animazione di ~1 s), poi tutto normale.
 - **Suono**: nessuno durante l'idle (non deve disturbare il pub nei momenti calmi); giubilo al risveglio.
 

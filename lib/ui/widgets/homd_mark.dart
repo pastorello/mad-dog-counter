@@ -25,12 +25,14 @@ class HomdMark extends StatelessWidget {
     return SizedBox(
       width: size * _viewBox.width / _viewBox.height,
       height: size,
-      child: CustomPaint(painter: _ShotGlassPainter()),
+      child: CustomPaint(painter: ShotGlassPainter()),
     );
   }
 }
 
-class _ShotGlassPainter extends CustomPainter {
+/// Pubblico perché lo riusa anche la pioggia di bicchierini della combo
+/// (`combo_rain.dart`): stesso disegno, niente da ridisegnare due volte.
+class ShotGlassPainter extends CustomPainter {
   @override
   void paint(Canvas canvas, Size size) {
     // Tutto il disegno è nelle coordinate del viewBox: si scala una volta e
@@ -87,5 +89,5 @@ class _ShotGlassPainter extends CustomPainter {
   }
 
   @override
-  bool shouldRepaint(_ShotGlassPainter oldDelegate) => false;
+  bool shouldRepaint(ShotGlassPainter oldDelegate) => false;
 }

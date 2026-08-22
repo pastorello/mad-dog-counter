@@ -11,6 +11,8 @@ import 'package:mad_dog_counter/state/combo_machine.dart';
 import 'package:confetti/confetti.dart';
 import 'package:mad_dog_counter/ui/effects/boobs_digits.dart';
 import 'package:mad_dog_counter/ui/effects/combo_overlay.dart';
+import 'package:mad_dog_counter/ui/effects/combo_rain.dart';
+import 'package:mad_dog_counter/ui/effects/idle_clouds.dart';
 import 'package:mad_dog_counter/ui/effects/idle_face.dart';
 import 'package:mad_dog_counter/ui/widgets/panic_button.dart';
 import 'package:mad_dog_counter/ui/widgets/homd_mark.dart';
@@ -191,6 +193,18 @@ void main() {
       await tapIncrement(tester, clock, 1);
       await tester.pump();
       expect(find.text('x$kComboMinCount'), findsOneWidget);
+    });
+
+    testWidgets('la pioggia di bicchierini parte con la combo', (
+      WidgetTester tester,
+    ) async {
+      final FakeClock clock = await pumpScreen(tester, await repoWith(0));
+      expect(find.byType(ComboRain), findsNothing);
+
+      await tapIncrement(tester, clock, kComboMinCount);
+      await tester.pump();
+
+      expect(find.byType(ComboRain), findsOneWidget);
     });
 
     testWidgets('alla soglia compare il testo celebrativo', (
@@ -496,6 +510,29 @@ void main() {
 
       expect(find.byType(IdleFace), findsOneWidget);
     });
+
+    testWidgets(
+      'le nuvole compaiono con la faccina e spariscono al risveglio',
+      (WidgetTester tester) async {
+        final LocalCounterRepository repo = await repoWith(42);
+        await pumpScreen(tester, repo);
+        expect(find.byType(IdleClouds), findsNothing);
+
+        await tester.pump(const Duration(minutes: kIdleMinutesDefault));
+        await tester.pump();
+        expect(find.byType(IdleClouds), findsOneWidget);
+
+        final Size size =
+            tester.view.physicalSize / tester.view.devicePixelRatio;
+        await tester.tapAt(Offset(size.width * 0.8, size.height / 2));
+        await tester.pump();
+
+        // Il cielo si schiarisce subito: la faccina e' ancora in scena a
+        // esplodere di gioia, le nuvole no.
+        expect(find.byType(IdleFace), findsOneWidget);
+        expect(find.byType(IdleClouds), findsNothing);
+      },
+    );
 
     testWidgets('sta in cima, non in mezzo al numerone', (
       WidgetTester tester,

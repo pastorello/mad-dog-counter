@@ -316,6 +316,27 @@ const double kComboStampBottom = kDutchFlagHeight + 6;
 const double kTopOverlayTop = 40;
 
 // ---------------------------------------------------------------------------
+// Combo — pioggia di bicchierini
+// ---------------------------------------------------------------------------
+// Sullo sfondo, dietro a moltiplicatore/testo e timbri Ciommo: sono loro
+// l'evento, la pioggia è solo atmosfera. Per questo sono pochi, piccoli e
+// mai a piena opacità.
+
+/// Quanti bicchierini cadono in loop finché la combo resta viva.
+const int kComboRainDropCount = 6;
+
+/// Quanto impiega un bicchierino ad attraversare tutto lo schermo, dall'alto
+/// in basso, prima di ricominciare dall'alto.
+const Duration kComboRainCycleDuration = Duration(milliseconds: 2600);
+
+/// Altezza di un bicchierino della pioggia. Piccolo apposta: è sfondo, non
+/// deve competere con `kComboStampHeight`.
+const double kComboRainDropSize = 34;
+
+/// Trasparenza dei bicchierini della pioggia.
+const double kComboRainOpacity = 0.30;
+
+// ---------------------------------------------------------------------------
 // Asset immagine
 // ---------------------------------------------------------------------------
 
@@ -416,6 +437,27 @@ const double kIdleTearRadiusFactor = 0.40;
 
 /// Il riflesso pallido in fondo agli occhioni. Bianco sporco, mai puro.
 const Color kIdleEyeSheen = kTextColor;
+
+// ---------------------------------------------------------------------------
+// Idle — le nuvole
+// ---------------------------------------------------------------------------
+
+/// Quante nuvole attraversano lo schermo durante l'idle.
+const int kIdleCloudsCount = 3;
+
+/// Quanto impiega una nuvola ad attraversare tutto lo schermo, in loop.
+/// Lenta come il respiro della faccina: è atmosfera, non un evento.
+const Duration kIdleCloudsCrossDuration = Duration(seconds: 14);
+
+/// Larghezza della nuvola più grande; le altre sono via via più piccole
+/// (profondità povera, ma basta a non farle sembrare un fila identica).
+const double kIdleCloudsSize = 140;
+
+/// Trasparenza delle nuvole: sono sfondo, dietro la faccina.
+const double kIdleCloudsOpacity = 0.18;
+
+/// Quanto stanno in alto: sopra la fascia della faccina, mai addosso a lei.
+const double kIdleCloudsTop = 8;
 
 // ---------------------------------------------------------------------------
 // Backup giornaliero

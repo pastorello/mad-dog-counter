@@ -16,6 +16,7 @@ import '../state/effects_provider.dart';
 import 'effects/combo_overlay.dart';
 import 'effects/effect_catalog.dart';
 import 'effects/hearts_burst.dart';
+import 'effects/idle_clouds.dart';
 import 'effects/idle_face.dart';
 import 'settings_panel.dart';
 import 'widgets/big_number.dart';
@@ -162,6 +163,12 @@ class _CounterScreenState extends ConsumerState<CounterScreen> {
           // ricadono con la gravità. Stanno sopra al numerone perché devono
           // passargli davanti.
           if (effects.boobsActive) const Positioned.fill(child: HeartsBurst()),
+
+          // Le nuvole dietro la faccina: vivono e muoiono con lei, ma
+          // spariscono un istante prima (solo idleFaceVisible, non
+          // idleWaking) — quando arriva il tap il cielo si schiarisce subito.
+          if (effects.idleFaceVisible)
+            const Positioned.fill(child: IdleClouds()),
 
           // La faccina annoiata: sopra il numerone, sotto agli effetti.
           // RepaintBoundary perche' respira in loop (P2 dell'audit

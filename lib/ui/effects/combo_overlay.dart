@@ -13,6 +13,7 @@ import 'package:flutter/material.dart';
 
 import '../../config.dart';
 import '../../state/combo_machine.dart';
+import 'combo_rain.dart';
 
 class ComboOverlay extends StatefulWidget {
   const ComboOverlay({super.key, required this.combo});
@@ -90,6 +91,10 @@ class _ComboOverlayState extends State<ComboOverlay> {
                   // Il glow che scalda l'ambiente attorno al numero: più la
                   // combo sale, più è denso.
                   Positioned.fill(child: _ComboGlow(combo: combo)),
+
+                  // Pioggia di bicchierini sullo sfondo: sfuma insieme al
+                  // glow, sotto al moltiplicatore e ai testi.
+                  const Positioned.fill(child: ComboRain()),
 
                   Positioned(
                     top: kTopOverlayTop,
@@ -224,9 +229,8 @@ class _CiommoRow extends StatelessWidget {
   Widget build(BuildContext context) {
     // Indici pari a sinistra, dispari a destra. A sinistra si stampano in
     // ordine inverso, così i timbri nuovi finiscono sempre verso l'esterno.
-    final List<int> left = <int>[
-      for (int i = 0; i < count; i += 2) i,
-    ].reversed.toList();
+    final List<int> left = <int>[for (int i = 0; i < count; i += 2) i].reversed
+        .toList();
     final List<int> right = <int>[for (int i = 1; i < count; i += 2) i];
 
     return FittedBox(
