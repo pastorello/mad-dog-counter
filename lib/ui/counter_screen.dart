@@ -14,6 +14,7 @@ import '../state/counter_provider.dart';
 import '../state/effect_triggers.dart';
 import '../state/effects_provider.dart';
 import 'effects/combo_overlay.dart';
+import 'effects/combo_rain.dart';
 import 'effects/effect_catalog.dart';
 import 'effects/hearts_burst.dart';
 import 'effects/idle_clouds.dart';
@@ -154,6 +155,13 @@ class _CounterScreenState extends ConsumerState<CounterScreen> {
             bottom: 0,
             child: DutchFlagDivider(),
           ),
+
+          // La pioggia di bicchierini: evento a sé, non annidato
+          // nell'overlay della combo. Oggi parte insieme a lei, ma le due
+          // cose hanno soglie separate e possono prendere cadenze diverse
+          // senza toccarsi. Sta piu' in basso di tutti nello stack: e'
+          // atmosfera di sfondo, non deve mai passare davanti ai timbri.
+          Positioned.fill(child: ComboRain(active: effects.combo.isActive)),
 
           // L'overlay della combo: sotto agli effetti in coda, sopra il
           // numerone.

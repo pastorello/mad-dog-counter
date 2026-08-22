@@ -15,6 +15,24 @@ class HomdBrandMark extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    // Il marchio ha una sua grandezza di riposo (kHomdMarkSize e compagni),
+    // ma si tiene dentro due limiti invece di sconfinare: in altezza non
+    // sale fin sul numerone, in larghezza non esce dalla corsia che i timbri
+    // di Ciommo gli lasciano libera. Sul tablet di produzione nessuno dei
+    // due morde, e il marchio resta a grandezza piena.
+    final Size screen = MediaQuery.sizeOf(context);
+
+    return ConstrainedBox(
+      constraints: BoxConstraints(
+        maxHeight: screen.height * kHomdMarkMaxHeightFraction,
+        maxWidth:
+            screen.width * kHomdMarkLaneFraction - kHomdMarkLaneMargin * 2,
+      ),
+      child: FittedBox(fit: BoxFit.scaleDown, child: _content()),
+    );
+  }
+
+  Widget _content() {
     return Column(
       mainAxisSize: MainAxisSize.min,
       children: <Widget>[
@@ -27,7 +45,7 @@ class HomdBrandMark extends StatelessWidget {
             color: kPrimaryRed,
             fontSize: kHomdWordmarkSize,
             height: 1,
-            letterSpacing: 1,
+            letterSpacing: kHomdWordmarkTracking,
           ),
         ),
         const Text(
@@ -37,7 +55,7 @@ class HomdBrandMark extends StatelessWidget {
             color: kPrimaryRed,
             fontSize: kHomdWordmarkSize,
             height: 1,
-            letterSpacing: 1,
+            letterSpacing: kHomdWordmarkTracking,
           ),
         ),
         SizedBox(height: kHomdTaglineGap),
@@ -47,7 +65,7 @@ class HomdBrandMark extends StatelessWidget {
             fontFamily: kBrandFont,
             color: kTextColor,
             fontSize: kHomdTaglineSize,
-            letterSpacing: 0.6,
+            letterSpacing: kHomdTaglineTracking,
           ),
         ),
       ],

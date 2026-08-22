@@ -196,16 +196,37 @@ void main() {
       expect(find.text('x$kComboMinCount'), findsOneWidget);
     });
 
+    /// I bicchierini che cadono. `ComboRain` sta sempre nell'albero (e' un
+    /// evento a se', montato di suo in CounterScreen): quello che conta e'
+    /// se sta disegnando qualcosa.
+    Finder rainDrops() => find.descendant(
+      of: find.byType(ComboRain),
+      matching: find.byType(CustomPaint),
+    );
+
     testWidgets('la pioggia di bicchierini parte con la combo', (
       WidgetTester tester,
     ) async {
       final FakeClock clock = await pumpScreen(tester, await repoWith(0));
-      expect(find.byType(ComboRain), findsNothing);
+      expect(rainDrops(), findsNothing, reason: 'a riposo non piove');
 
       await tapIncrement(tester, clock, kComboMinCount);
       await tester.pump();
 
-      expect(find.byType(ComboRain), findsOneWidget);
+      expect(rainDrops(), findsNWidgets(kComboRainDropCount));
+    });
+
+    /// La regressione da cui nasce questo giro: la pioggia si era mangiata i
+    /// timbri. Sono due eventi distinti e devono convivere.
+    testWidgets('pioggia e timbri di Ciommo convivono', (
+      WidgetTester tester,
+    ) async {
+      final FakeClock clock = await pumpScreen(tester, await repoWith(0));
+      await tapIncrement(tester, clock, kComboCiommoThreshold);
+      await tester.pump();
+
+      expect(rainDrops(), findsNWidgets(kComboRainDropCount));
+      expect(find.byType(Image), findsOneWidget, reason: 'il timbro c e');
     });
 
     testWidgets('alla soglia compare il testo celebrativo', (
@@ -255,34 +276,45 @@ void main() {
 
     /// I timbri escono ai due lati del marchio HoMD: sono grossi, e se
     /// nascessero al centro se lo mangerebbero.
-    testWidgets('i timbri lasciano libero il marchio al centro', (
-      WidgetTester tester,
-    ) async {
-      tester.view.physicalSize = const Size(1920, 1200);
-      tester.view.devicePixelRatio = 1.0;
-      addTearDown(tester.view.reset);
+    /// Su schermo largo la fila dei timbri ci sta comoda; su schermo stretto
+    /// il `FittedBox` la rimpicciolisce. È il secondo caso che si era rotto:
+    /// la corsia del marchio stava dentro al FittedBox e si rimpiccioliva
+    /// coi timbri, mentre il marchio ha dimensione fissa — risultato, i
+    /// timbri gli finivano addosso. Per questo il test gira su entrambi.
+    for (final Size schermo in const <Size>[
+      Size(1920, 1200),
+      Size(1024, 700),
+    ]) {
+      testWidgets('i timbri lasciano libero il marchio al centro '
+          '(${schermo.width.toInt()}x${schermo.height.toInt()})', (
+        WidgetTester tester,
+      ) async {
+        tester.view.physicalSize = schermo;
+        tester.view.devicePixelRatio = 1.0;
+        addTearDown(tester.view.reset);
 
-      final FakeClock clock = await pumpScreen(tester, await repoWith(0));
-      // Fuori lo splash: finche' e' a video i marchi a schermo sono due.
-      await tester.pump(kSplashHold);
-      await tester.pumpAndSettle();
+        final FakeClock clock = await pumpScreen(tester, await repoWith(0));
+        // Fuori lo splash: finche' e' a video i marchi a schermo sono due.
+        await tester.pump(kSplashHold);
+        await tester.pumpAndSettle();
 
-      await tapIncrement(tester, clock, kComboCiommoThreshold + 1);
-      await tester.pump(kComboStampDuration);
+        await tapIncrement(tester, clock, kComboCiommoThreshold + 1);
+        await tester.pump(kComboStampDuration);
 
-      // Il marchio completo (bicchiere + wordmark + tagline): i timbri non
-      // devono invadere nemmeno il testo sotto il bicchiere.
-      final Rect marchio = tester.getRect(find.byType(HomdBrandMark));
-      expect(find.byType(Image), findsNWidgets(2));
-      for (int i = 0; i < 2; i++) {
-        final Rect timbro = tester.getRect(find.byType(Image).at(i));
-        expect(
-          timbro.left >= marchio.right || timbro.right <= marchio.left,
-          isTrue,
-          reason: 'il timbro sta tutto da un lato del marchio',
-        );
-      }
-    });
+        // Il marchio completo (bicchiere + wordmark + tagline): i timbri
+        // non devono invadere nemmeno il testo sotto il bicchiere.
+        final Rect marchio = tester.getRect(find.byType(HomdBrandMark));
+        expect(find.byType(Image), findsNWidgets(2));
+        for (int i = 0; i < 2; i++) {
+          final Rect timbro = tester.getRect(find.byType(Image).at(i));
+          expect(
+            timbro.left >= marchio.right || timbro.right <= marchio.left,
+            isTrue,
+            reason: 'il timbro sta tutto da un lato del marchio',
+          );
+        }
+      });
+    }
 
     testWidgets('scaduta la finestra la combo sfuma via, poi si smonta', (
       WidgetTester tester,
@@ -308,15 +340,19 @@ void main() {
       expect(overlay.combo, ComboState.idle);
       expect(find.text(kComboTexts[0]), findsOneWidget);
 
-      await tester.pump(kComboFadeDuration);
-      final AnimatedOpacity fade = tester.widget<AnimatedOpacity>(
-        find.byType(AnimatedOpacity),
+      // Solo quello dell'overlay: la pioggia ha il suo, ed e' un evento a
+      // parte con la sua dissolvenza.
+      final Finder overlayFade = find.descendant(
+        of: find.byType(ComboOverlay),
+        matching: find.byType(AnimatedOpacity),
       );
-      expect(fade.opacity, 0);
+
+      await tester.pump(kComboFadeDuration);
+      expect(tester.widget<AnimatedOpacity>(overlayFade).opacity, 0);
       // A dissolvenza visiva conclusa e' ancora montato: si smonta solo
       // dopo kComboDismissDelay, non subito (il margine copre anche
       // l'uscita dei timbri).
-      expect(find.byType(AnimatedOpacity), findsOneWidget);
+      expect(overlayFade, findsOneWidget);
 
       // A dissolvenza (bagliore/testo e timbri) davvero conclusa, l'overlay
       // si smonta: non resta in scena per sempre (P3 dell'audit
@@ -325,8 +361,11 @@ void main() {
       // non con pumpAndSettle (che si fermerebbe appena i ticker si
       // esauriscono).
       await tester.pump(kComboDismissDelay - kComboFadeDuration);
-      expect(find.byType(AnimatedOpacity), findsNothing);
+      expect(overlayFade, findsNothing);
       expect(find.text(kComboTexts[0]), findsNothing);
+      // Anche la pioggia si smonta per conto suo, senza restare a girare a
+      // vuoto per il resto della sessione.
+      expect(rainDrops(), findsNothing);
     });
   });
 
@@ -736,6 +775,39 @@ void main() {
   });
 
   group('marchio HoMD', () {
+    /// Il marchio si rimpicciolisce sugli schermi stretti o bassi per non
+    /// finire sul numerone ne' sotto ai timbri di Ciommo. Sul tablet di
+    /// produzione, pero', quei tetti non devono mordere: il logo ci va a
+    /// grandezza piena, che e' la ragione per cui e' stato ingrandito.
+    testWidgets('sul tablet di produzione e a grandezza piena', (
+      WidgetTester tester,
+    ) async {
+      // Prima la grandezza naturale, su una superficie cosi' ampia che
+      // nessuno dei due tetti puo' entrare in gioco.
+      tester.view.physicalSize = const Size(4000, 4000);
+      tester.view.devicePixelRatio = 1.0;
+      addTearDown(tester.view.reset);
+      await tester.pumpWidget(
+        const MaterialApp(
+          home: Scaffold(body: Center(child: HomdBrandMark())),
+        ),
+      );
+      await tester.pumpAndSettle();
+      final Size naturale = tester.getSize(find.byType(HomdBrandMark));
+
+      // Poi nella schermata vera, sul device di produzione.
+      tester.view.physicalSize = const Size(1920, 1200);
+      await pumpScreen(tester, await repoWith(1234));
+      await tester.pump(kSplashHold);
+      await tester.pumpAndSettle();
+
+      expect(
+        tester.getSize(find.byType(HomdBrandMark)).height,
+        closeTo(naturale.height, 0.5),
+        reason: 'sul Galaxy Tab il marchio non viene rimpicciolito',
+      );
+    });
+
     testWidgets('resta in basso al centro anche dopo lo splash', (
       WidgetTester tester,
     ) async {
