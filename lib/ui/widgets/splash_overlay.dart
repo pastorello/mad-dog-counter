@@ -74,31 +74,36 @@ class _SplashOverlayState extends State<SplashOverlay> {
                 children: <Widget>[
                   // Il logo si rimpicciolisce per stare dentro: in landscape
                   // stretto il lettering affiancato al bicchiere sfonderebbe
-                  // la larghezza.
-                  Padding(
-                    padding: EdgeInsets.symmetric(
-                      horizontal: constraints.maxWidth * 0.06,
-                      vertical: constraints.maxHeight * 0.08,
-                    ),
-                    child: FittedBox(
-                      fit: BoxFit.scaleDown,
-                      child: Column(
-                        mainAxisSize: MainAxisSize.min,
-                        children: <Widget>[
-                          const _PubLine(),
-                          SizedBox(height: markSize * 0.12),
-                          Row(
-                            mainAxisSize: MainAxisSize.min,
-                            crossAxisAlignment: CrossAxisAlignment.center,
-                            children: <Widget>[
-                              HomdMark(size: markSize),
-                              SizedBox(width: markSize * 0.28),
-                              _Wordmark(scale: markSize / 200),
-                            ],
-                          ),
-                          SizedBox(height: markSize * 0.12),
-                          const _Tagline(),
-                        ],
+                  // la larghezza. Center perché in uno Stack un figlio senza
+                  // Positioned si allinea in alto a sinistra per conto suo,
+                  // non al centro: senza, il logo finiva incollato al bordo
+                  // sinistro invece che centrato.
+                  Center(
+                    child: Padding(
+                      padding: EdgeInsets.symmetric(
+                        horizontal: constraints.maxWidth * 0.06,
+                        vertical: constraints.maxHeight * 0.08,
+                      ),
+                      child: FittedBox(
+                        fit: BoxFit.scaleDown,
+                        child: Column(
+                          mainAxisSize: MainAxisSize.min,
+                          children: <Widget>[
+                            const _PubLine(),
+                            SizedBox(height: markSize * 0.12),
+                            Row(
+                              mainAxisSize: MainAxisSize.min,
+                              crossAxisAlignment: CrossAxisAlignment.center,
+                              children: <Widget>[
+                                HomdMark(size: markSize),
+                                SizedBox(width: markSize * 0.28),
+                                _Wordmark(scale: markSize / 200),
+                              ],
+                            ),
+                            SizedBox(height: markSize * 0.12),
+                            const _Tagline(),
+                          ],
+                        ),
                       ),
                     ),
                   ),
