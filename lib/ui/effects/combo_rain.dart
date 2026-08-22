@@ -153,10 +153,17 @@ class _RainDrop extends StatelessWidget {
       top: y,
       child: Transform.rotate(
         angle: angle,
-        child: SizedBox(
-          height: kComboRainDropSize,
-          width: width,
-          child: CustomPaint(painter: ShotGlassPainter()),
+        // RepaintBoundary attorno al singolo bicchierino: il disegno e'
+        // sempre lo stesso (due path pieni di curve), cambiano solo
+        // posizione e rotazione. Con il confine, la sagoma si rasterizza
+        // una volta e a ogni frame si ricompone soltanto — senza, i sei
+        // bicchierini si ridisegnavano da capo 60 volte al secondo.
+        child: RepaintBoundary(
+          child: SizedBox(
+            height: kComboRainDropSize,
+            width: width,
+            child: CustomPaint(painter: ShotGlassPainter()),
+          ),
         ),
       ),
     );
