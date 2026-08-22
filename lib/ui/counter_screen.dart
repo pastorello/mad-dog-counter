@@ -161,7 +161,16 @@ class _CounterScreenState extends ConsumerState<CounterScreen> {
           // cose hanno soglie separate e possono prendere cadenze diverse
           // senza toccarsi. Sta piu' in basso di tutti nello stack: e'
           // atmosfera di sfondo, non deve mai passare davanti ai timbri.
-          Positioned.fill(child: ComboRain(active: effects.combo.isActive)),
+          //
+          // Cede il passo agli effetti in coda (`effects.current`): quando
+          // entrano in scena i fuochi o lo strike, la pioggia si ritira.
+          // E' la piu' bassa in priorita' di tutto il layer effetti — e'
+          // contorno, e non deve rubare frame al momento epico.
+          Positioned.fill(
+            child: ComboRain(
+              active: effects.combo.isActive && effects.current == null,
+            ),
+          ),
 
           // L'overlay della combo: sotto agli effetti in coda, sopra il
           // numerone.

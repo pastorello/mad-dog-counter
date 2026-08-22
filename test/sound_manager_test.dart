@@ -47,16 +47,26 @@ void main() {
       verify(() => players[2].play(any())).called(1);
     });
 
-    test('imposta il playback rate solo se diverso da 1.0', () async {
+    test('imposta il playback rate a ogni play', () async {
       final AudioPlayersSoundManager manager = buildManager(poolSize: 1);
-
-      manager.play('a.wav');
-      await pumpEventQueue();
-      verifyNever(() => players[0].setPlaybackRate(any()));
 
       manager.play('a.wav', rate: 1.4);
       await pumpEventQueue();
       verify(() => players[0].setPlaybackRate(1.4)).called(1);
+    });
+
+    /// Il pitch della combo non deve restare appiccicato al player: il pool
+    /// e' a rotazione, e il suono dopo si ritroverebbe addosso il rate di
+    /// quello prima (i fuochi dei 100 stonati dopo una combo veloce).
+    test('il rate torna a 1.0 e non si trascina al suono dopo', () async {
+      final AudioPlayersSoundManager manager = buildManager(poolSize: 1);
+
+      manager.play('pop.wav', rate: 1.8);
+      await pumpEventQueue();
+      manager.play('fuochi.wav');
+      await pumpEventQueue();
+
+      verify(() => players[0].setPlaybackRate(1.0)).called(1);
     });
   });
 
