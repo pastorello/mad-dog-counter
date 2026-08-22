@@ -2,14 +2,15 @@
 
 Materiale di brand per l'app. Riferimenti d'uso in `docs/UX_UI_SPEC.md`.
 
-⚠️ **Nota sui sorgenti**: tutti i file in `raw/` sono **render raster (JPEG)**, non vettoriali. I vettoriali originali sono stati richiesti alla tipografia Pubblicarrello (ordine n. 127461 del 21/09/2022) e **non arriveranno**: vanno ridisegnati internamente partendo dai raster. Gli asset in `processed/` sono sufficienti per lo sviluppo su tablet nel frattempo; il primo da rifare è il logo House of Mad Dogs, che è il logo principale dell'app.
+⚠️ **Nota sui sorgenti**: i vettoriali richiesti alla tipografia Pubblicarrello (ordine n. 127461 del 21/09/2022) non sono mai arrivati — il grosso di `raw/` resta **render raster (JPEG)**, da ridisegnare a mano. **Eccezione**: il 2026-08-22 il committente ha consegnato `sottobicchiere_homd_93x93.pdf`, il file di stampa vettoriale vero del logo HoMD (bicchiere + wordmark + tagline, font incorporati). Da lì sono stati estratti i path esatti: `processed/homd_shot_glass.svg` è ora una trascrizione fedele (non una bozza), ed è la fonte di `ShotGlassPainter` in `lib/ui/widgets/homd_mark.dart`.
 
 ## raw/ — materiale originale
 
 | File | Cos'è | Uso |
 |---|---|---|
 | `logo_the_dutch_sottobicchiere.jpg` | Logo del locale The Dutch (gotico rosso, bandiera, "Since 1980", "Gaeta, Italy") su fondo nero, dal sottobicchiere 93×93 | Riferimento brand; splash/credits |
-| `logo_house_of_mad_dogs_sottobicchiere.jpg` | Logo del brand del cicchetto: bicchiere shot rosso + "HOUSE OF MAD DOGS — May cause unforgettable nights" | **Logo principale dell'app**; riferimento per il ridisegno vettoriale |
+| `logo_house_of_mad_dogs_sottobicchiere.jpg` | Logo del brand del cicchetto: bicchiere shot rosso + "HOUSE OF MAD DOGS — May cause unforgettable nights" | Riferimento raster storico, superato da `sottobicchiere_homd_93x93.pdf` |
+| `sottobicchiere_homd_93x93.pdf` | **Vettoriale vero** dello stesso logo, consegnato dal committente il 2026-08-22: path esatti del bicchiere, testo con font incorporati (Oswald Bold per wordmark/tagline, DeutscheZierschrift per la "D" di sfondo) | **Logo principale dell'app**; fonte di `processed/homd_shot_glass.svg` e di `kBrandFont` |
 | `ciommo_approved_lineart.jpg` | Logo personale del barista Ciommo, line-art nera su bianco | Sorgente dei PNG trasparenti in processed/ |
 | `sticker_ciommo_screenshot.jpg` | Screenshot WhatsApp dello sticker rotondo "Ciommo Approved" stampato | Sorgente del ritaglio rotondo; riferimento versione "timbro" |
 | `poster_come_bere_il_mad_dog.jpg` | Poster del rituale in 4 step (versione file) | **Riferimento di stile per il lettering brush/graffiti** del numerone |
@@ -31,7 +32,7 @@ Materiale di brand per l'app. Riferimenti d'uso in `docs/UX_UI_SPEC.md`.
 | `ciommo_approved_white.png` | Ciommo line-art **bianco sporco (#F0F0F0) su trasparente**, bordi morbidi | Alternativa raster dello stamp (fondo scuro) |
 | `ciommo_approved_black.png` | Stessa line-art in nero su trasparente | Eventuali contesti chiari |
 | `ciommo_sticker_round.png` | Sticker rotondo ritagliato dallo screenshot, fondo trasparente | Variante "timbro/badge" per gli stamp; nota: è una foto dello sticker stampato, qualità media |
-| `homd_shot_glass.svg` | **Ridisegno vettoriale** del bicchiere shot HoMD in Pantone 186C | Logo/icona in-app, scalabile. Prima bozza fedele: rifinire se serve. L'onda del liquido è "scavata" con una forma color sfondo `#0E0E14`: adattarla se lo sfondo cambia |
+| `homd_shot_glass.svg` | **Trascrizione esatta** del bicchiere shot HoMD in Pantone 186C, path per path dal PDF ufficiale (non più una bozza) | Logo/icona in-app, scalabile. Contorno e liquido sono ciascuno un path con due sottopercorsi (regola non-zero): niente ritaglio col colore di sfondo, resta corretto su qualunque fondo |
 | `dutch_flag_stripe.svg` | Striscia bandiera olandese (186C / #F0F0F0 / 2728C) | Separatore firma sotto il numerone / bordo schermo |
 
 ## fonts/ — tipografia scelta
@@ -40,6 +41,7 @@ Materiale di brand per l'app. Riferimenti d'uso in `docs/UX_UI_SPEC.md`.
 |---|---|---|
 | `Creepster-Regular.ttf` | **Font principale** (Google Fonts, licenza OFL inclusa): il match più vicino al lettering brush del poster | Numerone del contatore, titoli, testi celebrativi |
 | `Knewave-Regular.ttf` | Alternativa a pennello più morbida (OFL) | Fallback se Creepster risulta troppo "horror" dal vivo |
+| `Oswald-Bold.ttf` | Font vero del logo HoMD (Google Fonts OFL), confermato dal font incorporato in `sottobicchiere_homd_93x93.pdf`; instanziato in statico Bold dal variabile ufficiale | "HOUSE OF MAD DOGS", tagline e "THE DUTCH PUB · GAETA" nello splash e nel marchio in fondo alla schermata (`kBrandFont`) |
 
 Il lettering originale del poster è disegnato a mano/generato, non corrisponde a un font esistente: Creepster è la scelta ufficiale salvo ripensamenti guardandolo sul tablet. Copiare il TTF scelto in `assets/fonts/` del progetto Flutter e dichiararlo nel `pubspec.yaml`.
 

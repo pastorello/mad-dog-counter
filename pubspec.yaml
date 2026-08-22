@@ -70,7 +70,10 @@ flutter:
 
   # Font di brand. Creepster e' la scelta per il numerone e i testi
   # celebrativi; Knewave e' l'alternativa piu' morbida da validare sul tablet
-  # vero (UX_UI_SPEC.md -> Tipografia). Entrambi OFL, licenze in assets/fonts/.
+  # vero (UX_UI_SPEC.md -> Tipografia). Oswald Bold e' il font vero del logo
+  # HoMD (dal vettoriale del committente, Sottobicchiere HoMD 93x93.pdf):
+  # usato per "HOUSE OF MAD DOGS" e la tagline. Tutti OFL, licenze in
+  # assets/fonts/.
   fonts:
     - family: Creepster
       fonts:
@@ -78,3 +81,6 @@ flutter:
     - family: Knewave
       fonts:
         - asset: assets/fonts/Knewave-Regular.ttf
+    - family: Oswald
+      fonts:
+        - asset: assets/fonts/Oswald-Bold.ttf

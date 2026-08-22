@@ -21,7 +21,7 @@ import 'effects/idle_face.dart';
 import 'settings_panel.dart';
 import 'widgets/big_number.dart';
 import 'widgets/dutch_flag_divider.dart';
-import 'widgets/homd_mark.dart';
+import 'widgets/homd_brand_mark.dart';
 import 'widgets/panic_button.dart';
 import 'widgets/settings_gear.dart';
 import 'widgets/splash_overlay.dart';
@@ -196,9 +196,7 @@ class _CounterScreenState extends ConsumerState<CounterScreen> {
             left: 0,
             right: 0,
             child: IgnorePointer(
-              child: Center(
-                child: RepaintBoundary(child: HomdMark(size: kHomdMarkSize)),
-              ),
+              child: Center(child: RepaintBoundary(child: HomdBrandMark())),
             ),
           ),
 

@@ -15,6 +15,7 @@ import 'package:mad_dog_counter/ui/effects/combo_rain.dart';
 import 'package:mad_dog_counter/ui/effects/idle_clouds.dart';
 import 'package:mad_dog_counter/ui/effects/idle_face.dart';
 import 'package:mad_dog_counter/ui/widgets/panic_button.dart';
+import 'package:mad_dog_counter/ui/widgets/homd_brand_mark.dart';
 import 'package:mad_dog_counter/ui/widgets/homd_mark.dart';
 import 'package:mad_dog_counter/ui/widgets/rolling_digit.dart';
 import 'package:mad_dog_counter/ui/widgets/splash_overlay.dart';
@@ -269,7 +270,9 @@ void main() {
       await tapIncrement(tester, clock, kComboCiommoThreshold + 1);
       await tester.pump(kComboStampDuration);
 
-      final Rect marchio = tester.getRect(find.byType(HomdMark));
+      // Il marchio completo (bicchiere + wordmark + tagline): i timbri non
+      // devono invadere nemmeno il testo sotto il bicchiere.
+      final Rect marchio = tester.getRect(find.byType(HomdBrandMark));
       expect(find.byType(Image), findsNWidgets(2));
       for (int i = 0; i < 2; i++) {
         final Rect timbro = tester.getRect(find.byType(Image).at(i));
@@ -745,9 +748,13 @@ void main() {
       await tester.pumpAndSettle();
 
       expect(find.byType(SplashOverlay), findsNothing);
-      expect(find.byType(HomdMark), findsOneWidget);
+      expect(find.byType(HomdBrandMark), findsOneWidget);
 
-      final Rect mark = tester.getRect(find.byType(HomdMark));
+      // Il marchio completo (bicchiere + wordmark + tagline): e' l'intero
+      // blocco a stare ancorato in basso al centro, non il solo bicchiere,
+      // che ora sta piu' in alto dentro al blocco per lasciare posto al
+      // testo sotto di se'.
+      final Rect mark = tester.getRect(find.byType(HomdBrandMark));
       expect(mark.center.dx, closeTo(1920 / 2, 1));
       expect(mark.bottom, closeTo(1200 - kHomdMarkBottom, 1));
     });
@@ -762,7 +769,7 @@ void main() {
       await tester.pump(kSplashHold);
       await tester.pumpAndSettle();
 
-      await tester.tapAt(tester.getCenter(find.byType(HomdMark)));
+      await tester.tapAt(tester.getCenter(find.byType(HomdBrandMark)));
       await tester.pumpAndSettle();
 
       expect(repo.total, 11, reason: 'il marchio e decorativo, il tap passa');
@@ -781,17 +788,19 @@ void main() {
       await pumpScreen(tester, await repoWith(239338));
 
       expect(find.byType(SplashOverlay), findsOneWidget);
-      expect(
-        find.descendant(
-          of: find.byType(SplashOverlay),
-          matching: find.byType(HomdMark),
-        ),
-        findsOneWidget,
-      );
-      expect(find.text(kBrandNameLine1), findsOneWidget);
-      expect(find.text(kBrandNameLine2), findsOneWidget);
-      expect(find.text(kBrandPub), findsOneWidget);
-      expect(find.text(kBrandTagline), findsOneWidget);
+
+      // Scoperti dentro lo splash: sotto, il marchio in fondo alla
+      // schermata ha la sua copia di bicchiere/wordmark/tagline
+      // (HomdBrandMark), quindi le find.text vanno cercate solo dentro
+      // l'albero dello splash per non trovarne due.
+      Finder inSplash(Finder matching) =>
+          find.descendant(of: find.byType(SplashOverlay), matching: matching);
+
+      expect(inSplash(find.byType(HomdMark)), findsOneWidget);
+      expect(inSplash(find.text(kBrandNameLine1)), findsOneWidget);
+      expect(inSplash(find.text(kBrandNameLine2)), findsOneWidget);
+      expect(inSplash(find.text(kBrandPub)), findsOneWidget);
+      expect(inSplash(find.text(kBrandTagline)), findsOneWidget);
 
       await waitOutSplash(tester);
     });

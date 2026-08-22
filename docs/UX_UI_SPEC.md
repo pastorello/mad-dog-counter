@@ -58,7 +58,7 @@ La **bandierina olandese** (striscia rosso/bianco/blu) è il separatore firma de
 
 - **Numerone**: stile **graffiti/pennellata** come il lettering del poster «Come bere il Mad Dog» (scelta esplicita del committente). Il lettering del poster è disegnato, non un font esistente: dopo un confronto visivo tra 8 candidati Google Fonts, la scelta è **Creepster** (`design/fonts/Creepster-Regular.ttf`, licenza OFL inclusa) — maiuscole compatte a bordi frastagliati fedelissime al poster, cifre distinguibili. Alternativa più morbida già nel pacchetto: **Knewave**. Validare la scelta guardandola sul tablet vero. Le cifre devono avere larghezza stabile (slot a larghezza fissa via layout, i font brush non hanno cifre tabular) per evitare che il numero balli a ogni cifra che cambia.
 - **Testi celebrativi combo**: stesso font del numerone (Creepster), rosso 186C con bordo scuro.
-- **Testi secondari** (stato connessione, placeholder): sans-serif bold condensed, come la tipografia del logo HoMD.
+- **Testi secondari** (stato connessione, placeholder) e **logo HoMD** ("HOUSE OF MAD DOGS", tagline, "THE DUTCH PUB · GAETA"): **Oswald Bold** (`kBrandFont`), il font vero del logo — confermato dal font incorporato nel vettoriale ufficiale del committente (`design/raw/sottobicchiere_homd_93x93.pdf`, consegnato il 2026-08-22), non più un sans generico a occhio.
 
 ## Micro-interazioni
 

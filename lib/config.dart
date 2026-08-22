@@ -168,6 +168,11 @@ const String kDisplayFont = 'Creepster';
 /// Alternativa più morbida, già nel pacchetto: da validare sul tablet vero.
 const String kDisplayFontAlt = 'Knewave';
 
+/// Font del logo HoMD: "HOUSE OF MAD DOGS" e la tagline. È il font vero,
+/// preso dal vettoriale ufficiale del committente (Sottobicchiere HoMD
+/// 93x93.pdf, font incorporato Oswald-Bold), non un sans generico a caso.
+const String kBrandFont = 'Oswald';
+
 // ---------------------------------------------------------------------------
 // Storage
 // ---------------------------------------------------------------------------
@@ -378,15 +383,35 @@ const String kSettingsInvalidNumber =
 // Marchio House of Mad Dogs
 // ---------------------------------------------------------------------------
 
-/// Altezza del bicchiere HoMD fisso in fondo alla schermata.
+/// Altezza del solo bicchiere, dentro al marchio fisso in fondo alla
+/// schermata (`HomdBrandMark`: bicchiere + "HOUSE OF MAD DOGS" + tagline,
+/// come nel sottobicchiere ufficiale).
 const double kHomdMarkSize = 64;
 
-/// Quanto sta sollevato dal bordo basso: sopra la bandierina, non a filo.
+/// Quanto sta sollevato dal bordo basso l'intero marchio (bicchiere, testo e
+/// tagline insieme): sopra la bandierina, non a filo.
 const double kHomdMarkBottom = kDutchFlagHeight + 8;
 
+/// Spazio tra il bicchiere e "HOUSE OF MAD DOGS".
+const double kHomdWordmarkGap = 2;
+
+/// Corpo di "HOUSE OF MAD DOGS" sotto al bicchiere. Piccolo di proposito:
+/// è la firma del marchio, non un testo da leggere dall'altra parte del
+/// bancone — quello è il numerone.
+const double kHomdWordmarkSize = 15;
+
+/// Spazio tra "HOUSE OF MAD DOGS" e la tagline.
+const double kHomdTaglineGap = 3;
+
+/// Corpo della tagline "MAY CAUSE UNFORGETTABLE NIGHTS", più piccolo del
+/// wordmark come nel sottobicchiere ufficiale.
+const double kHomdTaglineSize = 7.5;
+
 /// Larghezza riservata al marchio nella fila dei timbri di Ciommo, che gli
-/// escono ai due lati senza mai passarci sopra.
-const double kHomdMarkLane = 160;
+/// escono ai due lati senza mai passarci sopra. Più larga di quanto serva al
+/// solo bicchiere: deve ospitare anche la tagline, la riga più larga del
+/// marchio completo.
+const double kHomdMarkLane = 320;
 
 // ---------------------------------------------------------------------------
 // Numerone

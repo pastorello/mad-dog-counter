@@ -126,9 +126,9 @@ class _PubLine extends StatelessWidget {
     return const Text(
       kBrandPub,
       style: TextStyle(
+        fontFamily: kBrandFont,
         color: kTextColor,
         fontSize: 22,
-        fontWeight: FontWeight.w900,
         letterSpacing: 4,
       ),
     );
@@ -143,13 +143,14 @@ class _Wordmark extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    // Sans bold condensed, non il lettering brush: nel logo HoMD la
-    // tipografia è quella (UX_UI_SPEC → Tipografia).
+    // Oswald Bold, non il lettering brush: nel logo HoMD la tipografia è
+    // quella (UX_UI_SPEC → Tipografia; font vero, dal vettoriale del
+    // committente).
     final TextStyle style = TextStyle(
+      fontFamily: kBrandFont,
       color: kPrimaryRed,
       fontSize: 54 * scale,
       height: 0.98,
-      fontWeight: FontWeight.w900,
       letterSpacing: 2 * scale,
     );
     return Column(
@@ -171,9 +172,9 @@ class _Tagline extends StatelessWidget {
     return const Text(
       kBrandTagline,
       style: TextStyle(
+        fontFamily: kBrandFont,
         color: kTextColor,
         fontSize: 16,
-        fontWeight: FontWeight.w700,
         letterSpacing: 2.5,
       ),
     );
