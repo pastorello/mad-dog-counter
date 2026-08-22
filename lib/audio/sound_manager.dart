@@ -83,7 +83,12 @@ class AudioPlayersSoundManager implements SoundManager {
   Future<void> _playOn(AudioPlayer player, String asset, double rate) async {
     try {
       await player.stop();
-      if (rate != 1.0) await player.setPlaybackRate(rate);
+      // Sempre, anche a 1.0: il rate è uno stato del player, non del suono.
+      // Saltarlo quando vale 1.0 lasciava appiccicato al player il pitch
+      // dell'ultima combo, e il pop accelerato a 1.8x se lo ritrovava
+      // addosso il suono successivo che finiva su quel player del pool —
+      // i fuochi dei 100 suonavano stonati dopo una combo veloce.
+      await player.setPlaybackRate(rate);
       await player.play(AssetSource(asset));
     } catch (_) {
       // Muto e avanti: vedi il commento in testa al file.
