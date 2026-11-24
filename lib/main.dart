@@ -8,6 +8,7 @@ import 'package:wakelock_plus/wakelock_plus.dart';
 import 'bootstrap.dart';
 import 'config.dart';
 import 'state/counter_provider.dart';
+import 'state/daily_stats_provider.dart';
 import 'ui/counter_screen.dart';
 
 Future<void> main() async {
@@ -34,6 +35,7 @@ Future<void> main() async {
         soundManagerProvider.overrideWithValue(deps.sounds),
         settingsRepositoryProvider.overrideWithValue(deps.settings),
         backupServiceProvider.overrideWithValue(deps.backup),
+        dailyStatsControllerProvider.overrideWithValue(deps.dailyStats),
       ],
       child: const MadDogCounterApp(),
     ),

@@ -94,4 +94,32 @@ void main() {
       expect(triggersFor(239339), isEmpty);
     });
   });
+
+  group('record del giorno', () {
+    test('senza flag non accoda niente di suo', () {
+      expect(triggersFor(5), isEmpty);
+      expect(triggersFor(5, dailyRecord: false), isEmpty);
+    });
+
+    test('si accoda ordinato tra fuochi e strike', () {
+      expect(triggersFor(239400, dailyRecord: true), <EffectKind>[
+        EffectKind.fireworks,
+        EffectKind.dailyRecord,
+      ]);
+    });
+
+    test('i multipli non lo assorbono: è un evento indipendente', () {
+      expect(triggersFor(1000, dailyRecord: true), <EffectKind>[
+        EffectKind.dailyRecord,
+        EffectKind.strike,
+      ]);
+    });
+
+    test('con lo shake arriva dopo, per durata crescente', () {
+      expect(triggersFor(167, dailyRecord: true), <EffectKind>[
+        EffectKind.shake67,
+        EffectKind.dailyRecord,
+      ]);
+    });
+  });
 }

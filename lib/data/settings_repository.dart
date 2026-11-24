@@ -55,4 +55,100 @@ class SettingsRepository {
       // idem
     }
   }
+
+  // --- Record del giorno (cache: quando il log sqflite c'è, fa fede lui) ---
+
+  /// La finestra giornaliera di cui parlano [dailyCount] e
+  /// [recordCelebratedWindow]. Null al primissimo avvio.
+  String? get dailyWindowKey => _prefs.getString(kPrefsDailyWindowKey);
+
+  Future<void> setDailyWindowKey(String value) async {
+    try {
+      await _prefs.setString(kPrefsDailyWindowKey, value);
+    } catch (_) {
+      // Cache: al prossimo avvio si ricalcola dal log.
+    }
+  }
+
+  /// Conteggio della finestra corrente.
+  int get dailyCount => _prefs.getInt(kPrefsDailyCount) ?? 0;
+
+  Future<void> setDailyCount(int value) async {
+    try {
+      await _prefs.setInt(kPrefsDailyCount, value);
+    } catch (_) {
+      // idem
+    }
+  }
+
+  /// Il record storico e la finestra in cui è stato fatto.
+  int get bestDayCount => _prefs.getInt(kPrefsBestDayCount) ?? 0;
+
+  Future<void> setBestDayCount(int value) async {
+    try {
+      await _prefs.setInt(kPrefsBestDayCount, value);
+    } catch (_) {
+      // idem
+    }
+  }
+
+  String? get bestDayKey => _prefs.getString(kPrefsBestDayKey);
+
+  Future<void> setBestDayKey(String value) async {
+    try {
+      await _prefs.setString(kPrefsBestDayKey, value);
+    } catch (_) {
+      // idem
+    }
+  }
+
+  /// La finestra in cui la festa del record è già partita.
+  String? get recordCelebratedWindow =>
+      _prefs.getString(kPrefsRecordCelebratedWindow);
+
+  Future<void> setRecordCelebratedWindow(String value) async {
+    try {
+      await _prefs.setString(kPrefsRecordCelebratedWindow, value);
+    } catch (_) {
+      // Al peggio si festeggia due volte: un dramma sopportabile.
+    }
+  }
+
+  // --- Tilt ---
+
+  /// Oltre quanti mad dog in [kTiltWindow] scatta il tilt.
+  int get tiltThreshold =>
+      _prefs.getInt(kPrefsTiltThreshold) ?? kTiltThresholdDefault;
+
+  Future<void> setTiltThreshold(int value) async {
+    try {
+      await _prefs.setInt(kPrefsTiltThreshold, value);
+    } catch (_) {
+      // idem
+    }
+  }
+
+  /// Quanti secondi resta in scena il tilt.
+  int get tiltDurationSeconds =>
+      _prefs.getInt(kPrefsTiltDurationSeconds) ?? kTiltDurationSecondsDefault;
+
+  Future<void> setTiltDurationSeconds(int value) async {
+    try {
+      await _prefs.setInt(kPrefsTiltDurationSeconds, value);
+    } catch (_) {
+      // idem
+    }
+  }
+
+  /// Il messaggio sotto al TILT. Vuoto ⇒ la UI mostra il default.
+  String get tiltMessage =>
+      _prefs.getString(kPrefsTiltMessage) ?? kTiltMessageDefault;
+
+  Future<void> setTiltMessage(String value) async {
+    try {
+      await _prefs.setString(kPrefsTiltMessage, value);
+    } catch (_) {
+      // idem
+    }
+  }
 }

@@ -10,6 +10,7 @@ import '../data/backup_service.dart';
 import '../data/counter_repository.dart';
 import '../data/settings_repository.dart';
 import '../data/tap_log.dart';
+import 'daily_stats_provider.dart';
 import 'effects_provider.dart';
 import 'settings_provider.dart';
 
@@ -79,16 +80,32 @@ final Provider<SoundManager> soundManagerProvider = Provider<SoundManager>(
 final Provider<EffectsEngine> effectsEngineProvider = Provider<EffectsEngine>((
   Ref ref,
 ) {
+  final SettingsState settings = ref.read(settingsProvider);
+  final DailyStatsController? dailyStats = ref.watch(
+    dailyStatsControllerProvider,
+  );
   final EffectsEngine engine = EffectsEngine(
     ref.watch(soundManagerProvider),
-    idleDelay: Duration(minutes: ref.read(settingsProvider).idleMinutes),
+    idleDelay: Duration(minutes: settings.idleMinutes),
+    clock: ref.watch(clockProvider),
+    dailyStats: dailyStats,
+    tiltThreshold: settings.tiltThreshold,
+    tiltDuration: Duration(seconds: settings.tiltDurationSeconds),
   );
 
-  // I minuti si cambiano dal pannello: si ascoltano, non si osservano con
+  // La finestra del tilt riparte da dove il log l'aveva lasciata: un riavvio
+  // non azzera il ritmo osservato. Fire-and-forget come tutto il layer.
+  if (dailyStats != null) {
+    unawaited(dailyStats.tiltSeed.then(engine.seedTilt));
+  }
+
+  // I valori si cambiano dal pannello: si ascoltano, non si osservano con
   // watch, altrimenti ogni modifica ricostruirebbe il motore da capo e
   // butterebbe via la coda e gli stati persistenti.
   ref.listen(settingsProvider, (SettingsState? _, SettingsState next) {
     engine.idleDelay = Duration(minutes: next.idleMinutes);
+    engine.tiltThreshold = next.tiltThreshold;
+    engine.tiltDuration = Duration(seconds: next.tiltDurationSeconds);
   });
 
   final StreamSubscription<CounterChange> subscription = ref

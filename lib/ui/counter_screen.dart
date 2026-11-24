@@ -13,12 +13,14 @@ import '../config.dart';
 import '../state/counter_provider.dart';
 import '../state/effect_triggers.dart';
 import '../state/effects_provider.dart';
+import '../state/settings_provider.dart';
 import 'effects/combo_overlay.dart';
 import 'effects/combo_rain.dart';
 import 'effects/effect_catalog.dart';
 import 'effects/hearts_burst.dart';
 import 'effects/idle_clouds.dart';
 import 'effects/idle_face.dart';
+import 'effects/tilt_overlay.dart';
 import 'settings_panel.dart';
 import 'widgets/big_number.dart';
 import 'widgets/dutch_flag_divider.dart';
@@ -216,6 +218,23 @@ class _CounterScreenState extends ConsumerState<CounterScreen> {
               child: Center(child: RepaintBoundary(child: HomdBrandMark())),
             ),
           ),
+
+          // La scena TILT: sopra il marchio e gli effetti, ma SOTTO panico e
+          // ingranaggio (le vie d'uscita restano libere). La radice è un
+          // IgnorePointer: i tap la attraversano e contano — la regola d'oro
+          // 2 non si tocca.
+          if (effects.tiltActive)
+            Positioned.fill(
+              child: Consumer(
+                builder: (BuildContext context, WidgetRef ref, Widget? _) {
+                  final SettingsState settings = ref.watch(settingsProvider);
+                  return TiltOverlay(
+                    message: settings.effectiveTiltMessage,
+                    duration: Duration(seconds: settings.tiltDurationSeconds),
+                  );
+                },
+              ),
+            ),
 
           // Il pulsante panico sta sopra le zone di tap: i suoi tocchi non
           // devono mai finire nel contatore.

@@ -4,10 +4,13 @@ import 'package:flutter_test/flutter_test.dart';
 import 'package:mad_dog_counter/audio/sound_manager.dart';
 import 'package:mad_dog_counter/config.dart';
 import 'package:mad_dog_counter/data/counter_repository.dart';
+import 'package:mad_dog_counter/data/settings_repository.dart';
 import 'package:mad_dog_counter/data/tap_log.dart';
 import 'package:mad_dog_counter/state/combo_machine.dart';
+import 'package:mad_dog_counter/state/daily_stats_provider.dart';
 import 'package:mad_dog_counter/state/effect_triggers.dart';
 import 'package:mad_dog_counter/state/effects_provider.dart';
+import 'package:shared_preferences/shared_preferences.dart';
 
 /// Registra cosa gli viene chiesto di suonare, senza suonare niente.
 class _SpySounds implements SoundManager {
@@ -605,6 +608,214 @@ void main() {
 
       b.engine.onChange(adjust(239338, 239338));
       expect(b.engine.state.idleFaceVisible, isTrue);
+    });
+  });
+
+  group('tilt', () {
+    const Duration tiltDuration = Duration(seconds: 60);
+
+    ({EffectsEngine engine, _SpySounds sounds, _FakeClock clock}) buildTilt(
+      DateTime Function() now, {
+      int threshold = 3,
+    }) {
+      final _SpySounds sounds = _SpySounds();
+      final _FakeClock clock = _FakeClock();
+      return (
+        engine: EffectsEngine(
+          sounds,
+          scheduler: clock.schedule,
+          clock: now,
+          tiltThreshold: threshold,
+          tiltDuration: tiltDuration,
+        ),
+        sounds: sounds,
+        clock: clock,
+      );
+    }
+
+    test('al tap oltre soglia nelle due ore parte il tilt, col suo suono', () {
+      DateTime now = DateTime(2026, 11, 24, 21);
+      final b = buildTilt(() => now);
+
+      for (int i = 1; i <= 3; i++) {
+        b.engine.onChange(tap(i, 1));
+        now = now.add(const Duration(seconds: 1));
+      }
+      expect(b.engine.state.tiltActive, isFalse, reason: '3 non supera 3');
+
+      b.engine.onChange(tap(4, 1));
+      expect(b.engine.state.tiltActive, isTrue);
+      expect(b.sounds.played, contains(kSfxWobble67));
+    });
+
+    test('i tap fuori dalla finestra di due ore non contano', () {
+      DateTime now = DateTime(2026, 11, 24, 18);
+      final b = buildTilt(() => now);
+
+      b.engine.onChange(tap(1, 1));
+      b.engine.onChange(tap(2, 1));
+      now = now.add(const Duration(hours: 3)); // i primi due escono
+      b.engine.onChange(tap(3, 1));
+      b.engine.onChange(tap(4, 1));
+
+      expect(b.engine.state.tiltActive, isFalse);
+    });
+
+    test('durante il tilt i tap continuano a contare e accodare effetti', () {
+      DateTime now = DateTime(2026, 11, 24, 21);
+      final b = buildTilt(() => now);
+      for (int i = 1; i <= 4; i++) {
+        b.engine.onChange(tap(i, 1));
+      }
+      expect(b.engine.state.tiltActive, isTrue);
+
+      // Un multiplo di 100 durante il tilt: i fuochi partono comunque.
+      b.engine.onChange(tap(100, 1));
+      expect(b.engine.state.current, EffectKind.fireworks);
+      expect(
+        b.engine.state.tiltActive,
+        isTrue,
+        reason: 'le due cose convivono',
+      );
+    });
+
+    test('alla fine del tilt la finestra riparte vuota', () {
+      DateTime now = DateTime(2026, 11, 24, 21);
+      final b = buildTilt(() => now);
+      for (int i = 1; i <= 4; i++) {
+        b.engine.onChange(tap(i, 1));
+      }
+      expect(b.engine.state.tiltActive, isTrue);
+
+      b.clock.fire(tiltDuration);
+      expect(b.engine.state.tiltActive, isFalse);
+
+      // Senza lo svuotamento, questo tap (5° nella finestra) lo
+      // riaccenderebbe subito.
+      b.engine.onChange(tap(5, 1));
+      expect(b.engine.state.tiltActive, isFalse);
+    });
+
+    test('killAll spegne il tilt e svuota la finestra', () {
+      DateTime now = DateTime(2026, 11, 24, 21);
+      final b = buildTilt(() => now);
+      for (int i = 1; i <= 4; i++) {
+        b.engine.onChange(tap(i, 1));
+      }
+      expect(b.engine.state.tiltActive, isTrue);
+
+      b.engine.killAll(silent: true);
+      expect(b.engine.state.tiltActive, isFalse);
+
+      b.engine.onChange(tap(5, 1));
+      expect(
+        b.engine.state.tiltActive,
+        isFalse,
+        reason: 'dopo il kill si riparte da zero, non da finestra piena',
+      );
+    });
+
+    test('il seed dal log entra nella finestra', () {
+      DateTime now = DateTime(2026, 11, 24, 21);
+      final b = buildTilt(() => now);
+      b.engine.seedTilt(<DateTime>[
+        now.subtract(const Duration(minutes: 40)),
+        now.subtract(const Duration(minutes: 30)),
+        now.subtract(const Duration(minutes: 20)),
+      ]);
+
+      b.engine.onChange(tap(1, 1));
+      expect(
+        b.engine.state.tiltActive,
+        isTrue,
+        reason: 'un riavvio non azzera il ritmo osservato',
+      );
+    });
+
+    test('la soglia si cambia al volo dal pannello', () {
+      DateTime now = DateTime(2026, 11, 24, 21);
+      final b = buildTilt(() => now, threshold: 100);
+      b.engine.tiltThreshold = 3;
+
+      for (int i = 1; i <= 4; i++) {
+        b.engine.onChange(tap(i, 1));
+      }
+      expect(b.engine.state.tiltActive, isTrue);
+    });
+  });
+
+  group('record del giorno (festa in coda)', () {
+    Future<DailyStatsController> makeDaily(
+      _FakeClock clock,
+      DateTime Function() now,
+    ) async {
+      TestWidgetsFlutterBinding.ensureInitialized();
+      SharedPreferences.setMockInitialValues(<String, Object>{});
+      return DailyStatsController(
+        settings: SettingsRepository(await SharedPreferences.getInstance()),
+        log: const NoopTapLog(),
+        clock: now,
+        scheduler: clock.schedule,
+      );
+    }
+
+    test('il primo record accoda NUOVO RECORD! una volta sola', () async {
+      final _SpySounds sounds = _SpySounds();
+      final _FakeClock clock = _FakeClock();
+      final DateTime now = DateTime(2026, 11, 24, 21);
+      final DailyStatsController daily = await makeDaily(clock, () => now);
+      final EffectsEngine engine = EffectsEngine(
+        sounds,
+        scheduler: clock.schedule,
+        clock: () => now,
+        dailyStats: daily,
+      );
+
+      engine.onChange(tap(1, 1));
+      expect(engine.state.current, EffectKind.dailyRecord);
+      expect(sounds.played, contains(kSfxWakeJubilation));
+
+      engine.onChange(tap(2, 1));
+      expect(
+        engine.state.queue,
+        isNot(contains(EffectKind.dailyRecord)),
+        reason: 'una festa sola per finestra',
+      );
+      await daily.dispose();
+    });
+
+    test('le scritture manuali non toccano il giornaliero', () async {
+      final _FakeClock clock = _FakeClock();
+      final DateTime now = DateTime(2026, 11, 24, 21);
+      final DailyStatsController daily = await makeDaily(clock, () => now);
+      final EffectsEngine engine = EffectsEngine(
+        _SpySounds(),
+        scheduler: clock.schedule,
+        clock: () => now,
+        dailyStats: daily,
+      );
+
+      engine.onChange(adjust(50, 50));
+      expect(daily.state.todayCount, 0, reason: 'un adjust non è un cicchetto');
+      await daily.dispose();
+    });
+
+    test('il decremento scala il giornaliero senza feste', () async {
+      final _SpySounds sounds = _SpySounds();
+      final _FakeClock clock = _FakeClock();
+      final DateTime now = DateTime(2026, 11, 24, 21);
+      final DailyStatsController daily = await makeDaily(clock, () => now);
+      final EffectsEngine engine = EffectsEngine(
+        sounds,
+        scheduler: clock.schedule,
+        clock: () => now,
+        dailyStats: daily,
+      );
+
+      engine.onChange(tap(1, 1));
+      engine.onChange(tap(0, -1));
+      expect(daily.state.todayCount, 0);
+      await daily.dispose();
     });
   });
 }

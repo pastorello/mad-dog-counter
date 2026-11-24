@@ -123,4 +123,57 @@ void main() {
       await expectLater(log.record(1), completes);
     });
   });
+
+  group('query a intervallo (col clock iniettato)', () {
+    test(
+      'sumOfTapDeltasBetween somma i soli tap dentro l\'intervallo',
+      () async {
+        DateTime now = DateTime(2026, 11, 24, 13);
+        final SqfliteTapLog log = await SqfliteTapLog.open(
+          path: inMemoryDatabasePath,
+          clock: () => now,
+        );
+        addTearDown(log.close);
+
+        await log.record(1); // dentro
+        now = DateTime(2026, 11, 24, 18);
+        await log.record(1); // dentro
+        await log.record(-1); // dentro: la somma e' netta
+        await log.record(10, type: TapType.adjust); // dentro ma adjust: escluso
+        now = DateTime(2026, 11, 25, 13);
+        await log.record(1); // fuori: dopo la fine
+
+        final int sum = await log.sumOfTapDeltasBetween(
+          DateTime(2026, 11, 24, 12),
+          DateTime(2026, 11, 25, 12),
+        );
+        expect(sum, 1);
+      },
+    );
+
+    test('incrementTimestampsSince: solo gli incrementi, in ordine', () async {
+      DateTime now = DateTime(2026, 11, 24, 13);
+      final SqfliteTapLog log = await SqfliteTapLog.open(
+        path: inMemoryDatabasePath,
+        clock: () => now,
+      );
+      addTearDown(log.close);
+
+      await log.record(1);
+      now = DateTime(2026, 11, 24, 14);
+      await log.record(-1); // escluso: non e' un incremento
+      now = DateTime(2026, 11, 24, 15);
+      await log.record(1);
+      now = DateTime(2026, 11, 24, 16);
+      await log.record(3, type: TapType.adjust); // escluso: adjust
+
+      final List<DateTime> stamps = await log.incrementTimestampsSince(
+        DateTime(2026, 11, 24, 12, 30),
+      );
+      expect(stamps, <DateTime>[
+        DateTime(2026, 11, 24, 13),
+        DateTime(2026, 11, 24, 15),
+      ]);
+    });
+  });
 }

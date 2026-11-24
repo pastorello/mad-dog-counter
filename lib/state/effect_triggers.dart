@@ -18,6 +18,13 @@ enum EffectKind {
 
   /// Il totale finisce per 67: il numerone trema.
   shake67,
+
+  /// Il giornaliero ha superato il record: NUOVO RECORD! in oro.
+  ///
+  /// Non dipende dal totale ma dal record del giorno: il chiamante lo passa
+  /// a [triggersFor] come flag. È un evento indipendente come lo shake,
+  /// fuori dalla regola di assorbimento dei multipli.
+  dailyRecord,
 }
 
 /// `total % 100 == 0`.
@@ -66,6 +73,7 @@ List<int> adjacentEightPairs(int total) {
 int effectWeight(EffectKind kind) => switch (kind) {
   EffectKind.shake67 => 1500,
   EffectKind.fireworks => 3500,
+  EffectKind.dailyRecord => 4000,
   EffectKind.strike => 5500,
 };
 
@@ -76,11 +84,14 @@ int effectWeight(EffectKind kind) => switch (kind) {
 /// Applica la **regola di assorbimento**: un multiplo di 1000 è anche multiplo
 /// di 100, ma scatta solo lo strike, mai i fuochi.
 ///
-/// Da chiamare SOLO dopo un incremento.
-List<EffectKind> triggersFor(int total) {
+/// Da chiamare SOLO dopo un incremento. [dailyRecord] dice se con questo tap
+/// il giornaliero ha superato il record (lo sa il chiamante, non il totale).
+List<EffectKind> triggersFor(int total, {bool dailyRecord = false}) {
   final List<EffectKind> effects = <EffectKind>[];
 
   if (endsWith67(total)) effects.add(EffectKind.shake67);
+
+  if (dailyRecord) effects.add(EffectKind.dailyRecord);
 
   if (isMultipleOf1000(total)) {
     effects.add(EffectKind.strike); // assorbe i fuochi
