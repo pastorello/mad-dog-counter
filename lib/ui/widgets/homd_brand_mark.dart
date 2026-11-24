@@ -5,7 +5,7 @@
 /// composizione completa, un modulo a parte apposta per non toccare l'altro.
 library;
 
-import 'package:flutter/material.dart';
+import 'package:material_ui/material_ui.dart';
 
 import '../../config.dart';
 import 'homd_mark.dart';
