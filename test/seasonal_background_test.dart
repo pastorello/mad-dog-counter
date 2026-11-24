@@ -25,7 +25,7 @@ void main() {
   }) async {
     SharedPreferences.setMockInitialValues(<String, Object>{
       kPrefsCounterTotal: 0,
-      if (season != null) kPrefsSeason: season,
+      kPrefsSeason: ?season,
     });
     final LocalCounterRepository repo = await LocalCounterRepository.open();
     final SettingsRepository settings = await SettingsRepository.open();
