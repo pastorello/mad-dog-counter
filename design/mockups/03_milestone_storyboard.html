@@ -1,0 +1,444 @@
+<!doctype html>
+<html lang="it">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>03 · Milestone in crescendo + NUOVO RECORD</title>
+<link rel="stylesheet" href="_base.css">
+<style>
+  /* ---- strisce storyboard (fuori dallo stage, come il mock-head) ---- */
+  .strips { padding: 4px 24px 0; }
+  .strip { margin: 28px 0 6px; }
+  .strip h2 {
+    margin: 0 0 10px; font-size: 17px; font-weight: 700;
+    letter-spacing: 1.5px; text-transform: uppercase;
+  }
+  .strip h2 .when { color: var(--gold); }
+  .strip h2 .state {
+    font-size: 11px; letter-spacing: 1px; font-weight: 700;
+    border: 1px solid var(--navy); color: rgba(240,240,240,0.55);
+    padding: 3px 8px; margin-left: 10px; vertical-align: 2px;
+  }
+  .strip h2 .state.new { border-color: var(--gold); color: var(--gold); }
+  .frames { display: flex; flex-wrap: wrap; gap: 14px; }
+  .frame { width: 460px; margin: 0; }
+  .shot {
+    position: relative; width: 460px; height: 290px;
+    background: var(--bg); border: 1px solid var(--navy); overflow: hidden;
+  }
+  .shot > * { position: absolute; }
+  .frame figcaption {
+    padding-top: 6px; font-size: 12px; letter-spacing: 0.5px;
+    color: rgba(240,240,240,0.55);
+  }
+  .strip-note { margin: 10px 0 0; font-size: 13px; color: rgba(240,240,240,0.65); max-width: 75em; }
+  .strip-note b { color: var(--gold); font-weight: 700; }
+  code { font-family: inherit; color: var(--tear); }
+
+  /* ---- mini-numerone dei frame: stessi slot 0.62em del vero, corpo ridotto ---- */
+  .mini-digits {
+    left: 0; right: 0; top: 50%; transform: translateY(-50%);
+    display: flex; justify-content: center; pointer-events: none;
+  }
+  .mini-digits span {
+    display: inline-block; width: 0.62em; text-align: center;
+    font-family: var(--counter-font);
+    font-size: var(--mini-size, 108px); line-height: 1;
+    color: var(--ink);
+    text-shadow: 0 0 7px var(--red), 0 0 14px var(--red);
+  }
+  .mini-digits.gold span {
+    color: var(--gold);
+    text-shadow: 0 0 7px var(--red), 0 0 16px rgba(240, 168, 48, 0.55);
+  }
+  /* cifre che volano (STRIKE) e che esplodono (APOTEOSI) */
+  .mini-digits.fly span:nth-child(1) { transform: translate(-24px, -30px) rotate(-18deg); }
+  .mini-digits.fly span:nth-child(2) { transform: translate(14px, 22px) rotate(10deg); }
+  .mini-digits.fly span:nth-child(3) { transform: translate(-10px, 34px) rotate(-8deg); }
+  .mini-digits.fly span:nth-child(4) { transform: translate(26px, -26px) rotate(16deg); }
+  .mini-digits.fly span:nth-child(5) { transform: translate(-30px, 12px) rotate(-12deg); }
+  .mini-digits.fly span:nth-child(6) { transform: translate(20px, 30px) rotate(20deg); }
+  .mini-digits.explode span:nth-child(1) { transform: translate(-72px, -62px) rotate(-34deg); }
+  .mini-digits.explode span:nth-child(2) { transform: translate(44px, -74px) rotate(22deg); }
+  .mini-digits.explode span:nth-child(3) { transform: translate(-38px, 58px) rotate(-16deg); }
+  .mini-digits.explode span:nth-child(4) { transform: translate(78px, 40px) rotate(30deg); }
+  .mini-digits.explode span:nth-child(5) { transform: translate(-82px, 18px) rotate(-26deg); }
+  .mini-digits.explode span:nth-child(6) { transform: translate(58px, 70px) rotate(18deg); }
+
+  /* ---- bicchierini (path riusato da _base.js, iniettato via JS nei .drop) ---- */
+  .drop { pointer-events: none; }
+  .drop svg { height: 100%; display: block; }
+  .drop svg path { fill: var(--drop-fill, var(--red)); }
+  .shot .drop { height: var(--h, 36px); transform: rotate(var(--rot, 0deg)); }
+  .gold-finale .drop svg path { fill: var(--gold); }
+  .gold-finale .drop { filter: drop-shadow(0 0 6px rgba(240, 168, 48, 0.8)); }
+
+  /* ---- coriandoli e scintille (generati via JS nei .burst) ---- */
+  .burst { inset: 0; pointer-events: none; }
+  .burst .conf { position: absolute; width: 9px; height: 5px; border-radius: 1px; }
+  .burst .conf.spark { width: 6px; height: 6px; border-radius: 50%; box-shadow: 0 0 8px var(--gold); }
+
+  /* ---- palla da bowling (solo palette: navy/bg/ink) ---- */
+  .ball {
+    width: 84px; height: 84px; border-radius: 50%;
+    background: radial-gradient(circle at 35% 30%, var(--navy), var(--bg) 78%);
+    border: 1px solid rgba(240, 240, 240, 0.18);
+  }
+  .ball i { position: absolute; width: 9px; height: 9px; border-radius: 50%; background: var(--bg); border: 1px solid var(--ink-hint); }
+  .ball i:nth-child(1) { left: 30%; top: 26%; }
+  .ball i:nth-child(2) { left: 48%; top: 18%; }
+  .ball i:nth-child(3) { left: 46%; top: 38%; }
+  .speedline { height: 3px; background: var(--ink-hint); border-radius: 2px; }
+
+  /* ---- parole celebrative dei frame ---- */
+  .word-fx {
+    left: 0; right: 0; top: 16px; text-align: center;
+    font-family: var(--display-font); line-height: 1;
+    font-size: 26px; color: var(--gold);
+    text-shadow: 0 0 10px var(--red), 0 0 22px var(--red);
+  }
+  .word-fx.big { font-size: 34px; }
+  .shot .stats-badge { font-size: 12px; letter-spacing: 1px; left: 14px; top: 12px; }
+
+  /* ---- bagliori (mai bianco puro: solo oro/ink/rosso in trasparenza) ---- */
+  .gold-glow {
+    inset: 0;
+    background: radial-gradient(circle at 50% 50%,
+      rgba(240, 168, 48, 0.50), rgba(240, 168, 48, 0.18) 45%, transparent 72%);
+  }
+  .boom {
+    inset: 0;
+    background: radial-gradient(circle at 50% 46%,
+      rgba(240, 240, 240, 0.30),
+      rgba(240, 168, 48, 0.75) 16%,
+      rgba(240, 168, 48, 0.28) 42%,
+      rgba(200, 16, 46, 0.18) 60%,
+      transparent 76%);
+  }
+
+  /* ---- stage live: pioggia di Mad Dog in loop ---- */
+  .live-rain .digits span {
+    color: var(--gold);
+    text-shadow: 0 0 24px var(--red), 0 0 48px rgba(240, 168, 48, 0.55);
+  }
+  .rainfield { inset: 0; pointer-events: none; }
+  .rain {
+    position: absolute; top: -180px; left: var(--x);
+    height: calc(var(--h) * var(--drop-scale, 1));
+    animation: fall var(--dur) linear infinite;
+    animation-delay: var(--delay);
+    filter: drop-shadow(var(--drop-glow, 0 0 0 transparent));
+    will-change: transform;
+  }
+  .rain svg { height: 100%; display: block; }
+  @keyframes fall {
+    from { transform: translateY(-40px) rotate(var(--r1, -8deg)); }
+    to   { transform: translateY(1580px) rotate(var(--r2, 10deg)); }
+  }
+  .live-h2 {
+    margin: 30px 24px 0; font-size: 17px; font-weight: 700;
+    letter-spacing: 1.5px; text-transform: uppercase;
+  }
+</style>
+</head>
+<body>
+  <div class="mock-head">
+    <h1>03 · Milestone in crescendo + NUOVO RECORD</h1>
+    <p>Da decidere in questa pagina: approvare i visual proposti per <b>10.000</b> (Pioggia di Mad Dog)
+       e <b>100.000</b> (Apoteosi) e la celebrazione del <b>NUOVO RECORD!</b> giornaliero;
+       100 e 1000 sono mostrati solo come riferimento, già implementati.
+       In fondo c'è <a href="#live">la pioggia dal vivo</a> per giudicarla in movimento.
+       <a href="index.html">← indice</a></p>
+  </div>
+
+  <div class="strips">
+
+    <section class="strip">
+      <h2><span class="when">100</span> — FUOCHI <span class="state">riferimento · esiste già</span></h2>
+      <div class="frames">
+        <figure class="frame">
+          <div class="shot">
+            <div class="mini-digits gold" data-mini="000100"></div>
+            <div class="burst" data-from="bl" data-n="9" data-reach="0.45"></div>
+            <div class="burst" data-from="br" data-n="9" data-reach="0.45"></div>
+          </div>
+          <figcaption>Frame 1 · t≈0 s — le salve partono dagli angoli bassi, le cifre passano all'oro.</figcaption>
+        </figure>
+        <figure class="frame">
+          <div class="shot">
+            <div class="mini-digits gold" data-mini="000100"></div>
+            <div class="burst" data-from="bl" data-n="16"></div>
+            <div class="burst" data-from="br" data-n="16"></div>
+          </div>
+          <figcaption>Frame 2 · t≈1,5 s — coriandoli nei colori palette convergono al centro.</figcaption>
+        </figure>
+        <figure class="frame">
+          <div class="shot">
+            <div class="mini-digits gold" data-mini="000100"></div>
+            <div class="burst" data-from="scatter" data-n="14" style="opacity:0.45"></div>
+          </div>
+          <figcaption>Frame 3 · t≈3 s — ricaduta e dissolvenza, le cifre tornano normali.</figcaption>
+        </figure>
+      </div>
+      <p class="strip-note">Durata <b>3,5 s</b> · suono: <code>fireworks.wav</code>. Riferimento: nessuna decisione da prendere.</p>
+    </section>
+
+    <section class="strip">
+      <h2><span class="when">1000</span> — STRIKE <span class="state">riferimento · esiste già</span></h2>
+      <div class="frames">
+        <figure class="frame">
+          <div class="shot">
+            <div class="mini-digits" data-mini="001000"></div>
+            <div class="speedline" style="left:-6px; top:150px; width:60px"></div>
+            <div class="speedline" style="left:-14px; top:168px; width:84px"></div>
+            <div class="speedline" style="left:-6px; top:186px; width:52px"></div>
+            <div class="ball" style="left:56px; top:126px"><i></i><i></i><i></i></div>
+          </div>
+          <figcaption>Frame 1 · t≈0 s — la palla entra rotolando da sinistra.</figcaption>
+        </figure>
+        <figure class="frame">
+          <div class="shot">
+            <div class="mini-digits fly" data-mini="001000"></div>
+            <div class="ball" style="left:188px; top:118px"><i></i><i></i><i></i></div>
+            <div class="word-fx">STRIKE!</div>
+          </div>
+          <figcaption>Frame 2 · t≈2,5 s — impatto: le cifre volano come birilli, STRIKE! in alto (88 px sul vero).</figcaption>
+        </figure>
+        <figure class="frame">
+          <div class="shot">
+            <div class="mini-digits" data-mini="001000"></div>
+            <div class="ball" style="left:412px; top:132px"><i></i><i></i><i></i></div>
+            <div class="word-fx" style="opacity:0.5">STRIKE!</div>
+          </div>
+          <figcaption>Frame 3 · t≈5 s — la palla esce, le cifre si ricompongono, la scritta si spegne.</figcaption>
+        </figure>
+      </div>
+      <p class="strip-note">Durata <b>5,5 s</b> · suoni: <code>bowling_roll.wav</code> (ingresso) + <code>bowling_strike.wav</code> (impatto, birilli, campanella). Riferimento: nessuna decisione da prendere.</p>
+    </section>
+
+    <section class="strip">
+      <h2><span class="when">10.000</span> — PIOGGIA DI MAD DOG <span class="state new">proposta nuova</span></h2>
+      <div class="frames">
+        <figure class="frame">
+          <div class="shot">
+            <div class="mini-digits gold" data-mini="010000"></div>
+            <div class="burst" data-from="bl" data-n="10" data-reach="0.5"></div>
+            <div class="burst" data-from="br" data-n="10" data-reach="0.5"></div>
+            <div class="drop" style="left:6%;  top:-6%; --h:40px; --rot:-10deg"></div>
+            <div class="drop" style="left:21%; top:4%;  --h:34px; --rot:7deg"></div>
+            <div class="drop" style="left:36%; top:-9%; --h:44px; --rot:-4deg"></div>
+            <div class="drop" style="left:52%; top:2%;  --h:36px; --rot:11deg"></div>
+            <div class="drop" style="left:66%; top:-5%; --h:42px; --rot:-8deg"></div>
+            <div class="drop" style="left:80%; top:6%;  --h:34px; --rot:5deg"></div>
+            <div class="drop" style="left:91%; top:-8%; --h:38px; --rot:-12deg"></div>
+          </div>
+          <figcaption>Frame 1 · t≈0 s — parte la pioggia dall'alto + doppia salva dagli angoli bassi.</figcaption>
+        </figure>
+        <figure class="frame">
+          <div class="shot">
+            <div class="mini-digits gold" data-mini="010000"></div>
+            <div class="drop" style="left:3%;  top:-6%; --h:40px; --rot:-9deg"></div>
+            <div class="drop" style="left:12%; top:26%; --h:34px; --rot:6deg"></div>
+            <div class="drop" style="left:20%; top:58%; --h:44px; --rot:-5deg"></div>
+            <div class="drop" style="left:29%; top:8%;  --h:36px; --rot:12deg"></div>
+            <div class="drop" style="left:38%; top:42%; --h:40px; --rot:-11deg"></div>
+            <div class="drop" style="left:47%; top:-4%; --h:34px; --rot:4deg"></div>
+            <div class="drop" style="left:55%; top:66%; --h:42px; --rot:-7deg"></div>
+            <div class="drop" style="left:63%; top:22%; --h:38px; --rot:9deg"></div>
+            <div class="drop" style="left:71%; top:50%; --h:34px; --rot:-10deg"></div>
+            <div class="drop" style="left:79%; top:2%;  --h:44px; --rot:6deg"></div>
+            <div class="drop" style="left:87%; top:34%; --h:36px; --rot:-6deg"></div>
+            <div class="drop" style="left:94%; top:62%; --h:40px; --rot:10deg"></div>
+          </div>
+          <figcaption>Frame 2 · t≈3 s — pioggia fitta di shot rossi a piena opacità sopra le cifre dorate.</figcaption>
+        </figure>
+        <figure class="frame">
+          <div class="shot gold-finale">
+            <div class="mini-digits gold" data-mini="010000"></div>
+            <div class="drop" style="left:5%;  top:12%; --h:38px; --rot:-8deg"></div>
+            <div class="drop" style="left:16%; top:52%; --h:42px; --rot:5deg"></div>
+            <div class="drop" style="left:27%; top:24%; --h:34px; --rot:-4deg"></div>
+            <div class="drop" style="left:38%; top:66%; --h:40px; --rot:9deg"></div>
+            <div class="drop" style="left:49%; top:10%; --h:36px; --rot:-11deg"></div>
+            <div class="drop" style="left:59%; top:46%; --h:44px; --rot:6deg"></div>
+            <div class="drop" style="left:70%; top:18%; --h:34px; --rot:-6deg"></div>
+            <div class="drop" style="left:81%; top:58%; --h:40px; --rot:10deg"></div>
+            <div class="drop" style="left:91%; top:30%; --h:36px; --rot:-9deg"></div>
+          </div>
+          <figcaption>Frame 3 · t≈6,5 s — finale: tutti i bicchierini brillano oro con la campanella.</figcaption>
+        </figure>
+      </div>
+      <p class="strip-note">Durata <b>7 s</b> · suoni riusati: <code>fireworks.wav</code> + campanella di <code>bowling_strike.wav</code> sul finale oro. Il bicchierino è lo stesso path SVG del marchio HoMD. <a href="#live">Giudicala in movimento qui sotto ↓</a></p>
+    </section>
+
+    <section class="strip">
+      <h2><span class="when">100.000</span> — APOTEOSI <span class="state new">proposta nuova</span></h2>
+      <div class="frames">
+        <figure class="frame">
+          <div class="shot">
+            <div class="mini-digits gold" data-mini="100000"></div>
+            <div class="burst" data-from="up" data-n="26" data-colors="red,ink,blue"></div>
+          </div>
+          <figcaption>Frame 1 · t≈0 s — mega-salva tricolore (rosso / ink / blu bandiera) su tutta la base.</figcaption>
+        </figure>
+        <figure class="frame">
+          <div class="shot">
+            <div class="gold-glow"></div>
+            <div class="mini-digits gold explode" data-mini="100000"></div>
+            <div class="word-fx big">APOTEOSI</div>
+          </div>
+          <figcaption>Frame 2 · t≈4 s — le cifre esplodono in aria nel bagliore oro gigante, parola APOTEOSI.</figcaption>
+        </figure>
+        <figure class="frame">
+          <div class="shot">
+            <div class="boom"></div>
+            <div class="mini-digits gold" data-mini="100000"></div>
+            <div class="burst" data-from="scatter" data-n="12" style="opacity:0.4"></div>
+          </div>
+          <figcaption>Frame 3 · t≈8 s — il botto finale (radiale oro/ink, mai bianco puro) e la ricomposizione.</figcaption>
+        </figure>
+      </div>
+      <p class="strip-note">Durata <b>9 s</b> · suoni riusati: <code>fireworks.wav</code> a salve + <code>panic_explosion.wav</code> come apice del botto. Nessun WAV nuovo.</p>
+    </section>
+
+    <section class="strip">
+      <h2><span class="when">NUOVO RECORD!</span> — record giornaliero <span class="state new">proposta nuova</span></h2>
+      <div class="frames">
+        <figure class="frame">
+          <div class="shot">
+            <span class="stats-badge">OGGI <b>215</b> · RECORD <b>214</b></span>
+            <div class="mini-digits gold" data-mini="004668"></div>
+            <div class="word-fx big" style="opacity:0.55">NUOVO RECORD!</div>
+            <div class="burst" data-from="scatter" data-n="8" data-colors="gold" data-shape="spark"></div>
+          </div>
+          <figcaption>Frame 1 · t≈0 s — il tap che supera il record: la scritta appare nella fascia alta.</figcaption>
+        </figure>
+        <figure class="frame">
+          <div class="shot">
+            <span class="stats-badge">OGGI <b>215</b> · RECORD <b>215</b></span>
+            <div class="mini-digits gold" data-mini="004668"></div>
+            <div class="word-fx big">NUOVO RECORD!</div>
+            <div class="burst" data-from="scatter" data-n="22" data-colors="gold" data-shape="spark"></div>
+          </div>
+          <figcaption>Frame 2 · t≈1,5 s — scritta oro piena, cifre dorate, scintille oro ovunque.</figcaption>
+        </figure>
+        <figure class="frame">
+          <div class="shot">
+            <span class="stats-badge">OGGI <b>215</b> · RECORD <b>215</b></span>
+            <div class="mini-digits" data-mini="004668"></div>
+            <div class="word-fx big" style="opacity:0.4">NUOVO RECORD!</div>
+            <div class="burst" data-from="scatter" data-n="10" data-colors="gold" data-shape="spark" style="opacity:0.45"></div>
+          </div>
+          <figcaption>Frame 3 · t≈3,5 s — dissolvenza; il badge resta aggiornato col nuovo record.</figcaption>
+        </figure>
+      </div>
+      <p class="strip-note">Durata <b>4 s</b> · suono riusato: <code>wake_jubilation.wav</code>. Non è una milestone: se coincide con una, entra nella coda effetti e parte dopo, non la sostituisce.</p>
+    </section>
+
+  </div>
+
+  <h2 class="live-h2" id="live">La pioggia di Mad Dog dal vivo (10.000)</h2>
+  <div class="toolbar" style="padding-left:24px; padding-right:24px">
+    <span class="lbl">Densità</span>
+    <span class="toolbar-group">
+      <button class="btn active" data-show=".rain.extra">Fitta (20)</button>
+      <button class="btn" data-hide=".rain.extra">Media (14)</button>
+    </span>
+    <span class="lbl">Corpo bicchierini</span>
+    <span class="toolbar-group">
+      <button class="btn" data-css='{"--drop-scale":"0.8"}'>Piccoli (80–112)</button>
+      <button class="btn active" data-css='{"--drop-scale":"1"}'>Base (100–140)</button>
+      <button class="btn" data-css='{"--drop-scale":"1.25"}'>Grandi (125–175)</button>
+    </span>
+    <span class="lbl">Colore</span>
+    <span class="toolbar-group">
+      <button class="btn active" data-css='{"--drop-fill":"var(--red)","--drop-glow":"0 0 0 transparent"}'>Rossi (pioggia)</button>
+      <button class="btn" data-css='{"--drop-fill":"var(--gold)","--drop-glow":"0 0 14px rgba(240,168,48,0.8)"}'>Oro (anteprima finale)</button>
+    </span>
+  </div>
+
+  <div class="stage-wrap"><div class="stage">
+    <div class="screen live-rain" data-digits="010000">
+      <div class="rainfield">
+        <div class="rain drop" style="--x:2%;  --h:112px; --dur:3.1s; --delay:-0.4s; --r1:-10deg; --r2:8deg"></div>
+        <div class="rain drop" style="--x:7%;  --h:128px; --dur:3.8s; --delay:-2.1s; --r1:6deg;  --r2:-9deg"></div>
+        <div class="rain drop" style="--x:12%; --h:104px; --dur:2.9s; --delay:-1.2s; --r1:-4deg; --r2:12deg"></div>
+        <div class="rain drop" style="--x:17%; --h:136px; --dur:4.2s; --delay:-3.0s; --r1:9deg;  --r2:-6deg"></div>
+        <div class="rain drop" style="--x:22%; --h:118px; --dur:3.3s; --delay:-0.8s; --r1:-12deg; --r2:5deg"></div>
+        <div class="rain drop extra" style="--x:27%; --h:100px; --dur:2.7s; --delay:-1.9s; --r1:4deg; --r2:-11deg"></div>
+        <div class="rain drop" style="--x:32%; --h:132px; --dur:4.0s; --delay:-2.6s; --r1:-7deg; --r2:9deg"></div>
+        <div class="rain drop" style="--x:37%; --h:110px; --dur:3.0s; --delay:-0.2s; --r1:11deg; --r2:-4deg"></div>
+        <div class="rain drop" style="--x:42%; --h:124px; --dur:3.6s; --delay:-1.5s; --r1:-9deg; --r2:7deg"></div>
+        <div class="rain drop extra" style="--x:47%; --h:140px; --dur:4.4s; --delay:-3.6s; --r1:5deg; --r2:-8deg"></div>
+        <div class="rain drop" style="--x:52%; --h:106px; --dur:2.8s; --delay:-0.9s; --r1:-6deg; --r2:10deg"></div>
+        <div class="rain drop" style="--x:57%; --h:120px; --dur:3.4s; --delay:-2.3s; --r1:8deg;  --r2:-5deg"></div>
+        <div class="rain drop extra" style="--x:62%; --h:134px; --dur:4.1s; --delay:-1.1s; --r1:-11deg; --r2:6deg"></div>
+        <div class="rain drop" style="--x:67%; --h:102px; --dur:2.6s; --delay:-0.5s; --r1:7deg;  --r2:-10deg"></div>
+        <div class="rain drop" style="--x:72%; --h:126px; --dur:3.7s; --delay:-2.9s; --r1:-5deg; --r2:9deg"></div>
+        <div class="rain drop extra" style="--x:77%; --h:114px; --dur:3.2s; --delay:-1.7s; --r1:10deg; --r2:-7deg"></div>
+        <div class="rain drop" style="--x:82%; --h:138px; --dur:4.3s; --delay:-0.6s; --r1:-8deg; --r2:4deg"></div>
+        <div class="rain drop extra" style="--x:87%; --h:108px; --dur:2.9s; --delay:-2.0s; --r1:6deg; --r2:-12deg"></div>
+        <div class="rain drop" style="--x:92%; --h:122px; --dur:3.5s; --delay:-1.3s; --r1:-10deg; --r2:11deg"></div>
+        <div class="rain drop extra" style="--x:95%; --h:130px; --dur:3.9s; --delay:-3.3s; --r1:9deg; --r2:-6deg"></div>
+      </div>
+    </div>
+  </div></div>
+  <p class="stage-caption">Schermo 1920×1200 (Tab A8): pioggia in loop a piena opacità, 20 bicchierini da 100–140 px
+     a velocità diverse — nel vero effetto cade per 7 s e chiude col finale oro.
+     Regola di assorbimento: vince il più raro, <b>100.000 assorbe tutto</b> (come già il multiplo
+     di 1000 assorbe quello di 100). Nessun WAV nuovo: tutti i suoni sono riusi del set esistente.</p>
+
+  <script src="_base.js"></script>
+  <script>
+  (function () {
+    'use strict';
+
+    // Mini-numerone dei frame: span per cifra, slot 0.62em come il vero.
+    function fillMini(el) {
+      var t = el.getAttribute('data-mini') || '';
+      for (var i = 0; i < t.length; i++) {
+        var s = document.createElement('span');
+        s.textContent = t[i];
+        el.appendChild(s);
+      }
+    }
+
+    // Bicchierini: riuso del path SVG del marchio (window.MOCK.GLASS_SVG di _base.js).
+    function fillDrop(el) { el.innerHTML = window.MOCK.GLASS_SVG; }
+
+    // Coriandoli/scintille deterministici (niente random: i frame restano uguali a ogni apertura).
+    function fillBurst(el) {
+      var mode = el.getAttribute('data-from') || 'bl';
+      var n = parseInt(el.getAttribute('data-n') || '16', 10);
+      var reach = parseFloat(el.getAttribute('data-reach') || '1');
+      var colors = (el.getAttribute('data-colors') || 'red,gold,blue').split(',');
+      var spark = el.getAttribute('data-shape') === 'spark';
+      var W = 460, H = 290;
+      for (var i = 0; i < n; i++) {
+        var c = document.createElement('i');
+        c.className = 'conf' + (spark ? ' spark' : '');
+        var t = n > 1 ? i / (n - 1) : 0.5;
+        var jx = ((i * 73) % 29) / 29;
+        var jy = ((i * 41) % 23) / 23;
+        var x, y;
+        if (mode === 'bl')      { x = 10 + (t * 190 + jx * 46) * reach;      y = H - 18 - (t * 175 + jy * 55) * reach; }
+        else if (mode === 'br') { x = W - 18 - (t * 190 + jx * 46) * reach;  y = H - 18 - (t * 175 + jy * 55) * reach; }
+        else if (mode === 'up') { x = 12 + t * (W - 32);                     y = H - 14 - (jy * 200 + 20) * reach; }
+        else /* scatter */      { x = 14 + ((i * 97) % 100) / 100 * (W - 36); y = 12 + ((i * 59) % 100) / 100 * (H - 48); }
+        c.style.left = Math.round(x) + 'px';
+        c.style.top = Math.round(y) + 'px';
+        c.style.background = 'var(--' + colors[i % colors.length].trim() + ')';
+        c.style.transform = 'rotate(' + Math.round(jx * 140 - 70) + 'deg)';
+        el.appendChild(c);
+      }
+    }
+
+    document.addEventListener('DOMContentLoaded', function () {
+      document.querySelectorAll('[data-mini]').forEach(fillMini);
+      document.querySelectorAll('.drop').forEach(fillDrop);
+      document.querySelectorAll('.burst').forEach(fillBurst);
+    });
+  })();
+  </script>
+</body>
+</html>

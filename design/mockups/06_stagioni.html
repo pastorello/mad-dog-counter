@@ -1,0 +1,198 @@
+<!doctype html>
+<html lang="it">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>06 · Stagioni (Halloween / Natale)</title>
+<link rel="stylesheet" href="_base.css">
+<style>
+  /* Le decorazioni stanno DIETRO al numerone e al chrome */
+  .season { inset: 0; z-index: 1; }
+  .screen .digits, .screen .homd, .screen .flag, .screen .panic, .screen .gear { z-index: 2; }
+
+  /* Cornice: bordo colorato + alone verso l'interno, proposta di resa */
+  .frame {
+    position: absolute; inset: 0;
+    border: 6px solid var(--frame-color);
+    box-shadow: inset 0 0 90px var(--frame-glow);
+    pointer-events: none;
+  }
+  .season-hw   { --frame-color: rgba(240, 120, 32, 0.8);  --frame-glow: rgba(240, 120, 32, 0.22); }
+  .season-xmas { --frame-color: rgba(30, 122, 60, 0.85);  --frame-glow: rgba(30, 122, 60, 0.25); }
+
+  .corner { position: absolute; width: 360px; height: 300px; opacity: 0.55; }
+  .corner.tl { top: 14px; left: 14px; }
+  .corner.tr { top: 14px; right: 14px; transform: scaleX(-1); }
+  .corner.bl { bottom: calc(var(--flag-h, 12px) + 10px); left: 14px; }
+  .corner.br { bottom: calc(var(--flag-h, 12px) + 10px); right: 14px; transform: scaleX(-1); }
+  .corner svg { position: absolute; }
+
+  /* pipistrelli che aleggiano appena */
+  .bat { animation: hover-bat 5s ease-in-out infinite alternate; }
+  @keyframes hover-bat { from { transform: translateY(0); } to { transform: translateY(-14px); } }
+
+  /* neve per Natale */
+  .snow { position: absolute; inset: 0; overflow: hidden; }
+  .snow i {
+    position: absolute; top: -12px;
+    width: 7px; height: 7px; border-radius: 50%;
+    background: var(--ink); opacity: 0.2;
+    animation: snowfall linear infinite;
+  }
+  @keyframes snowfall {
+    from { transform: translateY(-20px); }
+    to { transform: translateY(1240px); }
+  }
+</style>
+</head>
+<body>
+  <div class="mock-head">
+    <h1>06 · Stagioni — Halloween, Natale, Nessuna</h1>
+    <p>Chiude: la resa dei due temi stagionali. La stagione si sceglie a mano dal <b>pannello
+       impostazioni</b> (voce «Stagione»: Nessuna di default, poi Halloween, Natale — l'elenco è
+       pensato per crescere). Cornice colorata ai bordi + decorazioni in background ai 4 angoli,
+       dietro al numerone; per Natale anche la neve. Arancione e verde sono accenti stagionali
+       fuori dalla palette base, scelta del committente, e diventeranno token dedicati.
+       <a href="index.html">← indice</a></p>
+    <div class="toolbar">
+      <span class="lbl">Stagione</span>
+      <span class="toolbar-group">
+        <button class="btn active" data-hide=".season">Nessuna (default)</button>
+        <button class="btn" data-show=".season-hw" data-hide=".season-xmas">Halloween</button>
+        <button class="btn" data-show=".season-xmas" data-hide=".season-hw">Natale</button>
+      </span>
+    </div>
+  </div>
+
+  <div class="stage-wrap"><div class="stage">
+    <div class="screen" data-digits="239338">
+
+      <!-- HALLOWEEN: cornice arancione, pipistrelli e zucche agli angoli -->
+      <div class="season season-hw" style="display:none">
+        <div class="frame"></div>
+        <div class="corner tl">
+          <svg class="bat" style="top:30px;left:150px;width:110px" viewBox="0 0 100 40">
+            <path fill="#1A1026" stroke="rgba(240,120,32,0.55)" stroke-width="2"
+              d="M50 12 L42 4 L44 14 C30 2 12 4 2 16 C12 14 20 18 24 26 C30 20 38 20 42 28 L50 20 L58 28 C62 20 70 20 76 26 C80 18 88 14 98 16 C88 4 70 2 56 14 L58 4 Z"/>
+          </svg>
+          <svg class="bat" style="top:100px;left:40px;width:70px;animation-delay:-2.2s" viewBox="0 0 100 40">
+            <path fill="#1A1026" stroke="rgba(240,120,32,0.55)" stroke-width="2"
+              d="M50 12 L42 4 L44 14 C30 2 12 4 2 16 C12 14 20 18 24 26 C30 20 38 20 42 28 L50 20 L58 28 C62 20 70 20 76 26 C80 18 88 14 98 16 C88 4 70 2 56 14 L58 4 Z"/>
+          </svg>
+        </div>
+        <div class="corner tr">
+          <svg class="bat" style="top:46px;left:90px;width:90px;animation-delay:-3.4s" viewBox="0 0 100 40">
+            <path fill="#1A1026" stroke="rgba(240,120,32,0.55)" stroke-width="2"
+              d="M50 12 L42 4 L44 14 C30 2 12 4 2 16 C12 14 20 18 24 26 C30 20 38 20 42 28 L50 20 L58 28 C62 20 70 20 76 26 C80 18 88 14 98 16 C88 4 70 2 56 14 L58 4 Z"/>
+          </svg>
+        </div>
+        <div class="corner bl">
+          <svg style="bottom:0;left:0;width:200px" viewBox="0 0 120 90">
+            <rect x="55" y="8" width="12" height="16" rx="3" fill="#5A7A2E"/>
+            <ellipse cx="60" cy="54" rx="52" ry="34" fill="#F07820"/>
+            <ellipse cx="34" cy="54" rx="18" ry="32" fill="rgba(14,14,20,0.18)"/>
+            <ellipse cx="86" cy="54" rx="18" ry="32" fill="rgba(14,14,20,0.18)"/>
+            <path d="M38 48 L48 58 L28 58 Z" fill="#1A1026"/>
+            <path d="M82 48 L92 58 L72 58 Z" fill="#1A1026"/>
+            <path d="M34 70 L46 62 L54 70 L62 62 L70 70 L82 62 L86 70 L60 78 Z" fill="#1A1026"/>
+          </svg>
+        </div>
+        <div class="corner br">
+          <svg style="bottom:0;left:30px;width:150px" viewBox="0 0 120 90">
+            <rect x="55" y="8" width="12" height="16" rx="3" fill="#5A7A2E"/>
+            <ellipse cx="60" cy="54" rx="52" ry="34" fill="#F07820"/>
+            <ellipse cx="34" cy="54" rx="18" ry="32" fill="rgba(14,14,20,0.18)"/>
+            <ellipse cx="86" cy="54" rx="18" ry="32" fill="rgba(14,14,20,0.18)"/>
+            <path d="M38 48 L48 58 L28 58 Z" fill="#1A1026"/>
+            <path d="M82 48 L92 58 L72 58 Z" fill="#1A1026"/>
+            <path d="M34 70 L46 62 L54 70 L62 62 L70 70 L82 62 L86 70 L60 78 Z" fill="#1A1026"/>
+          </svg>
+        </div>
+      </div>
+
+      <!-- NATALE: cornice verde, palline, pacchi regalo, bastoncini di zucchero, neve -->
+      <div class="season season-xmas" style="display:none">
+        <div class="frame"></div>
+        <div class="snow"></div>
+        <div class="corner tl">
+          <svg style="top:0;left:30px;width:60px" viewBox="0 0 40 56">
+            <rect x="16" y="2" width="8" height="6" rx="2" fill="#F0A830"/>
+            <circle cx="20" cy="32" r="20" fill="#C8102E"/>
+            <path d="M4 26 Q20 36 36 26" stroke="#F0A830" stroke-width="3" fill="none"/>
+          </svg>
+          <svg style="top:10px;left:120px;width:50px" viewBox="0 0 40 56">
+            <rect x="16" y="2" width="8" height="6" rx="2" fill="#F0A830"/>
+            <circle cx="20" cy="32" r="20" fill="#1E7A3C"/>
+            <path d="M4 26 Q20 36 36 26" stroke="#F0A830" stroke-width="3" fill="none"/>
+          </svg>
+        </div>
+        <div class="corner tr">
+          <svg style="top:4px;left:60px;width:56px" viewBox="0 0 40 56">
+            <rect x="16" y="2" width="8" height="6" rx="2" fill="#F0A830"/>
+            <circle cx="20" cy="32" r="20" fill="#C8102E"/>
+            <path d="M4 26 Q20 36 36 26" stroke="#F0A830" stroke-width="3" fill="none"/>
+          </svg>
+          <svg style="top:70px;left:150px;width:70px" viewBox="0 0 60 90">
+            <path d="M30 10 C40 -6 58 6 44 18 C58 14 60 34 42 30 L30 86 L24 84 L36 28 C22 34 14 18 30 10 Z"
+              fill="var(--ink)"/>
+            <path d="M30 12 L36 20 M38 26 L44 22 M28 40 L34 42 M26 56 L32 58 M24 72 L30 74"
+              stroke="#C8102E" stroke-width="5" stroke-linecap="round"/>
+          </svg>
+        </div>
+        <div class="corner bl">
+          <svg style="bottom:0;left:10px;width:150px" viewBox="0 0 100 80">
+            <rect x="10" y="30" width="80" height="50" fill="#C8102E"/>
+            <rect x="44" y="30" width="12" height="50" fill="#F0A830"/>
+            <rect x="6" y="20" width="88" height="14" fill="#A50D26"/>
+            <path d="M50 20 C40 4 24 10 34 20 Z M50 20 C60 4 76 10 66 20 Z" fill="#F0A830"/>
+          </svg>
+          <svg style="bottom:0;left:170px;width:100px" viewBox="0 0 100 80">
+            <rect x="10" y="30" width="80" height="50" fill="#1E7A3C"/>
+            <rect x="44" y="30" width="12" height="50" fill="var(--ink)"/>
+            <rect x="6" y="20" width="88" height="14" fill="#16602E"/>
+            <path d="M50 20 C40 4 24 10 34 20 Z M50 20 C60 4 76 10 66 20 Z" fill="var(--ink)"/>
+          </svg>
+        </div>
+        <div class="corner br">
+          <svg style="bottom:0;left:20px;width:120px" viewBox="0 0 100 80">
+            <rect x="10" y="30" width="80" height="50" fill="#1E7A3C"/>
+            <rect x="44" y="30" width="12" height="50" fill="#F0A830"/>
+            <rect x="6" y="20" width="88" height="14" fill="#16602E"/>
+            <path d="M50 20 C40 4 24 10 34 20 Z M50 20 C60 4 76 10 66 20 Z" fill="#F0A830"/>
+          </svg>
+          <svg style="bottom:10px;left:160px;width:60px" viewBox="0 0 60 90">
+            <path d="M30 10 C40 -6 58 6 44 18 C58 14 60 34 42 30 L30 86 L24 84 L36 28 C22 34 14 18 30 10 Z"
+              fill="var(--ink)"/>
+            <path d="M30 12 L36 20 M38 26 L44 22 M28 40 L34 42 M26 56 L32 58 M24 72 L30 74"
+              stroke="#C8102E" stroke-width="5" stroke-linecap="round"/>
+          </svg>
+        </div>
+      </div>
+
+    </div>
+  </div></div>
+  <p class="stage-caption">Proposte di token: Halloween cornice <code>#F07820</code> (arancio zucca),
+     Natale cornice <code>#1E7A3C</code> (verde abete); decorazioni solo ai 4 angoli, opacità 0.55,
+     dietro al numerone, animazioni lente. La voce «Stagione» nel pannello parte con
+     Nessuna / Halloween / Natale e in seguito si espande.</p>
+
+  <script src="_base.js"></script>
+  <script>
+    // Neve di Natale: 22 fiocchi deterministici
+    (function () {
+      var snow = document.querySelector('.snow');
+      if (!snow) return;
+      for (var i = 0; i < 22; i++) {
+        var f = document.createElement('i');
+        var left = (i * 89) % 1920;
+        var dur = 18 + (i % 7) * 3;
+        f.style.left = left + 'px';
+        f.style.animationDuration = dur + 's';
+        f.style.animationDelay = (-(i * 1.7) % dur) + 's';
+        f.style.opacity = (0.14 + (i % 4) * 0.03).toFixed(2);
+        snow.appendChild(f);
+      }
+    })();
+  </script>
+</body>
+</html>

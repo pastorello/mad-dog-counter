@@ -1,0 +1,109 @@
+<!doctype html>
+<html lang="it">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>01 · Intestazione e badge</title>
+<link rel="stylesheet" href="_base.css">
+<style>
+  .header-title {
+    top: var(--header-top, 40px);
+    font-family: var(--header-font, var(--brand-font));
+    opacity: var(--header-opacity, 1);
+    transition: opacity 0.45s;
+  }
+  /* glow combo simulato, per giudicare le collisioni col caso peggiore */
+  .combo-sim .glow {
+    position: absolute; inset: 0;
+    background:
+      radial-gradient(circle at 50% 50%, rgba(240, 168, 48, 0.22), rgba(200, 16, 46, 0.12) 45%, transparent),
+      rgba(200, 16, 46, 0.10);
+  }
+  .badge-pos { pointer-events: none; }
+  .badge-tl { top: 36px; left: 40px; }
+  .badge-bl { bottom: calc(var(--flag-h, 12px) + 14px); left: 40px; }
+  .badge-tr { top: 92px; right: 40px; text-align: right; }
+</style>
+</head>
+<body>
+  <div class="mock-head">
+    <h1>01 · Intestazione «MAD DOG COUNTER» + badge OGGI/RECORD</h1>
+    <p>Da decidere: posizione e font dell'intestazione; se resta fissa o si dissolve durante
+       gli effetti; angolo e corpo del badge col giornaliero e il record da battere.
+       La fascia alta (y=40) è quella dei testi combo: attiva «Durante combo» per vedere il caso peggiore.
+       <a href="index.html">← indice</a></p>
+    <div class="toolbar">
+      <span class="lbl">Posizione</span>
+      <span class="toolbar-group">
+        <button class="btn active" data-css='{"--header-top":"40px"}' data-target=".header-title">Bordo alto (y 40)</button>
+        <button class="btn" data-css='{"--header-top":"232px"}' data-target=".header-title">Sopra il numerone (y 232)</button>
+      </span>
+      <span class="lbl">Font</span>
+      <span class="toolbar-group">
+        <button class="btn active" data-css='{"--header-font":"Oswald, sans-serif","--header-tracking":"6px"}' data-target=".header-title">Oswald Bold</button>
+        <button class="btn" data-css='{"--header-font":"Creepster, cursive","--header-tracking":"2px"}' data-target=".header-title">Font display</button>
+      </span>
+      <span class="lbl">Corpo</span>
+      <span class="toolbar-group">
+        <button class="btn" data-css='{"--header-size":"36px"}' data-target=".header-title">36</button>
+        <button class="btn active" data-css='{"--header-size":"44px"}' data-target=".header-title">44</button>
+        <button class="btn" data-css='{"--header-size":"56px"}' data-target=".header-title">56</button>
+      </span>
+    </div>
+    <div class="toolbar">
+      <span class="lbl">Scena</span>
+      <span class="toolbar-group">
+        <button class="btn active" data-hide=".combo-sim" data-css='{"--header-opacity":"1"}' data-target=".header-title">Quieta</button>
+        <button class="btn" data-show=".combo-sim" data-css='{"--header-opacity":"1"}' data-target=".header-title">Durante combo (header fisso)</button>
+        <button class="btn" data-show=".combo-sim" data-css='{"--header-opacity":"0"}' data-target=".header-title">Durante combo (header dissolto)</button>
+      </span>
+      <span class="lbl">Badge</span>
+      <span class="toolbar-group">
+        <button class="btn active" data-show=".badge-tl" data-hide=".badge-bl, .badge-tr">Alto sinistra</button>
+        <button class="btn" data-show=".badge-bl" data-hide=".badge-tl, .badge-tr">Basso sinistra</button>
+        <button class="btn" data-show=".badge-tr" data-hide=".badge-tl, .badge-bl">Alto destra</button>
+      </span>
+      <span class="lbl">Corpo badge</span>
+      <span class="toolbar-group">
+        <button class="btn" data-css='{"--badge-size":"22px"}'>22</button>
+        <button class="btn active" data-css='{"--badge-size":"26px"}'>26</button>
+        <button class="btn" data-css='{"--badge-size":"32px"}'>32</button>
+      </span>
+      <span class="toolbar-group">
+        <button class="btn active" data-show=".v-oggi" data-hide=".v-primo">Giorno normale</button>
+        <button class="btn" data-show=".v-primo" data-hide=".v-oggi">Primo giorno (record vuoto)</button>
+      </span>
+    </div>
+  </div>
+
+  <div class="stage-wrap"><div class="stage">
+    <div class="screen" data-digits="239338">
+      <div class="combo-sim" style="display:none">
+        <div class="glow"></div>
+        <div class="top-band">
+          <div class="combo-mult">x8</div>
+          <div class="combo-text">FANTASTICO!</div>
+        </div>
+      </div>
+      <div class="header-title">MAD DOG COUNTER</div>
+      <div class="badge-pos badge-tl">
+        <span class="stats-badge v-oggi">OGGI <b>87</b> · RECORD <b>214</b></span>
+        <span class="stats-badge v-primo" style="display:none">OGGI <b>87</b> · RECORD <b>—</b></span>
+      </div>
+      <div class="badge-pos badge-bl" style="display:none">
+        <span class="stats-badge v-oggi">OGGI <b>87</b> · RECORD <b>214</b></span>
+        <span class="stats-badge v-primo" style="display:none">OGGI <b>87</b> · RECORD <b>—</b></span>
+      </div>
+      <div class="badge-pos badge-tr" style="display:none">
+        <span class="stats-badge v-oggi">OGGI <b>87</b> · RECORD <b>214</b></span>
+        <span class="stats-badge v-primo" style="display:none">OGGI <b>87</b> · RECORD <b>—</b></span>
+      </div>
+    </div>
+  </div></div>
+  <p class="stage-caption">Schermo 1920×1200 (Tab A8). L'intestazione a y 40 convive coi testi combo;
+     a y 232 sta nei ~190 px liberi sopra il numerone ma più vicina al glow. Il badge in basso a
+     sinistra è la zona dei fuochi d'artificio; in alto a destra deve tenersi lontano dal panico.</p>
+
+  <script src="_base.js"></script>
+</body>
+</html>
