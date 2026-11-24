@@ -84,6 +84,10 @@ La **bandierina olandese** (striscia rosso/bianco/blu) è il separatore firma de
 
 Mappa completa e note in `design/README.md`. La cartella `design/` è **materiale sorgente**: gli asset effettivamente usati dall'app vanno esportati/ottimizzati in `assets/` del progetto Flutter (PNG trasparenti ad alta risoluzione o SVG), mai referenziare `design/` dal codice.
 
+## Stagioni (v2)
+
+Temi manuali dal pannello, mai automatici (DECISIONS → 06): **Nessuna** (default), **Halloween** (cornice `#F07820` arancio zucca + pipistrelli e zucche ai 4 angoli), **Natale** (cornice `#1E7A3C` verde abete + palline, pacchi, bastoncini di zucchero + neve). Decorazioni a opacità 0,55, dietro al numerone, animazioni lente; lo sfondo resta quasi nero. **Arancio e verde sono accenti stagionali fuori dalla palette base** — deroga del committente, confinata a questo layer come il rosa lo è all'easter egg.
+
 ## Accessibilità e robustezza d'uso
 
 - Contrasto testo/sfondo sempre ≥ 7:1 per il numerone.

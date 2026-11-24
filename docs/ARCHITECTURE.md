@@ -42,6 +42,9 @@ shared_preferences:
   tilt_threshold        : int     // default 100
   tilt_duration_seconds : int     // default 60
   tilt_message          : string  // default in config
+  // v2 — altre voci del pannello
+  ciommo_interval       : int     // default 5
+  season                : string  // 'none' | 'halloween' | 'christmas'
 
 sqflite — tabella taps:
   id INTEGER PRIMARY KEY AUTOINCREMENT

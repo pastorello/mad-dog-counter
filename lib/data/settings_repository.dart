@@ -152,6 +152,18 @@ class SettingsRepository {
     }
   }
 
+  /// Il tema stagionale scelto dal pannello (il `dbValue` di `Season`).
+  /// Null o sconosciuto ⇒ nessuna stagione.
+  String? get season => _prefs.getString(kPrefsSeason);
+
+  Future<void> setSeason(String value) async {
+    try {
+      await _prefs.setString(kPrefsSeason, value);
+    } catch (_) {
+      // idem
+    }
+  }
+
   /// Il messaggio sotto al TILT. Vuoto ⇒ la UI mostra il default.
   String get tiltMessage =>
       _prefs.getString(kPrefsTiltMessage) ?? kTiltMessageDefault;
