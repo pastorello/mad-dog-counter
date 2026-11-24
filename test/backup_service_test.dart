@@ -29,6 +29,26 @@ class _FakeLog implements TapLog {
   Future<int> sumOfDeltas() async => 0;
 
   @override
+  Future<int> sumOfTapDeltasBetween(DateTime start, DateTime end) async {
+    int sum = 0;
+    for (final TapRecord r in _records) {
+      final bool inRange =
+          !r.timestamp.isBefore(start) && r.timestamp.isBefore(end);
+      if (inRange && r.type == TapType.tap) sum += r.delta;
+    }
+    return sum;
+  }
+
+  @override
+  Future<List<DateTime>> incrementTimestampsSince(
+    DateTime since,
+  ) async => <DateTime>[
+    for (final TapRecord r in _records)
+      if (!r.timestamp.isBefore(since) && r.delta > 0 && r.type == TapType.tap)
+        r.timestamp,
+  ];
+
+  @override
   Future<void> close() async {}
 }
 

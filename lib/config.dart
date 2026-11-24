@@ -573,6 +573,91 @@ const String kPrefsLastBackupDay = 'last_backup_day';
 const String kBackupDirName = 'backups';
 
 // ---------------------------------------------------------------------------
+// Record del giorno
+// ---------------------------------------------------------------------------
+// Il "giorno" del pub va da mezzogiorno a mezzogiorno (la serata non si spezza
+// a mezzanotte). La finestra corrente e il record storico vivono in prefs come
+// cache; quando il log sqflite è disponibile, all'avvio fa fede lui.
+
+/// Ora locale a cui si chiude la finestra giornaliera e se ne apre una nuova.
+const int kDayRolloverHour = 12;
+
+/// Chiave prefs della finestra corrente (`YYYYMMDD` del mezzogiorno di
+/// apertura). Si scrive per ultima: è il lucchetto del rollover.
+const String kPrefsDailyWindowKey = 'daily_window_key';
+
+/// Chiave prefs del conteggio della finestra corrente (netto delle correzioni).
+const String kPrefsDailyCount = 'daily_count';
+
+/// Chiavi prefs del record storico: quanti mad dog e in che finestra.
+const String kPrefsBestDayCount = 'best_day_count';
+const String kPrefsBestDayKey = 'best_day_key';
+
+/// Chiave prefs della finestra in cui si è già celebrato il record: la festa
+/// parte una volta sola per finestra.
+const String kPrefsRecordCelebratedWindow = 'record_celebrated_window';
+
+/// Durata della celebrazione NUOVO RECORD! (in coda come gli altri effetti).
+const Duration kRecordCelebrationDuration = Duration(milliseconds: 4000);
+
+/// La scritta della celebrazione, in oro nella fascia alta.
+const String kRecordText = 'NUOVO RECORD!';
+
+/// Corpo della scritta del record: sopra i testi combo, sotto l'apoteosi.
+const double kRecordTextSize = 120;
+
+// ---------------------------------------------------------------------------
+// Tilt
+// ---------------------------------------------------------------------------
+// Troppi mad dog troppo in fretta: il tabellone "va in tilt" per invitare alla
+// calma. È SOLO scenografia (regola d'oro 2): i tap passano sotto la scena e
+// contano sempre. Soglia, durata e messaggio sono regolabili dal pannello;
+// la finestra di osservazione è fissa.
+
+/// La finestra mobile di osservazione. Fissa per scelta di prodotto.
+const Duration kTiltWindow = Duration(hours: 2);
+
+/// Oltre quanti incrementi nella finestra scatta il tilt (default e limiti
+/// del pannello).
+const int kTiltThresholdDefault = 100;
+const int kTiltThresholdMin = 10;
+const int kTiltThresholdMax = 1000;
+const String kPrefsTiltThreshold = 'tilt_threshold';
+
+/// Quanto resta in scena il tilt (default e limiti del pannello).
+const int kTiltDurationSecondsDefault = 60;
+const int kTiltDurationSecondsMin = 10;
+const int kTiltDurationSecondsMax = 600;
+const String kPrefsTiltDurationSeconds = 'tilt_duration_seconds';
+
+/// Il messaggio sotto alla scritta TILT, personalizzabile dal pannello.
+/// Campo vuoto ⇒ si mostra il default.
+const String kPrefsTiltMessage = 'tilt_message';
+const String kTiltMessageDefault = 'CALMA RAGAZZI, IL MAD DOG VA RISPETTATO';
+
+// Scena TILT (misure decise nei mockup, design/mockups/DECISIONS.md → 07).
+const String kTiltTitle = 'TILT';
+const double kTiltTitleSize = 600;
+const double kTiltTitleTracking = 40;
+const double kTiltMessageSize = 60;
+const double kTiltMessageTracking = 5;
+const double kTiltBarWidth = 900;
+const double kTiltBarHeight = 16;
+
+/// Velo scuro e sfocatura dietro la scena: "bloccato", ma chiaramente finto.
+const double kTiltVeilAlpha = 0.72;
+const double kTiltBlurSigma = 6;
+
+/// La vibrazione leggera dell'insegna TILT.
+const Duration kTiltShakePeriod = Duration(milliseconds: 240);
+const double kTiltShakeOffset = 2;
+
+// Etichette del pannello per le nuove voci.
+const String kSettingsTiltThresholdLabel = 'Soglia tilt (mad dog in 2 ore)';
+const String kSettingsTiltDurationLabel = 'Durata tilt (secondi)';
+const String kSettingsTiltMessageLabel = 'Messaggio del tilt';
+
+// ---------------------------------------------------------------------------
 // Splash
 // ---------------------------------------------------------------------------
 

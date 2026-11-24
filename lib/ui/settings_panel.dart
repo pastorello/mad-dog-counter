@@ -3,8 +3,10 @@
 /// Overlay scuro sopra la schermata, con la tipografia secondaria: nel
 /// pannello serve leggibilità, non il lettering brush (UX_UI_SPEC → Layout).
 ///
-/// Contenuto volutamente minimale (FUNCTIONAL_SPEC → Pannello impostazioni).
-/// È pensato per crescere in fase 2, ma nell'MVP non deve contenere altro.
+/// Contenuto volutamente minimale (FUNCTIONAL_SPEC → Pannello impostazioni):
+/// le voci sono solo quelle approvate dal committente — totale, audio, idle,
+/// e i parametri di tilt (soglia, durata, messaggio) aggiunti con le
+/// modifiche v2 (design/mockups/DECISIONS.md).
 library;
 
 import 'package:flutter/material.dart';
@@ -26,6 +28,7 @@ class SettingsPanel extends ConsumerStatefulWidget {
 
 class _SettingsPanelState extends ConsumerState<SettingsPanel> {
   final TextEditingController _totalField = TextEditingController();
+  late final TextEditingController _tiltMessageField;
 
   /// Il valore in attesa di conferma. Finché non è null, il pannello mostra
   /// "vecchio → nuovo" invece del campo.
@@ -33,8 +36,17 @@ class _SettingsPanelState extends ConsumerState<SettingsPanel> {
   String? _error;
 
   @override
+  void initState() {
+    super.initState();
+    _tiltMessageField = TextEditingController(
+      text: ref.read(settingsProvider).tiltMessage,
+    );
+  }
+
+  @override
   void dispose() {
     _totalField.dispose();
+    _tiltMessageField.dispose();
     super.dispose();
   }
 
@@ -127,11 +139,56 @@ class _SettingsPanelState extends ConsumerState<SettingsPanel> {
                   ),
                   const Divider(color: kSurfaceNavy),
 
-                  _IdleMinutes(
-                    minutes: settings.idleMinutes,
+                  _IntStepper(
+                    label: kSettingsIdleLabel,
+                    value: settings.idleMinutes,
+                    min: kIdleMinutesMin,
+                    max: kIdleMinutesMax,
                     onChanged: (int value) => ref
                         .read(settingsProvider.notifier)
                         .setIdleMinutes(value),
+                  ),
+                  const Divider(color: kSurfaceNavy),
+
+                  // I parametri del tilt: soglia e durata a passi di 10 (gli
+                  // estremi sono larghi, ±1 sarebbe una tortura), messaggio
+                  // libero. La finestra di osservazione (2 ore) è fissa.
+                  _IntStepper(
+                    label: kSettingsTiltThresholdLabel,
+                    value: settings.tiltThreshold,
+                    min: kTiltThresholdMin,
+                    max: kTiltThresholdMax,
+                    step: 10,
+                    onChanged: (int value) => ref
+                        .read(settingsProvider.notifier)
+                        .setTiltThreshold(value),
+                  ),
+                  _IntStepper(
+                    label: kSettingsTiltDurationLabel,
+                    value: settings.tiltDurationSeconds,
+                    min: kTiltDurationSecondsMin,
+                    max: kTiltDurationSecondsMax,
+                    step: 10,
+                    onChanged: (int value) => ref
+                        .read(settingsProvider.notifier)
+                        .setTiltDurationSeconds(value),
+                  ),
+                  const SizedBox(height: 16),
+                  TextField(
+                    controller: _tiltMessageField,
+                    textCapitalization: TextCapitalization.characters,
+                    style: const TextStyle(color: kTextColor, fontSize: 18),
+                    decoration: const InputDecoration(
+                      labelText: kSettingsTiltMessageLabel,
+                      hintText: kTiltMessageDefault,
+                      labelStyle: TextStyle(color: kTextColor),
+                      enabledBorder: OutlineInputBorder(
+                        borderSide: BorderSide(color: kSurfaceNavy),
+                      ),
+                    ),
+                    onChanged: (String value) => ref
+                        .read(settingsProvider.notifier)
+                        .setTiltMessage(value),
                   ),
                   const SizedBox(height: 32),
 
@@ -267,41 +324,49 @@ class _CounterField extends StatelessWidget {
   }
 }
 
-/// Minuti di inattività prima della faccina annoiata.
-class _IdleMinutes extends StatelessWidget {
-  const _IdleMinutes({required this.minutes, required this.onChanged});
+/// Riga numerica con i bottoni ±: era `_IdleMinutes`, generalizzata quando
+/// il pannello ha guadagnato i parametri del tilt.
+class _IntStepper extends StatelessWidget {
+  const _IntStepper({
+    required this.label,
+    required this.value,
+    required this.min,
+    required this.max,
+    required this.onChanged,
+    this.step = 1,
+  });
 
-  final int minutes;
+  final String label;
+  final int value;
+  final int min;
+  final int max;
+  final int step;
   final ValueChanged<int> onChanged;
 
   @override
   Widget build(BuildContext context) {
     return Row(
       children: <Widget>[
-        const Expanded(
+        Expanded(
           child: Text(
-            kSettingsIdleLabel,
-            style: TextStyle(color: kTextColor, fontSize: 18),
+            label,
+            style: const TextStyle(color: kTextColor, fontSize: 18),
           ),
         ),
         IconButton(
-          onPressed: minutes > kIdleMinutesMin
-              ? () => onChanged(minutes - 1)
-              : null,
+          onPressed: value > min ? () => onChanged(value - step) : null,
           icon: const Icon(Icons.remove_circle_outline, color: kTextColor),
         ),
         SizedBox(
-          width: 48,
+          width: 56,
           child: Text(
-            '$minutes',
+            '$value',
             textAlign: TextAlign.center,
             style: const TextStyle(color: kTextColor, fontSize: 20),
           ),
         ),
         IconButton(
-          onPressed: minutes < kIdleMinutesMax
-              ? () => onChanged(minutes + 1)
-              : null,
+          onPressed: value < max ? () => onChanged(value + step) : null,
           icon: const Icon(Icons.add_circle_outline, color: kTextColor),
         ),
       ],

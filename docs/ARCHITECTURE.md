@@ -32,6 +32,16 @@ shared_preferences:
   counter_total : int      // fonte di verità. Inizializzato a INITIAL_COUNT (0).
   sound_enabled : bool     // default true
   idle_minutes  : int      // default 10
+  // Record del giorno (v2) — CACHE: quando il log c'è, all'avvio fa fede lui.
+  daily_window_key          : string  // YYYYMMDD del mezzogiorno che ha aperto la finestra
+  daily_count               : int     // netto della finestra corrente
+  best_day_count            : int     // il record (ratchet: non ridiscende mai)
+  best_day_key              : string  // in che finestra è stato fatto
+  record_celebrated_window  : string  // finestra in cui la festa è già partita
+  // Tilt (v2) — regolabili dal pannello
+  tilt_threshold        : int     // default 100
+  tilt_duration_seconds : int     // default 60
+  tilt_message          : string  // default in config
 
 sqflite — tabella taps:
   id INTEGER PRIMARY KEY AUTOINCREMENT
@@ -43,6 +53,8 @@ sqflite — tabella taps:
 - **`counter_total`** si scrive a ogni tap, immediatamente. È la verità mostrata a schermo.
 - **`taps`** è un log append-only, scritto fire-and-forget: se una insert fallisce, il conteggio NON deve risentirne. Le modifiche manuali dal pannello impostazioni entrano come record `type='adjust'` col delta risultante: lo storico resta sommabile.
 - All'avvio, sanity check facoltativo: se `counter_total` e la somma dei delta divergono, fa fede `counter_total` (loggare la discrepanza).
+- **Record del giorno (v2)**: la finestra va da mezzogiorno a mezzogiorno locale (`state/daily_window.dart`, funzioni pure). `DailyStatsController` (`state/daily_stats_provider.dart`) parte dalla cache prefs e poi, se il log è reale, ricalcola il netto della finestra con `TapLog.sumOfTapDeltasBetween` (una SUM su `idx_taps_ts`, niente migrazione di schema); il rollover è idempotente per chiave di finestra (timer di mezzogiorno + controllo a ogni tap e all'avvio, la chiave si scrive per ultima). Il tilt riparte dagli incrementi delle ultime 2 ore via `TapLog.incrementTimestampsSince`. Il clock del log è iniettabile (`SqfliteTapLog.open(clock: …)`) per testare le query a intervallo.
+- **Tilt (v2)**: finestra mobile in memoria (`state/sliding_window.dart`, pura), pilotata da `EffectsEngine` — che resta l'UNICO iscritto a `watchChanges()`: record del giorno e tilt passano da lì dentro, non in parallelo, così l'ordine di esecuzione sullo stesso tap è deterministico.
 
 ## Pattern repository (la porta verso la fase 2)
 
@@ -101,5 +113,5 @@ docs/
 
 ## Qualità
 
-- Unit test su: logica trigger easter egg (multipli, "finisce per 67", "8 adiacenti"), macchina a stati della combo, coda effetti con ordinamento per durata, kill switch (svuota coda e ferma tutto), clamp a zero, inizializzazione a INITIAL_COUNT.
+- Unit test su: logica trigger easter egg (multipli, "finisce per 67", "8 adiacenti"), macchina a stati della combo, coda effetti con ordinamento per durata, kill switch (svuota coda e ferma tutto), clamp a zero, inizializzazione a INITIAL_COUNT, finestra giornaliera (mezzogiorno, DST, idempotenza del rollover), ratchet del record e celebrazione una-per-finestra, finestra mobile del tilt (soglia, svuotamento, seed dal log).
 - La logica dei trigger deve essere **pura** (funzioni Dart senza dipendenze da storage/UI) proprio per essere testabile.

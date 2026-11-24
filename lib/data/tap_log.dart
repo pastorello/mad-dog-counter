@@ -67,17 +67,34 @@ abstract class TapLog {
   /// ricostruire la storia servono tutti i tap, non gli ultimi cento.
   Future<List<TapRecord>> dumpAll();
 
+  /// Somma dei delta dei soli tap (`type='tap'`) con timestamp in
+  /// `[start, end)`. È il conteggio netto di una finestra giornaliera
+  /// (mezzogiorno → mezzogiorno): gli adjust restano fuori, sono correzioni
+  /// di storia, non cicchetti.
+  Future<int> sumOfTapDeltasBetween(DateTime start, DateTime end);
+
+  /// Gli istanti dei soli incrementi (+1) da [since] in poi, dal più
+  /// vecchio. È il seed della finestra del tilt dopo un riavvio.
+  Future<List<DateTime>> incrementTimestampsSince(DateTime since);
+
   Future<void> close();
 }
 
 /// Implementazione sqflite.
 class SqfliteTapLog implements TapLog {
-  SqfliteTapLog._(this._db);
+  SqfliteTapLog._(this._db, this._clock);
 
   final Database _db;
 
+  /// L'orologio con cui si timbrano le righe. Iniettabile: i test delle
+  /// query a intervallo devono poter scrivere tap "di ieri".
+  final DateTime Function() _clock;
+
   /// Apre (e se serve crea) il database del log.
-  static Future<SqfliteTapLog> open({String? path}) async {
+  static Future<SqfliteTapLog> open({
+    String? path,
+    DateTime Function() clock = DateTime.now,
+  }) async {
     final String dbPath = path ?? kTapLogDatabase;
     final Database db = await openDatabase(
       dbPath,
@@ -94,7 +111,7 @@ class SqfliteTapLog implements TapLog {
         await db.execute('CREATE INDEX idx_taps_ts ON taps (ts)');
       },
     );
-    return SqfliteTapLog._(db);
+    return SqfliteTapLog._(db, clock);
   }
 
   @override
@@ -102,7 +119,7 @@ class SqfliteTapLog implements TapLog {
     // Fire-and-forget: il log non deve MAI far fallire un tap.
     try {
       await _db.insert('taps', <String, Object?>{
-        'ts': DateTime.now().millisecondsSinceEpoch,
+        'ts': _clock().millisecondsSinceEpoch,
         'delta': delta,
         'type': type.dbValue,
       });
@@ -140,6 +157,36 @@ class SqfliteTapLog implements TapLog {
   }
 
   @override
+  Future<int> sumOfTapDeltasBetween(DateTime start, DateTime end) async {
+    // Usa idx_taps_ts: niente migrazione di schema.
+    final List<Map<String, Object?>> rows = await _db.rawQuery(
+      'SELECT COALESCE(SUM(delta), 0) AS total FROM taps '
+      'WHERE ts >= ? AND ts < ? AND type = ?',
+      <Object?>[
+        start.millisecondsSinceEpoch,
+        end.millisecondsSinceEpoch,
+        TapType.tap.dbValue,
+      ],
+    );
+    return (rows.first['total'] as int?) ?? 0;
+  }
+
+  @override
+  Future<List<DateTime>> incrementTimestampsSince(DateTime since) async {
+    final List<Map<String, Object?>> rows = await _db.rawQuery(
+      'SELECT ts FROM taps WHERE ts >= ? AND delta > 0 AND type = ? '
+      'ORDER BY ts ASC, id ASC',
+      <Object?>[since.millisecondsSinceEpoch, TapType.tap.dbValue],
+    );
+    return rows
+        .map(
+          (Map<String, Object?> row) =>
+              DateTime.fromMillisecondsSinceEpoch(row['ts']! as int),
+        )
+        .toList();
+  }
+
+  @override
   Future<void> close() => _db.close();
 }
 
@@ -160,6 +207,13 @@ class NoopTapLog implements TapLog {
 
   @override
   Future<List<TapRecord>> dumpAll() async => const <TapRecord>[];
+
+  @override
+  Future<int> sumOfTapDeltasBetween(DateTime start, DateTime end) async => 0;
+
+  @override
+  Future<List<DateTime>> incrementTimestampsSince(DateTime since) async =>
+      const <DateTime>[];
 
   @override
   Future<void> close() async {}

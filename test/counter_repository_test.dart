@@ -30,6 +30,20 @@ class _SpyTapLog implements TapLog {
   }
 
   @override
+  Future<int> sumOfTapDeltasBetween(DateTime start, DateTime end) async {
+    // La spia non ha timestamp: ai suoi test basta la somma dei tap.
+    int sum = 0;
+    for (final (int delta, TapType type) in records) {
+      if (type == TapType.tap) sum += delta;
+    }
+    return sum;
+  }
+
+  @override
+  Future<List<DateTime>> incrementTimestampsSince(DateTime since) async =>
+      const <DateTime>[];
+
+  @override
   Future<void> close() async {}
 }
 

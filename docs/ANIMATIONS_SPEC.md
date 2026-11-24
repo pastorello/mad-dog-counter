@@ -57,6 +57,21 @@ I suoni citati qui sotto esistono già come file: mappa evento→WAV in `assets/
 - Grafica: due tette stilizzate in stile buffo da cartoon — è un pub, non un sito porno. **Rosa carne** (`kFleshPink`), unica deroga al divieto di rosa della palette: in rosso 186C la battuta non si leggeva (vedi UX_UI_SPEC → Palette).
 - Insieme alla trasformazione parte una salva di **cuoricini** che esplode attorno alle cifre e ricade con la gravità (`lib/ui/effects/hearts_burst.dart`).
 
+### 8. NUOVO RECORD! (v2)
+
+- **Trigger**: con un incremento il giornaliero supera il record storico (mezzogiorno→mezzogiorno, vedi FUNCTIONAL_SPEC → Record del giorno). Una volta sola per finestra; il primissimo mad dog del primissimo giorno conta già.
+- **Effetto**: scritta «NUOVO RECORD!» in oro nella fascia alta, alone caldo oro/rosso attorno al numerone, cifre indorate (riuso del `gildDigit` dei fuochi).
+- **Durata**: ~4 s. In coda come gli altri effetti (peso 4000: tra fuochi e strike); NON partecipa all'assorbimento dei multipli — è un evento indipendente come il 67.
+- **Suono**: riuso del giubilo `wake_jubilation.wav` (nessun WAV nuovo).
+
+### 9. TILT (v2, stato persistente)
+
+- **Trigger**: più di `tilt_threshold` incrementi (default 100, dal pannello) nella finestra mobile di 2 ore. La finestra si ricarica dal log all'avvio.
+- **Effetto**: scena a tutto schermo — velo scuro (0,72) sfocato (blur 6), scritta TILT ~600 px rossa che vibra, messaggio personalizzabile (60 px, Oswald), barra rossa che si svuota nella durata. **È un `IgnorePointer`**: i tap la attraversano e contano (regola 4, regola d'oro 2). Panico e ingranaggio restano sopra la scena.
+- **Durata**: `tilt_duration_seconds` (default 60 s, dal pannello). All'uscita la finestra di osservazione si svuota, altrimenti il tap successivo lo riaccenderebbe.
+- **Stato persistente** (regola 3), non in coda: convive con combo ed effetti. Il `killAll()` (panico o apertura impostazioni) lo spegne e svuota la finestra; i DATI del record del giorno invece non vengono toccati dal kill.
+- **Suono**: riuso del wobble `wobble_67.wav` all'ingresso; la scena in sé è muta.
+
 ### 7. Idle — la faccina annoiata
 - **Trigger**: nessun tap da N minuti (default suggerito: 10 min, costante in config).
 - **Posizione**: in alto al centro, nella stessa fascia dei contatori della combo (non in mezzo al numerone).

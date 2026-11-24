@@ -147,7 +147,9 @@ void main() {
     Future<void> openAndType(WidgetTester tester, String value) async {
       await holdGear(tester, kSettingsLongPress);
       await tester.pumpAndSettle();
-      await tester.enterText(find.byType(TextField), value);
+      // Il primo TextField del pannello: "Imposta contatore" (il secondo è
+      // il messaggio del tilt).
+      await tester.enterText(find.byType(TextField).first, value);
       await tester.tap(find.text(kSettingsApply));
       await tester.pumpAndSettle();
     }
@@ -249,7 +251,9 @@ void main() {
 
       expect(find.text('$kIdleMinutesDefault'), findsOneWidget);
 
-      await tester.tap(find.byIcon(Icons.add_circle_outline));
+      // Il primo stepper del pannello è quello dell'idle (poi soglia e
+      // durata del tilt).
+      await tester.tap(find.byIcon(Icons.add_circle_outline).first);
       await tester.pumpAndSettle();
 
       expect(find.text('${kIdleMinutesDefault + 1}'), findsOneWidget);
@@ -278,6 +282,61 @@ void main() {
         101,
         reason: 'il primo tap dopo la chiusura non deve essere scartato',
       );
+    });
+  });
+
+  group('voci del tilt', () {
+    testWidgets('soglia e durata ci sono e si regolano a passi di 10', (
+      WidgetTester tester,
+    ) async {
+      tester.view.physicalSize = const Size(1920, 1200);
+      tester.view.devicePixelRatio = 1.0;
+      addTearDown(tester.view.reset);
+
+      await pumpApp(tester);
+      await holdGear(tester, kSettingsLongPress);
+      await tester.pumpAndSettle();
+
+      expect(find.text(kSettingsTiltThresholdLabel), findsOneWidget);
+      expect(find.text(kSettingsTiltDurationLabel), findsOneWidget);
+      expect(find.text('$kTiltThresholdDefault'), findsOneWidget);
+      expect(find.text('$kTiltDurationSecondsDefault'), findsOneWidget);
+
+      // I bottoni + nell'ordine del pannello: idle, soglia tilt, durata tilt.
+      await tester.tap(find.byIcon(Icons.add_circle_outline).at(1));
+      await tester.pump();
+      expect(
+        find.text('${kTiltThresholdDefault + 10}'),
+        findsOneWidget,
+        reason: 'la soglia sale a passi di 10',
+      );
+
+      final SharedPreferences prefs = await SharedPreferences.getInstance();
+      expect(prefs.getInt(kPrefsTiltThreshold), kTiltThresholdDefault + 10);
+    });
+
+    testWidgets('il messaggio del tilt si salva mentre si scrive', (
+      WidgetTester tester,
+    ) async {
+      tester.view.physicalSize = const Size(1920, 1200);
+      tester.view.devicePixelRatio = 1.0;
+      addTearDown(tester.view.reset);
+
+      await pumpApp(tester);
+      await holdGear(tester, kSettingsLongPress);
+      await tester.pumpAndSettle();
+
+      expect(find.text(kSettingsTiltMessageLabel), findsOneWidget);
+
+      // Il secondo TextField del pannello: il primo è "Imposta contatore".
+      await tester.enterText(
+        find.byType(TextField).at(1),
+        'PIANO COI CICCHETTI',
+      );
+      await tester.pump();
+
+      final SharedPreferences prefs = await SharedPreferences.getInstance();
+      expect(prefs.getString(kPrefsTiltMessage), 'PIANO COI CICCHETTI');
     });
   });
 }

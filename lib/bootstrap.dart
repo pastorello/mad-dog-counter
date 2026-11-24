@@ -17,6 +17,7 @@ import 'data/backup_service.dart';
 import 'data/counter_repository.dart';
 import 'data/settings_repository.dart';
 import 'data/tap_log.dart';
+import 'state/daily_stats_provider.dart';
 
 /// Le dipendenze pronte, da passare come override dei provider Riverpod.
 class AppDependencies {
@@ -26,6 +27,7 @@ class AppDependencies {
     required this.sounds,
     required this.settings,
     required this.backup,
+    required this.dailyStats,
   });
 
   final TapLog log;
@@ -33,6 +35,7 @@ class AppDependencies {
   final SoundManager sounds;
   final SettingsRepository settings;
   final BackupService? backup;
+  final DailyStatsController dailyStats;
 }
 
 SoundManager _createDefaultSounds() => AudioPlayersSoundManager();
@@ -93,11 +96,21 @@ Future<AppDependencies> buildAppDependencies({
     backup = null;
   }
 
+  // Il record del giorno: parte dalla cache prefs e si allinea al log in
+  // background. L'init e' fire-and-forget come tutto il resto: se fallisce,
+  // il badge mostra la cache e l'app conta comunque.
+  final DailyStatsController dailyStats = DailyStatsController(
+    settings: settings,
+    log: log,
+  );
+  unawaited(dailyStats.init());
+
   return AppDependencies(
     log: log,
     repository: repository,
     sounds: sounds,
     settings: settings,
     backup: backup,
+    dailyStats: dailyStats,
   );
 }

@@ -16,6 +16,7 @@ import 'package:flutter/widgets.dart';
 import '../../config.dart';
 import '../../state/effect_triggers.dart';
 import 'fireworks_effect.dart';
+import 'record_celebration_effect.dart';
 import 'shake_effect.dart';
 import 'strike_effect.dart';
 
@@ -59,6 +60,11 @@ const Map<EffectKind, EffectSpec> effectCatalog = <EffectKind, EffectSpec>{
     followUpSound: kSfxBowlingStrike,
     followUpDelay: kStrikeImpactDelay,
   ),
+  // Riuso del giubilo del risveglio: nessun WAV nuovo senza il committente.
+  EffectKind.dailyRecord: EffectSpec(
+    duration: kRecordCelebrationDuration,
+    sound: kSfxWakeJubilation,
+  ),
 };
 
 /// Dove si trova una cifra e a che punto è l'effetto.
@@ -94,6 +100,7 @@ const Map<EffectKind, WidgetBuilder> effectOverlays =
     <EffectKind, WidgetBuilder>{
       EffectKind.fireworks: buildFireworksOverlay,
       EffectKind.strike: buildStrikeOverlay,
+      EffectKind.dailyRecord: buildRecordCelebrationOverlay,
     };
 
 /// Le trasformazioni delle cifre, una per effetto che ne ha bisogno.
@@ -101,6 +108,8 @@ const Map<EffectKind, DigitTransform> digitTransforms =
     <EffectKind, DigitTransform>{
       EffectKind.shake67: shakeDigit,
       EffectKind.fireworks: gildDigit,
+      // Le cifre si indorano come coi fuochi: è il riuso, non una svista.
+      EffectKind.dailyRecord: gildDigit,
       EffectKind.strike: scatterDigit,
     };
 

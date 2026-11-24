@@ -10,6 +10,10 @@
 /// - regola 6: [killAll] ha priorità assoluta.
 library;
 
+// Parametri nominati assegnati a campi privati: come in backup_service.dart,
+// Dart non ammette un parametro nominato che inizi con l'underscore.
+// ignore_for_file: prefer_initializing_formals
+
 import 'dart:async';
 
 import '../audio/sound_manager.dart';
@@ -18,8 +22,10 @@ import '../data/counter_repository.dart';
 import '../ui/effects/effect_catalog.dart';
 import 'combo_machine.dart';
 import 'combo_provider.dart';
+import 'daily_stats_provider.dart';
 import 'effect_triggers.dart';
 import 'idle_provider.dart';
+import 'sliding_window.dart';
 
 /// Come programmare un'azione differita. Iniettabile: i test passano un
 /// finto scheduler e fanno scorrere il tempo a mano, senza attese vere.
@@ -42,6 +48,7 @@ class EffectsState {
     this.combo = ComboState.idle,
     this.idleFaceVisible = false,
     this.idleWaking = false,
+    this.tiltActive = false,
   });
 
   /// L'effetto in scena adesso, se c'è.
@@ -70,6 +77,11 @@ class EffectsState {
   /// La faccina sta esplodendo di gioia perché è arrivato un tap.
   final bool idleWaking;
 
+  /// Il tabellone è in tilt: troppi mad dog troppo in fretta. È SOLO
+  /// scenografia (regola 3: stato persistente, non in coda): i tap passano
+  /// sotto la scena e contano sempre.
+  final bool tiltActive;
+
   /// Il motore è a riposo. Diverso da [idleFaceVisible]: qui si parla di
   /// effetti in corso, lì di clienti che non ordinano.
   bool get isIdle =>
@@ -85,6 +97,7 @@ class EffectsState {
     ComboState? combo,
     bool? idleFaceVisible,
     bool? idleWaking,
+    bool? tiltActive,
   }) {
     return EffectsState(
       current: clearCurrent ? null : (current ?? this.current),
@@ -95,6 +108,7 @@ class EffectsState {
       combo: combo ?? this.combo,
       idleFaceVisible: idleFaceVisible ?? this.idleFaceVisible,
       idleWaking: idleWaking ?? this.idleWaking,
+      tiltActive: tiltActive ?? this.tiltActive,
     );
   }
 }
@@ -105,7 +119,13 @@ class EffectsEngine {
     this._sounds, {
     EffectScheduler scheduler = _realScheduler,
     Duration idleDelay = const Duration(minutes: kIdleMinutesDefault),
-  }) : _schedule = scheduler {
+    DateTime Function() clock = DateTime.now,
+    DailyStatsController? dailyStats,
+    this.tiltThreshold = kTiltThresholdDefault,
+    this.tiltDuration = const Duration(seconds: kTiltDurationSecondsDefault),
+  }) : _schedule = scheduler,
+       _clock = clock,
+       _dailyStats = dailyStats {
     _combo = ComboController(
       // La finestra è scaduta: il moltiplicatore sparisce e gli effetti
       // sfumano (ANIMATIONS_SPEC → Fine combo).
@@ -126,6 +146,16 @@ class EffectsEngine {
 
   final SoundManager _sounds;
   final EffectScheduler _schedule;
+  final DateTime Function() _clock;
+  final DailyStatsController? _dailyStats;
+
+  /// La finestra mobile del tilt. Si riempie coi soli incrementi.
+  final SlidingWindowCounter _tiltWindow = SlidingWindowCounter(kTiltWindow);
+
+  /// Soglia e durata del tilt, dal pannello impostazioni. Mutabili per lo
+  /// stesso motivo di [idleDelay]: cambiarle non deve ricostruire il motore.
+  int tiltThreshold;
+  Duration tiltDuration;
 
   final StreamController<EffectsState> _states =
       StreamController<EffectsState>.broadcast();
@@ -136,6 +166,7 @@ class EffectsEngine {
   Timer? _followUpTimer;
   Timer? _panicTimer;
   Timer? _idleWakeTimer;
+  Timer? _tiltTimer;
 
   EffectsState get state => _state;
 
@@ -169,14 +200,21 @@ class EffectsEngine {
     // errore, il pub non è addormentato.
     if (_idle.poke()) _wakeFromIdle();
 
+    // Il record del giorno avanza per primo: l'esito dice se con QUESTO tap
+    // è partita la festa. Fire-and-forget come tutto il resto del layer.
+    final DailyTapOutcome? daily = _dailyStats?.onTapDelta(change.delta);
+
     if (change.isIncrement) {
-      _onIncrement(change.total);
+      _onIncrement(
+        change.total,
+        recordSurpassed: daily?.recordSurpassed ?? false,
+      );
     } else {
       _onDecrement(change.total);
     }
   }
 
-  void _onIncrement(int total) {
+  void _onIncrement(int total, {bool recordSurpassed = false}) {
     // La combo avanza per prima: il pop va suonato col pitch di QUESTO tap,
     // non di quello precedente.
     final ComboOutcome combo = _combo.onIncrement();
@@ -193,8 +231,19 @@ class EffectsEngine {
       _emit(_state.copyWith(boobsActive: boobs));
     }
 
+    // Il tilt è un altro stato persistente: si osserva il ritmo e, oltre
+    // soglia, parte la scena. I tap continuano a contare comunque.
+    final DateTime now = _clock();
+    _tiltWindow.add(now);
+    if (!_state.tiltActive && _tiltWindow.countAt(now) > tiltThreshold) {
+      _enterTilt();
+    }
+
     // Regola 1: gli effetti dell'evento entrano in coda già ordinati.
-    final List<EffectKind> triggered = triggersFor(total);
+    final List<EffectKind> triggered = triggersFor(
+      total,
+      dailyRecord: recordSurpassed,
+    );
     if (triggered.isEmpty) return;
 
     _emit(_state.copyWith(queue: <EffectKind>[..._state.queue, ...triggered]));
@@ -230,6 +279,22 @@ class EffectsEngine {
 
   /// Minuti di attesa prima della faccina, dal pannello impostazioni.
   set idleDelay(Duration value) => _idle.delay = value;
+
+  /// Precarica la finestra del tilt con gli incrementi letti dal log
+  /// all'avvio: un riavvio non azzera il ritmo osservato.
+  void seedTilt(List<DateTime> events) => _tiltWindow.seed(events);
+
+  /// Entra in tilt per [tiltDuration]. All'uscita la finestra si svuota:
+  /// senza, il tap successivo lo riaccenderebbe subito.
+  void _enterTilt() {
+    _sounds.play(kSfxWobble67);
+    _emit(_state.copyWith(tiltActive: true));
+    _tiltTimer = _schedule(tiltDuration, () {
+      _tiltTimer = null;
+      _tiltWindow.clear();
+      _emit(_state.copyWith(tiltActive: false));
+    });
+  }
 
   /// Se non c'è niente in scena, tira su il prossimo dalla coda.
   void _advanceIfIdle() {
@@ -272,6 +337,12 @@ class EffectsEngine {
     _cancelTimers();
     _combo.reset();
     _idle.reset();
+    // Il panico (e l'apertura impostazioni) è anche l'uscita manuale dal
+    // tilt: finestra svuotata e scena giù. Lo stato ricostruito sotto parte
+    // con tiltActive false — ogni campo nuovo va gestito qui esplicitamente.
+    // I dati del record del giorno invece NON si toccano: sono conteggio,
+    // non effetti.
+    _tiltWindow.clear();
     _sounds.stopAll();
 
     _emit(
@@ -303,10 +374,12 @@ class EffectsEngine {
     _followUpTimer?.cancel();
     _panicTimer?.cancel();
     _idleWakeTimer?.cancel();
+    _tiltTimer?.cancel();
     _currentTimer = null;
     _followUpTimer = null;
     _panicTimer = null;
     _idleWakeTimer = null;
+    _tiltTimer = null;
   }
 
   Future<void> dispose() async {
