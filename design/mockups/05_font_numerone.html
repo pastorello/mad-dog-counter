@@ -1,0 +1,181 @@
+<!doctype html>
+<html lang="it">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>05 · Font del numerone a confronto</title>
+<link rel="stylesheet" href="_base.css">
+<style>
+  /* Il corpo e lo slot diventano variabili per poter mostrare ogni font
+     sia con la taratura attuale (0.62 em / 475 px, da Creepster) sia con
+     lo slot misurato sulla sua larghezza reale delle cifre. */
+  .digits span {
+    font-size: var(--digit-body, 475px);
+    width: var(--digit-slot, 0.62em);
+  }
+  /* Etichetta col nome del font dentro lo schermo, per confronti a colpo d'occhio */
+  .font-tag {
+    top: 28px; left: 40px;
+    font-family: var(--brand-font); font-weight: 700;
+    font-size: 28px; letter-spacing: 3px; text-transform: uppercase;
+    color: rgba(240, 240, 240, 0.45);
+    pointer-events: none;
+  }
+  .stage-caption .ratio { color: var(--gold); }
+  .stage-caption strong { color: var(--ink); letter-spacing: 1px; }
+  .closing-note { margin: 0 24px 28px; font-size: 14px; color: rgba(240,240,240,0.65); max-width: 70em; }
+</style>
+</head>
+<body>
+  <div class="mock-head">
+    <h1>05 · Font del numerone a confronto</h1>
+    <p>Chiude: il nuovo <code>kCounterFont</code> (il font delle sole cifre del numerone — meno
+       Halloween, sempre da pub) e, di conseguenza, il <code>kDigitSlotRatio</code> e il corpo massimo.
+       Creepster resta <code>kDisplayFont</code> per i testi combo e STRIKE!.
+       Sotto ogni schermo il rapporto slot misurato dal vivo (larghezza massima delle cifre 0–9),
+       da confrontare con lo 0.62 attuale tarato su Creepster.
+       <a href="index.html">← indice</a></p>
+    <div class="toolbar">
+      <span class="lbl">Cifre</span>
+      <span class="toolbar-group">
+        <button class="btn active" data-digits-swap="004667">004667</button>
+        <button class="btn" data-digits-swap="239338">239338</button>
+      </span>
+      <span class="lbl">Slot e corpo</span>
+      <span class="toolbar-group">
+        <button class="btn active" data-slot-mode="measured">Misurati per font</button>
+        <button class="btn" data-slot-mode="fixed">Attuali (0.62 em · 475 px)</button>
+      </span>
+    </div>
+  </div>
+
+  <div class="stage-wrap"><div class="stage">
+    <div class="screen" data-digits="004667" data-font="Creepster">
+      <div class="font-tag">Creepster · attuale</div>
+    </div>
+  </div></div>
+  <p class="stage-caption"><strong>Creepster</strong> — ATTUALE, solo riferimento: graffio horror
+     da luna park, è l'effetto Halloween da cui ci si vuole allontanare. Cifre seghettate: 6, 8 e 9
+     tendono a confondersi da lontano. Rapporto slot misurato:
+     <span class="ratio" data-family="Creepster">…</span> — attuale 0.62 (kDigitSlotRatio).</p>
+
+  <div class="stage-wrap"><div class="stage">
+    <div class="screen" data-digits="004667" data-font="Knewave">
+      <div class="font-tag">Knewave</div>
+    </div>
+  </div></div>
+  <p class="stage-caption"><strong>Knewave</strong> — pennellata morbida, da lavagna del pub;
+     già importato nel progetto. Cifre tonde e ben separate, il tratto irregolare resta vivo
+     senza fare horror; il 4 aperto si legge bene da lontano. Rapporto slot misurato:
+     <span class="ratio" data-family="Knewave">…</span> — attuale 0.62.</p>
+
+  <div class="stage-wrap"><div class="stage">
+    <div class="screen" data-digits="004667" data-font="Bungee">
+      <div class="font-tag">Bungee</div>
+    </div>
+  </div></div>
+  <p class="stage-caption"><strong>Bungee</strong> — insegna urbana, squadrata e verticale: il più
+     «insegna al neon» dei cinque, perfetto col glow rosso. Cifre quasi monospaziate di disegno,
+     3/8/9 nettissime: la massima distinguibilità del lotto. Rapporto slot misurato:
+     <span class="ratio" data-family="Bungee">…</span> — attuale 0.62.</p>
+
+  <div class="stage-wrap"><div class="stage">
+    <div class="screen" data-digits="004667" data-font="Titan One">
+      <div class="font-tag">Titan One</div>
+    </div>
+  </div></div>
+  <p class="stage-caption"><strong>Titan One</strong> — tondo pieno, da cartone/pub quiz, il più
+     amichevole. Cifre a pancia larga: 0 e 8 sono vicini ma il controcchio li separa; regge molto
+     bene il doppio glow. Rapporto slot misurato:
+     <span class="ratio" data-family="Titan One">…</span> — attuale 0.62.</p>
+
+  <div class="stage-wrap"><div class="stage">
+    <div class="screen" data-digits="004667" data-font="Passion One">
+      <div class="font-tag">Passion One</div>
+    </div>
+  </div></div>
+  <p class="stage-caption"><strong>Passion One</strong> — condensed caldo da manifesto sportivo,
+     il più sobrio. Cifre strette: con lo slot misurato il corpo verticale cresce (vedi misura);
+     1 e 7 da verificare alla distanza del bancone. Rapporto slot misurato:
+     <span class="ratio" data-family="Passion One">…</span> — attuale 0.62.</p>
+
+  <p class="closing-note">Il prescelto diventerà <code>kCounterFont</code>, usato <strong>solo</strong>
+     dal numerone; Creepster resta per i testi celebrativi (moltiplicatore, testi combo, STRIKE!).
+     Se il rapporto misurato è diverso da 0.62, <code>kDigitSlotRatio</code> va aggiornato e il corpo
+     segue da sé: corpo = min(0.45·altezza, 0.92·larghezza∕6∕rapporto) — è ciò che mostra la
+     modalità «Misurati per font»; un font più stretto compra un numerone più alto.</p>
+
+  <script src="_base.js"></script>
+  <script>
+  (function () {
+    'use strict';
+    // Parte dopo il listener di _base.js, quindi i .digits sono già iniettati.
+    document.addEventListener('DOMContentLoaded', function () {
+
+      // Scambio cifre: riscrive il testo degli span dentro ogni .digits iniettato.
+      document.querySelectorAll('.btn[data-digits-swap]').forEach(function (btn) {
+        btn.addEventListener('click', function () {
+          var str = btn.getAttribute('data-digits-swap');
+          document.querySelectorAll('.screen .digits').forEach(function (d) {
+            d.querySelectorAll('span').forEach(function (s, i) { s.textContent = str[i] || ''; });
+          });
+          btn.closest('.toolbar-group').querySelectorAll('.btn').forEach(function (b) { b.classList.remove('active'); });
+          btn.classList.add('active');
+        });
+      });
+
+      // Misura su canvas la larghezza massima delle cifre 0–9 a 100 px per famiglia.
+      // Passion One è importato solo in peso 700 (lo stesso che rende a schermo).
+      var weights = { 'Passion One': '700' };
+      var measured = {};           // famiglia -> rapporto slot
+      var mode = 'measured';       // coerente col bottone active iniziale
+
+      function applyMode() {
+        document.querySelectorAll('.screen[data-font]').forEach(function (sc) {
+          var r = measured[sc.getAttribute('data-font')];
+          if (mode === 'measured' && r) {
+            sc.style.setProperty('--digit-slot', r.toFixed(3) + 'em');
+            // corpo = min(0.45*1200, 0.92*1920/6/rapporto), come big_number.dart
+            sc.style.setProperty('--digit-body', Math.round(Math.min(540, 294.4 / r)) + 'px');
+          } else {
+            sc.style.removeProperty('--digit-slot');
+            sc.style.removeProperty('--digit-body');
+          }
+        });
+      }
+
+      document.querySelectorAll('.btn[data-slot-mode]').forEach(function (btn) {
+        btn.addEventListener('click', function () {
+          mode = btn.getAttribute('data-slot-mode');
+          applyMode();
+          btn.closest('.toolbar-group').querySelectorAll('.btn').forEach(function (b) { b.classList.remove('active'); });
+          btn.classList.add('active');
+        });
+      });
+
+      var spans = document.querySelectorAll('.ratio');
+      var loads = [];
+      spans.forEach(function (sp) {
+        var fam = sp.getAttribute('data-family');
+        loads.push(document.fonts.load((weights[fam] || '400') + " 100px '" + fam + "'"));
+      });
+      Promise.allSettled(loads).then(function () { return document.fonts.ready; }).then(function () {
+        var ctx = document.createElement('canvas').getContext('2d');
+        spans.forEach(function (sp) {
+          var fam = sp.getAttribute('data-family');
+          var w = (weights[fam] || '400') + " 100px '" + fam + "'";
+          if (!document.fonts.check(w)) { sp.textContent = 'n.d.'; return; }
+          ctx.font = w;
+          var max = 0;
+          for (var c = 0; c <= 9; c++) max = Math.max(max, ctx.measureText(String(c)).width);
+          var ratio = max / 100;
+          measured[fam] = ratio;
+          sp.textContent = ratio.toFixed(2) + ' (corpo max ≈ ' + Math.round(Math.min(540, 294.4 / ratio)) + ' px)';
+        });
+        applyMode();
+      });
+    });
+  })();
+  </script>
+</body>
+</html>

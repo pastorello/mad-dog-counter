@@ -1,0 +1,157 @@
+<!doctype html>
+<html lang="it">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>07 · Scena TILT</title>
+<link rel="stylesheet" href="_base.css">
+<style>
+  /* Velo e contenuti della scena sopra il chrome (z 10); panico e ingranaggio
+     restano sopra tutto (z 30): sono le vie d'uscita, mai coperte. */
+  .tilt-veil, .tilt-scene { z-index: 10; }
+  .screen .panic, .screen .gear { z-index: 30; }
+
+  .tilt-veil {
+    inset: 0;
+    background: rgba(14, 14, 20, 0.72);
+    backdrop-filter: blur(var(--tilt-blur, 6px));
+    -webkit-backdrop-filter: blur(var(--tilt-blur, 6px));
+    pointer-events: none;
+  }
+
+  .tilt-scene { inset: 0; pointer-events: none; }
+  .tilt-scene > * { position: absolute; }
+
+  /* La parola TILT: insegna al neon, lampeggio lento o vibrazione leggera */
+  .tilt-word {
+    left: 0; right: 0; top: 280px;
+    text-align: center;
+    font-family: var(--display-font);
+    font-size: 600px; line-height: 1;
+    letter-spacing: 40px;
+    color: var(--red);
+    text-shadow: 0 0 28px var(--red), 0 0 90px var(--red);
+    animation-name: var(--tilt-anim, tilt-shake);
+    animation-duration: var(--tilt-anim-dur, 0.24s);
+    animation-iteration-count: infinite;
+    animation-timing-function: linear;
+  }
+  @keyframes tilt-blink {
+    0%, 86%, 92%, 96%, 100% { opacity: 1; text-shadow: 0 0 28px var(--red), 0 0 90px var(--red); }
+    89% { opacity: 0.45; text-shadow: 0 0 10px var(--red); }
+    94% { opacity: 0.7;  text-shadow: 0 0 16px var(--red); }
+  }
+  @keyframes tilt-shake {
+    0%, 100% { transform: translate(0, 0) rotate(0deg); }
+    25% { transform: translate(2px, -2px) rotate(0.25deg); }
+    50% { transform: translate(-2px, 1px) rotate(-0.25deg); }
+    75% { transform: translate(1px, 2px) rotate(0.2deg); }
+  }
+
+  /* Messaggio sotto la parola */
+  .tilt-msg {
+    left: 0; right: 0; top: 950px;
+    text-align: center;
+    font-family: var(--brand-font); font-weight: 700;
+    font-size: 60px; letter-spacing: 5px;
+    text-transform: uppercase;
+    color: var(--ink);
+  }
+
+  /* Indicatore A: barra orizzontale rossa che si svuota in 60 s */
+  .ind-bar {
+    left: calc(50% - 450px); top: 1070px;
+    width: 900px; height: 16px;
+    border: 2px solid var(--ink-hint);
+  }
+  .ind-bar i {
+    display: block; height: 100%;
+    background: var(--red);
+    box-shadow: 0 0 14px var(--red);
+    transform-origin: left center;
+    animation: bar-empty 60s linear forwards;
+  }
+  @keyframes bar-empty {
+    from { transform: scaleX(1); }
+    to   { transform: scaleX(0); }
+  }
+
+  /* Indicatore B: anello attorno al TILT che si svuota in 60 s */
+  .ind-ring {
+    left: calc(50% - 280px); top: 200px;
+    width: 560px; height: 560px;
+    transform: rotate(-90deg);  /* parte da ore 12 */
+  }
+  .ind-ring .track { fill: none; stroke: var(--ink-hint); stroke-width: 10; }
+  .ind-ring .left {
+    fill: none; stroke: var(--red); stroke-width: 10;
+    stroke-linecap: round;
+    stroke-dasharray: 1634;     /* 2π·260 */
+    filter: drop-shadow(0 0 10px var(--red));
+    animation: ring-empty 60s linear forwards;
+  }
+  @keyframes ring-empty {
+    from { stroke-dashoffset: 0; }
+    to   { stroke-dashoffset: 1634; }
+  }
+</style>
+</head>
+<body>
+  <div class="mock-head">
+    <h1>07 · Scena TILT</h1>
+    <p>Da decidere: look della scena (solo velo o velo + sfocatura); testo del messaggio
+       (tre proposte in tono da pub, il definitivo lo sceglie il committente); indicatore
+       del tempo residuo (barra che si svuota o anello attorno al TILT); micro-animazione
+       dell'insegna (lampeggio lento o vibrazione leggera). Panico e ingranaggio restano
+       sempre sopra il velo. Cambiando indicatore l'animazione da 60 s riparte.
+       <a href="index.html">← indice</a></p>
+    <div class="toolbar">
+      <span class="lbl">Messaggio</span>
+      <span class="toolbar-group">
+        <button class="btn active" data-show=".msg-1" data-hide=".msg-2, .msg-3">Calma ragazzi</button>
+        <button class="btn" data-show=".msg-2" data-hide=".msg-1, .msg-3">Troppi troppo in fretta</button>
+        <button class="btn" data-show=".msg-3" data-hide=".msg-1, .msg-2">Il bancone non scappa</button>
+      </span>
+      <span class="lbl">Look</span>
+      <span class="toolbar-group">
+        <button class="btn" data-css='{"--tilt-blur":"0px"}'>Velato</button>
+        <button class="btn active" data-css='{"--tilt-blur":"6px"}'>Sfocato (scelto)</button>
+      </span>
+      <span class="lbl">Indicatore</span>
+      <span class="toolbar-group">
+        <button class="btn active" data-show=".ind-bar" data-hide=".ind-ring">Barra</button>
+        <button class="btn" data-show=".ind-ring" data-hide=".ind-bar">Anello</button>
+      </span>
+      <span class="lbl">Insegna</span>
+      <span class="toolbar-group">
+        <button class="btn" data-css='{"--tilt-anim":"tilt-blink","--tilt-anim-dur":"3.4s"}'>Lampeggio</button>
+        <button class="btn active" data-css='{"--tilt-anim":"tilt-shake","--tilt-anim-dur":"0.24s"}'>Vibrazione (scelta)</button>
+      </span>
+    </div>
+  </div>
+
+  <div class="stage-wrap"><div class="stage">
+    <div class="screen" data-digits="239437">
+      <div class="tilt-veil"></div>
+      <div class="tilt-scene">
+        <svg class="ind-ring" viewBox="0 0 560 560" style="display:none">
+          <circle class="track" cx="280" cy="280" r="260"></circle>
+          <circle class="left" cx="280" cy="280" r="260"></circle>
+        </svg>
+        <div class="tilt-word">TILT</div>
+        <div class="tilt-msg msg-1">CALMA RAGAZZI, IL MAD DOG VA RISPETTATO</div>
+        <div class="tilt-msg msg-2" style="display:none">TROPPI MAD DOG TROPPO IN FRETTA</div>
+        <div class="tilt-msg msg-3" style="display:none">RESPIRATE, IL BANCONE NON SCAPPA</div>
+        <div class="ind-bar"><i></i></div>
+      </div>
+    </div>
+  </div></div>
+  <p class="stage-caption">Il tilt NON blocca il conteggio: i tap passano sotto il velo e contano,
+     la scena è solo scenografica — per questo le cifre restano leggibili dietro e panico/ingranaggio
+     restano sopra come vie d'uscita. Soglia default 100 mad dog in 2 ore e durata default 60 s,
+     entrambe regolabili dal pannello impostazioni. Il messaggio è <b>personalizzabile dal pannello</b>
+     (default: «CALMA RAGAZZI, IL MAD DOG VA RISPETTATO»).</p>
+
+  <script src="_base.js"></script>
+</body>
+</html>

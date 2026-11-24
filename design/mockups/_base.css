@@ -1,0 +1,194 @@
+/* Mad Dog Counter — base condivisa dei mockup (Fase 0).
+   Palette e misure da lib/config.dart; schermo di riferimento 1920×1200 (Tab A8, landscape).
+   Le pagine includono questo file + _base.js e usano lo scheletro:
+
+   <div class="stage-wrap"><div class="stage">
+     <div class="screen" data-digits="004667">
+       ...overlay specifici della pagina (position:absolute)...
+     </div>
+   </div></div>
+
+   _base.js riempie ogni .screen con il chrome reale (numerone, marchio HoMD,
+   bandierina, panico, ingranaggio) e scala lo stage alla larghezza disponibile.
+   Attributi utili su .screen:
+     data-digits="239338"  cifre del numerone (default 004667)
+     data-font="Bungee"    font del numerone (default Creepster)
+     data-flag="24"        altezza bandierina in px (default 12)
+     data-no-chrome        niente chrome automatico
+*/
+
+@import url('https://fonts.googleapis.com/css2?family=Creepster&family=Knewave&family=Bungee&family=Titan+One&family=Passion+One:wght@700&family=Oswald:wght@500;700&display=swap');
+
+:root {
+  --bg: #0E0E14;        /* kBackground */
+  --ink: #F0F0F0;       /* kTextColor — mai bianco puro */
+  --ink-hint: rgba(240, 240, 240, 0.2);
+  --red: #C8102E;       /* kPrimaryRed, Pantone 186C */
+  --blue: #0047BB;      /* kAccentBlue, Pantone 2728C */
+  --navy: #204070;      /* kSurfaceNavy */
+  --gold: #F0A830;      /* kCelebrationGold */
+  --pink-flesh: #EFA79B;
+  --pink-heart: #E86A8A;
+  --tear: #7FB2FF;
+  --counter-font: 'Creepster', cursive;
+  --display-font: 'Creepster', cursive;
+  --brand-font: 'Oswald', 'Arial Narrow', sans-serif;
+}
+
+* { box-sizing: border-box; }
+
+body {
+  margin: 0;
+  background: #090910;
+  color: var(--ink);
+  font-family: var(--brand-font);
+  font-weight: 500;
+}
+
+/* ---- intestazione della pagina mockup (non fa parte dello schermo) ---- */
+
+.mock-head {
+  padding: 18px 24px 6px;
+  border-bottom: 1px solid var(--navy);
+}
+.mock-head h1 {
+  margin: 0 0 4px;
+  font-size: 22px;
+  font-weight: 700;
+  letter-spacing: 1.5px;
+  text-transform: uppercase;
+}
+.mock-head p { margin: 0 0 12px; font-size: 14px; color: rgba(240,240,240,0.65); max-width: 70em; }
+.mock-head a { color: var(--tear); }
+
+.toolbar { display: flex; flex-wrap: wrap; gap: 8px; padding: 10px 0 14px; }
+.toolbar .lbl { font-size: 12px; letter-spacing: 1px; text-transform: uppercase; color: rgba(240,240,240,0.5); align-self: center; margin-right: 2px; }
+.btn {
+  font-family: var(--brand-font); font-weight: 700; font-size: 13px; letter-spacing: 0.5px;
+  color: var(--ink); background: transparent;
+  border: 1px solid var(--navy); border-radius: 0;
+  padding: 7px 14px; cursor: pointer;
+}
+.btn:hover { border-color: var(--tear); }
+.btn.active { background: var(--red); border-color: var(--red); }
+.spacer { flex: 1; }
+
+/* ---- lo stage 1920×1200 scalato ---- */
+
+.stage-wrap { position: relative; margin: 18px 24px; overflow: hidden; }
+.stage {
+  width: 1920px; height: 1200px;
+  transform-origin: top left;
+  position: relative;
+}
+.stage-caption { margin: -8px 24px 18px; font-size: 13px; color: rgba(240,240,240,0.55); }
+
+/* ---- il chrome dello schermo vero ---- */
+
+.screen {
+  position: absolute; inset: 0;
+  background: var(--bg);
+  overflow: hidden;
+}
+.screen > * { position: absolute; }
+
+/* Numerone: 6 cifre, slot fissi 0.62em (kDigitSlotRatio), glow rosso doppio
+   come big_number.dart. Corpo ~475px = min(0.45*1200, 0.92*1920/6/0.62). */
+.digits {
+  inset: 0;
+  display: flex; align-items: center; justify-content: center;
+  pointer-events: none;
+}
+.digits span {
+  display: inline-block;
+  width: 0.62em; text-align: center;
+  font-family: var(--counter-font);
+  font-size: 475px; line-height: 1;
+  color: var(--ink);
+  text-shadow: 0 0 24px var(--red), 0 0 48px var(--red);
+}
+
+/* Marchio HoMD in basso al centro (kHomdMarkBottom = flag + 8) */
+.homd {
+  left: 0; right: 0; bottom: calc(var(--flag-h, 12px) + 8px);
+  display: flex; flex-direction: column; align-items: center;
+  pointer-events: none;
+}
+.homd .glass { height: 128px; }           /* kHomdMarkSize */
+.homd .glass svg { height: 100%; display: block; }
+.homd .glass path { fill: var(--red); }
+.homd .word {
+  margin-top: 4px;                         /* kHomdWordmarkGap */
+  font-family: var(--brand-font); font-weight: 700;
+  font-size: 30px; letter-spacing: 2px; line-height: 1.1;
+  color: var(--red); text-align: center;
+}
+.homd .tag {
+  margin-top: 6px;                         /* kHomdTaglineGap */
+  font-family: var(--brand-font); font-weight: 700;
+  font-size: 15px; letter-spacing: 1.2px;
+  color: var(--ink);
+}
+
+/* Bandierina olandese sul bordo basso (kDutchFlagHeight) */
+.flag {
+  left: 0; right: 0; bottom: 0; height: var(--flag-h, 12px);
+  display: flex; flex-direction: column;
+}
+.flag i { flex: 1; display: block; }
+.flag i:nth-child(1) { background: var(--red); }
+.flag i:nth-child(2) { background: var(--ink); }
+.flag i:nth-child(3) { background: var(--blue); }
+
+/* Controlli di servizio, discreti sul bordo destro */
+.panic {
+  top: 28px; right: 28px; width: 34px; height: 34px;
+  border: 2px solid rgba(240,240,240,0.35); border-radius: 50%;
+  color: rgba(240,240,240,0.35);
+  display: flex; align-items: center; justify-content: center;
+  font-size: 18px; line-height: 1;
+}
+.gear {
+  bottom: 28px; right: 28px;
+  font-size: 40px; line-height: 1;
+  color: rgba(240,240,240,0.3);
+}
+
+/* Fascia alta degli eventi (kTopOverlayTop = 40): la usano le pagine per
+   moltiplicatore/testi combo, STRIKE!, faccina. */
+.top-band {
+  top: 40px; left: 0; right: 0;
+  display: flex; flex-direction: column; align-items: center; gap: 8px;
+  pointer-events: none;
+}
+.combo-mult {
+  font-family: var(--display-font);
+  font-size: var(--combo-mult-size, 56px); line-height: 1;
+  color: var(--gold);
+  text-shadow: 0 0 18px var(--red);
+}
+.combo-text {
+  font-family: var(--display-font);
+  font-size: var(--combo-text-size, 40px); line-height: 1;
+  color: var(--red);
+  text-shadow: 0 0 10px var(--bg);
+}
+
+/* Badge OGGI/RECORD: una riga sola, piccola e discreta */
+.stats-badge {
+  font-family: var(--brand-font); font-weight: 700;
+  font-size: var(--badge-size, 26px); letter-spacing: 1.5px;
+  color: rgba(240, 240, 240, 0.55);
+  white-space: nowrap;
+}
+.stats-badge b { color: var(--gold); font-weight: 700; }
+
+/* Intestazione MAD DOG COUNTER */
+.header-title {
+  left: 0; right: 0; text-align: center;
+  font-family: var(--brand-font); font-weight: 700;
+  font-size: var(--header-size, 44px); letter-spacing: var(--header-tracking, 6px);
+  color: var(--header-color, rgba(240,240,240,0.8));
+  pointer-events: none;
+}
+.header-title.display { font-family: var(--display-font); letter-spacing: 2px; }

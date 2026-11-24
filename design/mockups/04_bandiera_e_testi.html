@@ -1,0 +1,95 @@
+<!doctype html>
+<html lang="it">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>04 · Bandierina e testi combo</title>
+<link rel="stylesheet" href="_base.css">
+<style>
+  /* glow combo simulato (come in 01), sotto i testi della fascia alta */
+  .combo-glow {
+    inset: 0;
+    background:
+      radial-gradient(circle at 50% 50%, rgba(240, 168, 48, 0.22), rgba(200, 16, 46, 0.12) 45%, transparent),
+      rgba(200, 16, 46, 0.10);
+    animation: glow-breathe 2.4s ease-in-out infinite;
+    pointer-events: none;
+  }
+  @keyframes glow-breathe {
+    0%, 100% { opacity: 0.85; }
+    50%      { opacity: 1; }
+  }
+  /* i corpi dei testi si muovono spesso qui: una transizione li fa confrontare meglio */
+  .combo-mult, .combo-text { transition: font-size 0.25s; }
+  .flag { transition: height 0.25s; }
+  .homd { transition: bottom 0.25s; }
+
+  /* riga di avviso sotto lo stage, visibile solo con bandierina a 40 */
+  .stage-warn {
+    margin: 0 24px 14px;
+    font-size: 14px; font-weight: 700; letter-spacing: 0.5px;
+    color: var(--gold);
+    border: 1px solid rgba(240, 168, 48, 0.45);
+    padding: 9px 14px;
+  }
+</style>
+</head>
+<body>
+  <div class="mock-head">
+    <h1>04 · Bandierina più alta + testi combo più grandi</h1>
+    <p>Da decidere: altezza della bandierina olandese (12 attuale / 24 / 32 / 40), corpo del testo
+       celebrativo (40 attuale / 56 / 64 / 72) e corpo del moltiplicatore (56 attuale / 64 / 72 / 80).
+       Il marchio HoMD è ancorato alla bandierina (+8 px) e si alza da solo quando lei cresce.
+       <a href="index.html">← indice</a></p>
+    <div class="toolbar">
+      <span class="lbl">Bandierina</span>
+      <span class="toolbar-group">
+        <button class="btn" data-css='{"--flag-h":"12px"}' data-hide=".stage-warn">12 (attuale)</button>
+        <button class="btn" data-css='{"--flag-h":"24px"}' data-hide=".stage-warn">24</button>
+        <button class="btn" data-css='{"--flag-h":"32px"}' data-hide=".stage-warn">32</button>
+        <button class="btn active" data-css='{"--flag-h":"40px"}' data-show=".stage-warn">40 (scelta)</button>
+      </span>
+      <span class="lbl">Testo combo</span>
+      <span class="toolbar-group">
+        <button class="btn" data-css='{"--combo-text-size":"40px"}'>40 (attuale)</button>
+        <button class="btn" data-css='{"--combo-text-size":"56px"}'>56</button>
+        <button class="btn" data-css='{"--combo-text-size":"64px"}'>64</button>
+        <button class="btn" data-css='{"--combo-text-size":"72px"}'>72</button>
+        <button class="btn active" data-css='{"--combo-text-size":"140px"}'>140 (scelto)</button>
+      </span>
+      <span class="lbl">Moltiplicatore</span>
+      <span class="toolbar-group">
+        <button class="btn" data-css='{"--combo-mult-size":"56px"}'>56 (attuale)</button>
+        <button class="btn" data-css='{"--combo-mult-size":"64px"}'>64</button>
+        <button class="btn" data-css='{"--combo-mult-size":"72px"}'>72</button>
+        <button class="btn" data-css='{"--combo-mult-size":"80px"}'>80</button>
+        <button class="btn active" data-css='{"--combo-mult-size":"160px"}'>160 (scelto)</button>
+      </span>
+      <span class="lbl">Scena</span>
+      <span class="toolbar-group">
+        <button class="btn active" data-hide=".combo-glow">Senza glow</button>
+        <button class="btn" data-show=".combo-glow">Glow combo</button>
+      </span>
+    </div>
+  </div>
+
+  <div class="stage-wrap"><div class="stage">
+    <div class="screen" data-digits="239338" data-flag="40" style="--combo-text-size:140px; --combo-mult-size:160px">
+      <div class="combo-glow" style="display:none"></div>
+      <div class="top-band">
+        <div class="combo-mult">x8</div>
+        <div class="combo-text">FANTASTICO!</div>
+      </div>
+    </div>
+  </div></div>
+  <p class="stage-warn" style="display:none">⚠ Bandierina a 40 px: il marchio HoMD sale di 28 px e il
+     gioco sulle cifre scende da ~55 a ~27 px — prima di adottarla va ridotto il tetto del marchio
+     (kHomdMarkMaxHeightFraction) nel codice.</p>
+  <p class="stage-caption">Schermo 1920×1200 (Tab A8). Tra la fascia eventi (y 40) e la cima delle cifre
+     ci sono ~190 px: a 72+80 il blocco cresce di ~56 px e scende verso il numerone — giudicare a occhio
+     se respira ancora. In basso il marchio finisce a ~892 px e le cifre a ~837 px (~55 px di gioco):
+     la bandierina a 40 mangia quasi tutto il margine, vedi l'avviso quando è premuta.</p>
+
+  <script src="_base.js"></script>
+</body>
+</html>
