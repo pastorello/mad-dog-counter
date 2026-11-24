@@ -655,6 +655,47 @@ const int kApotheosisParticles = 28;
 const Duration kApotheosisBlastDelay = Duration(milliseconds: 6750);
 
 // ---------------------------------------------------------------------------
+// Stagioni (v2)
+// ---------------------------------------------------------------------------
+// Temi scelti A MANO dal pannello (DECISIONS → 06): Nessuna / Halloween /
+// Natale, niente automatismo per data. Cornice colorata ai bordi +
+// decorazioni in background ai 4 angoli, dietro al numerone; per Natale
+// anche la neve. Arancio e verde sono ACCENTI STAGIONALI fuori dalla
+// palette base — scelta del committente, il resto della UI non li usa mai.
+
+/// Chiave prefs del tema stagionale (il `dbValue` di `Season`).
+const String kPrefsSeason = 'season';
+
+/// Etichette del pannello.
+const String kSettingsSeasonLabel = 'Stagione';
+const String kSeasonNoneLabel = 'Nessuna';
+const String kSeasonHalloweenLabel = 'Halloween';
+const String kSeasonChristmasLabel = 'Natale';
+
+/// Le cornici: arancio zucca e verde abete.
+const Color kSeasonHalloweenFrame = Color(0xFFF07820);
+const Color kSeasonChristmasFrame = Color(0xFF1E7A3C);
+
+/// Spessore del bordo e alone verso l'interno della cornice.
+const double kSeasonFrameWidth = 6;
+const double kSeasonFrameGlowWidth = 40;
+const double kSeasonFrameGlowAlpha = 0.24;
+const double kSeasonFrameAlpha = 0.8;
+
+/// Le decorazioni stanno ai 4 angoli, dietro al numerone, discrete.
+const double kSeasonDecorOpacity = 0.55;
+const double kSeasonCornerSize = 320;
+
+/// La neve di Natale.
+const int kSnowflakeCount = 22;
+const double kSnowflakeSize = 7;
+const double kSnowOpacity = 0.2;
+
+/// Un giro completo del ciclo di animazione stagionale (neve che cade,
+/// pipistrelli che aleggiano): lento, è atmosfera.
+const Duration kSeasonCycleDuration = Duration(seconds: 20);
+
+// ---------------------------------------------------------------------------
 // Record del giorno
 // ---------------------------------------------------------------------------
 // Il "giorno" del pub va da mezzogiorno a mezzogiorno (la serata non si spezza

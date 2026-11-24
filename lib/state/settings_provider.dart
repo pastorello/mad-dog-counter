@@ -10,6 +10,7 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import '../config.dart';
 import '../data/settings_repository.dart';
 import 'counter_provider.dart';
+import 'season.dart';
 
 class SettingsState {
   const SettingsState({
@@ -19,6 +20,7 @@ class SettingsState {
     required this.tiltDurationSeconds,
     required this.tiltMessage,
     required this.ciommoInterval,
+    required this.season,
   });
 
   final bool soundEnabled;
@@ -41,6 +43,9 @@ class SettingsState {
   /// Ogni quanti tap di combo piomba il timbro gigante di Ciommo.
   final int ciommoInterval;
 
+  /// Il tema stagionale scelto dal pannello.
+  final Season season;
+
   SettingsState copyWith({
     bool? soundEnabled,
     int? idleMinutes,
@@ -48,6 +53,7 @@ class SettingsState {
     int? tiltDurationSeconds,
     String? tiltMessage,
     int? ciommoInterval,
+    Season? season,
   }) => SettingsState(
     soundEnabled: soundEnabled ?? this.soundEnabled,
     idleMinutes: idleMinutes ?? this.idleMinutes,
@@ -55,6 +61,7 @@ class SettingsState {
     tiltDurationSeconds: tiltDurationSeconds ?? this.tiltDurationSeconds,
     tiltMessage: tiltMessage ?? this.tiltMessage,
     ciommoInterval: ciommoInterval ?? this.ciommoInterval,
+    season: season ?? this.season,
   );
 }
 
@@ -69,6 +76,7 @@ class SettingsNotifier extends Notifier<SettingsState> {
       tiltDurationSeconds: repository.tiltDurationSeconds,
       tiltMessage: repository.tiltMessage,
       ciommoInterval: repository.ciommoInterval,
+      season: Season.fromDbValue(repository.season),
     );
   }
 
@@ -103,6 +111,12 @@ class SettingsNotifier extends Notifier<SettingsState> {
     if (clamped == state.tiltDurationSeconds) return;
     state = state.copyWith(tiltDurationSeconds: clamped);
     ref.read(settingsRepositoryProvider).setTiltDurationSeconds(clamped);
+  }
+
+  void setSeason(Season value) {
+    if (value == state.season) return;
+    state = state.copyWith(season: value);
+    ref.read(settingsRepositoryProvider).setSeason(value.dbValue);
   }
 
   void setCiommoInterval(int value) {

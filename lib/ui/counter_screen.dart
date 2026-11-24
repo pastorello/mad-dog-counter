@@ -13,6 +13,7 @@ import '../config.dart';
 import '../state/counter_provider.dart';
 import '../state/effect_triggers.dart';
 import '../state/effects_provider.dart';
+import '../state/season.dart';
 import '../state/settings_provider.dart';
 import 'effects/ciommo_slam.dart';
 import 'effects/combo_overlay.dart';
@@ -21,6 +22,7 @@ import 'effects/effect_catalog.dart';
 import 'effects/hearts_burst.dart';
 import 'effects/idle_clouds.dart';
 import 'effects/idle_face.dart';
+import 'effects/seasonal_background.dart';
 import 'effects/tilt_overlay.dart';
 import 'settings_panel.dart';
 import 'widgets/big_number.dart';
@@ -107,6 +109,20 @@ class _CounterScreenState extends ConsumerState<CounterScreen> {
       backgroundColor: kBackground,
       body: Stack(
         children: <Widget>[
+          // Lo sfondo stagionale (v2): atmosfera dietro a TUTTO, scelto a
+          // mano dal pannello (voce «Stagione»). kBackground resta const:
+          // questo layer ci si appoggia sopra.
+          Positioned.fill(
+            child: Consumer(
+              builder: (BuildContext context, WidgetRef ref, Widget? _) {
+                final Season season = ref.watch(
+                  settingsProvider.select((SettingsState s) => s.season),
+                );
+                return SeasonalBackground(season: season);
+              },
+            ),
+          ),
+
           // Il numerone sta sotto: le zone di tap ci passano sopra.
           // RepaintBoundary perche' rolla a ogni tap e ha un glow sfocato
           // (raster costoso): senza confine, ogni suo frame sporca anche

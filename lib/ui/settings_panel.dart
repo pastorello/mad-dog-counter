@@ -15,6 +15,7 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 
 import '../config.dart';
 import '../state/counter_provider.dart';
+import '../state/season.dart';
 import '../state/settings_provider.dart';
 
 class SettingsPanel extends ConsumerStatefulWidget {
@@ -182,6 +183,14 @@ class _SettingsPanelState extends ConsumerState<SettingsPanel> {
                         .read(settingsProvider.notifier)
                         .setCiommoInterval(value),
                   ),
+                  const SizedBox(height: 8),
+
+                  // Il tema stagionale: scelta manuale, l'elenco crescerà.
+                  _SeasonPicker(
+                    value: settings.season,
+                    onChanged: (Season value) =>
+                        ref.read(settingsProvider.notifier).setSeason(value),
+                  ),
                   const SizedBox(height: 16),
                   TextField(
                     controller: _tiltMessageField,
@@ -327,6 +336,44 @@ class _CounterField extends StatelessWidget {
               message,
               style: const TextStyle(color: kPrimaryRed, fontSize: 14),
             ),
+          ),
+      ],
+    );
+  }
+}
+
+/// La riga del tema stagionale: un'etichetta e una scelta secca fra i temi.
+class _SeasonPicker extends StatelessWidget {
+  const _SeasonPicker({required this.value, required this.onChanged});
+
+  final Season value;
+  final ValueChanged<Season> onChanged;
+
+  static String _labelFor(Season season) => switch (season) {
+    Season.none => kSeasonNoneLabel,
+    Season.halloween => kSeasonHalloweenLabel,
+    Season.christmas => kSeasonChristmasLabel,
+  };
+
+  @override
+  Widget build(BuildContext context) {
+    return Row(
+      children: <Widget>[
+        const Expanded(
+          child: Text(
+            kSettingsSeasonLabel,
+            style: TextStyle(color: kTextColor, fontSize: 18),
+          ),
+        ),
+        for (final Season season in Season.values)
+          Padding(
+            padding: const EdgeInsets.only(left: 8),
+            child: season == value
+                ? FilledButton(onPressed: () {}, child: Text(_labelFor(season)))
+                : OutlinedButton(
+                    onPressed: () => onChanged(season),
+                    child: Text(_labelFor(season)),
+                  ),
           ),
       ],
     );
