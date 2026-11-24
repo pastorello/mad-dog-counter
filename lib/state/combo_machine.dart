@@ -50,18 +50,6 @@ class ComboState {
   double get pitch =>
       math.min(kComboPitchMax, 1.0 + math.max(0, count - 1) * kComboPitchStep);
 
-  /// La combo è abbastanza lunga da far comparire Ciommo.
-  ///
-  /// PROVVISORIO: soglia da confermare col committente, esiste una variante
-  /// basata sui cicchetti di sessione (CLAUDE.md → Domande aperte).
-  bool get showsCiommo => count >= kComboCiommoThreshold;
-
-  /// Quanti timbri di Ciommo a schermo: più la combo cresce, più ne spuntano.
-  int get ciommoStamps {
-    if (!showsCiommo) return 0;
-    return math.min(kComboCiommoMaxStamps, count - kComboCiommoThreshold + 1);
-  }
-
   /// Il tap successivo, dentro la finestra.
   ComboState next() => ComboState(count + 1);
 
@@ -79,3 +67,12 @@ class ComboState {
 /// È il momento in cui suona il "ta-daa" e cambia il testo celebrativo.
 bool crossedThreshold(ComboState before, ComboState after) =>
     after.level > before.level;
+
+/// A questo tap di combo piomba il timbro gigante "Ciommo Approved"?
+///
+/// Scatta a ogni multiplo di [interval] (5, 10, 15… col default). DECISO
+/// col committente (design/mockups/DECISIONS.md → 02). L'intervallo è un
+/// PARAMETRO e non una costante: arriva dalle impostazioni, e la macchina
+/// resta pura (regola d'oro 3).
+bool isCiommoMultiple(int count, int interval) =>
+    interval > 0 && count >= interval && count % interval == 0;

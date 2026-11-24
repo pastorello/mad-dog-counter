@@ -25,8 +25,7 @@ I suoni citati qui sotto esistono già come file: mappa evento→WAV in `assets/
 ### 2. Combo Candy Crush
 - **Trigger**: tap di *incremento* consecutivi con **massimo 2 secondi** tra l'uno e l'altro. La combo si azzera se passano più di 2 s **oppure se arriva un decremento** (il −1 interrompe subito la combo, senza effetti celebrativi).
 - **Effetto**: moltiplicatore visivo che sale (x2, x3, x5...), scritte celebrative sempre più esaltate che appaiono a schermo (es. «Bello!», «Fantastico!», «LEGGENDARIO!» — testi da definire coi baristi, tenerli in una lista in `config.dart`), l'ambiente attorno al numero si scalda: glow crescente, particelle più fitte.
-- **Combo lunga** (soglia da tarare, es. ≥ 5): timbri **"Ciommo Approved"** (asset `design/processed/ciommo_approved.svg`, fill bianco sporco; variante badge: `ciommo_sticker_round.png`) che spuntano dai lati del display con effetto stamp (schiaffo di timbro + leggera rotazione random). Più la combo cresce, più Ciommo appare.
-  - Variante segnata da valutare coi baristi: Ciommo compare quando i cicchetti della sessione superano 3.
+- **Timbro Ciommo (v2, lo slam)**: a ogni **multiplo dell'intervallo** di tap di combo (5, 10, 15… col default; regolabile dal pannello, voce «Timbro Ciommo ogni N») UN timbro **"Ciommo Approved" gigante** piomba sul numerone: 85% dell'altezza, inclinato −14°, slam-in ~12% / hold / fade su 2,0 s (DECISIONS → 02). Copre il numerone un attimo — è la battuta, non un bug — e sotto si continua a contare (`IgnorePointer`). Suona il ta-daa (`combo_milestone.wav`) a ogni timbro; quando il multiplo coincide con una soglia dei testi, il ta-daa suona UNA volta. Non entra nella coda effetti: è un fatto della combo, in coda arriverebbe in ritardo.
 - **Pioggia di bicchierini** (`lib/ui/effects/combo_rain.dart`): sullo sfondo, dietro a moltiplicatore/testo e ai timbri Ciommo, alcuni bicchierini piccoli e trasparenti (`ShotGlassPainter`, lo stesso disegno del marchio HoMD) cadono in loop finché la combo resta viva. È atmosfera, non l'evento: piccola, poca opacità, non compete coi timbri.
 - **Suono**: pitch dei pop che sale con la combo; "voce"/effetto trionfale sulle soglie.
 - **Fine combo**: gli effetti sfumano dolcemente, il moltiplicatore scompare.
@@ -42,7 +41,22 @@ I suoni citati qui sotto esistono già come file: mappa evento→WAV in `assets/
 - **Effetto**: una **palla da bowling** entra da un lato dello schermo, colpisce il numerone e **spacca le cifre per aria** come birilli (le cifre volano con fisica esagerata, rimbalzano, poi il contatore si ricompone tremolando).
 - **Durata**: ~5–6 s.
 - **Suono**: rotolamento + strike fragoroso + campanella.
-- **Regola di assorbimento**: ogni multiplo di 1000 è anche multiplo di 100, ma i due effetti NON si accodano — lo strike **sostituisce** i fuochi. In generale: quando un trigger è un sovrainsieme di un altro, scatta solo l'evento più raro. La regola della coda (ordinamento per durata) vale solo per eventi *indipendenti* che scattano sullo stesso tap.
+- **Regola di assorbimento (generalizzata nella v2)**: la catena delle milestone è `100.000 → 10.000 → 1000 → 100` e **vince il più raro**: ogni milestone più grande è multiplo delle più piccole, quindi sullo stesso tap scatta solo lei (l'apoteosi assorbe tutto, la pioggia assorbe strike e fuochi, lo strike assorbe i fuochi). La regola della coda (ordinamento per durata) vale solo per eventi *indipendenti* che scattano sullo stesso tap (il 67, il record del giorno).
+
+### 4b. Multiplo di 10.000 — Pioggia di Mad Dog (v2)
+
+- **Trigger**: `total % 10000 == 0` (e non multiplo di 100.000). Assorbe strike e fuochi.
+- **Effetto**: pioggia FITTA di bicchierini shot rossi a piena opacità (riuso di `ShotGlassPainter`, 20 bicchierini da 100–140 px a velocità diverse) — non l'atmosfera della `ComboRain`, l'evento vero — con le cifre dorate (`gildDigit`); sul finale (~78%) tutti i bicchierini virano in **oro**.
+- **Durata**: ~7 s.
+- **Suono**: fuochi, con la **campanella dello strike** sul finale. Nessun WAV nuovo.
+- Era nel backlog («Pioggia di Mad Dog ai grandi traguardi»): promossa e approvata nei mockup (DECISIONS → 03).
+
+### 4c. Multiplo di 100.000 — Apoteosi (v2)
+
+- **Trigger**: `total % 100000 == 0`. Assorbe tutta la catena. Il momento più raro e più epico di tutti.
+- **Effetto**: tre mega-salve di coriandoli nei colori della bandierina più l'oro (angoli bassi verso il centro + una dritta in alto), bagliore dorato che cresce, scritta **APOTEOSI** in oro (144 px, font display), cifre che volano come nello strike (`scatterDigit`), e sul ~75% il **lampo del botto** (radiale oro/ink, mai bianco puro).
+- **Durata**: ~9 s.
+- **Suono**: fuochi, con l'**esplosione del panico** come apice. Nessun WAV nuovo.
 
 ### 5. Finisce per 67
 - **Trigger**: dopo un incremento, le ultime due cifre del totale sono `67`. Una sola volta per arrivo: restando fermi sul ...67 non si ripete. (Per la regola 0, arrivare a ...67 scendendo con un −1 non fa scattare nulla.)
@@ -90,6 +104,6 @@ I suoni citati qui sotto esistono già come file: mappa evento→WAV in `assets/
 
 ## Idee parcheggiate (backlog, non implementare ora)
 
-- Pioggia di Mad Dog ai grandi traguardi (10.000? 250.000?)
+- ~~Pioggia di Mad Dog ai grandi traguardi~~ → promossa: è la milestone dei 10.000 (v2, §4b)
 - Testi combo personalizzati/dialettali proposti dai baristi
 - Modalità festa per serate speciali

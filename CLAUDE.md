@@ -33,7 +33,7 @@ I plugin di Claude Code sono installati **globalmente** e accesi **per progetto*
 
 ## Testing
 
-- Unit test obbligatori per: trigger easter egg, macchina a stati combo, ordinamento coda effetti (durata crescente), regola "il multiplo di 1000 assorbe il multiplo di 100", clamp a zero del contatore, finestra giornaliera del record (mezzogiorno→mezzogiorno, rollover idempotente, ratchet, festa una-per-finestra), finestra mobile del tilt (soglia, svuotamento, seed dal log, la scena non mangia i tap).
+- Unit test obbligatori per: trigger easter egg, macchina a stati combo, ordinamento coda effetti (durata crescente), catena di assorbimento delle milestone (100.000 → 10.000 → 1000 → 100, vince il più raro), clamp a zero del contatore, finestra giornaliera del record (mezzogiorno→mezzogiorno, rollover idempotente, ratchet, festa una-per-finestra), finestra mobile del tilt (soglia, svuotamento, seed dal log, la scena non mangia i tap).
 - Widget test per la schermata contatore (zone tap, roll delle cifre).
 - Test manuali sul tablet vero per performance animazioni e audio.
 
@@ -47,7 +47,7 @@ I plugin di Claude Code sono installati **globalmente** e accesi **per progetto*
 
 ## Domande aperte (chiedere al committente quando bloccanti)
 
-- Soglia esatta combo per far comparire Ciommo. **Implementata col valore provvisorio `kComboCiommoThreshold = 5`**: è un numero in `config.dart`, cambiarlo non tocca il codice. La variante alternativa ("più di 3 cicchetti in sessione") richiederebbe invece un contatore di sessione, che oggi non esiste.
+- ~~Soglia esatta combo per far comparire Ciommo~~ → **decisa con la v2** (design/mockups/DECISIONS.md → 02): il timbro gigante piomba a ogni multiplo dell'intervallo, regolabile dal pannello (`ciommo_interval`, default `kCiommoIntervalDefault = 5`). La variante "cicchetti di sessione" è decaduta.
 - Testi celebrativi delle combo (lista dai baristi). Provvisori in `kComboTexts`, uno per soglia di `kComboThresholds`: un test verifica che le due liste restino della stessa lunghezza.
 - Minuti esatti di idle prima della faccina annoiata (default 10).
 

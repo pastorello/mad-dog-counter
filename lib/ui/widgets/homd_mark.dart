@@ -38,9 +38,16 @@ class HomdMark extends StatelessWidget {
   }
 }
 
-/// Pubblico perché lo riusa anche la pioggia di bicchierini della combo
-/// (`combo_rain.dart`): stesso disegno, niente da ridisegnare due volte.
+/// Pubblico perché lo riusano la pioggia di bicchierini della combo
+/// (`combo_rain.dart`) e la pioggia di Mad Dog dei 10.000
+/// (`mad_dog_rain_effect.dart`): stesso disegno, niente da ridisegnare.
 class ShotGlassPainter extends CustomPainter {
+  ShotGlassPainter({this.color = kPrimaryRed});
+
+  /// Il colore del bicchiere: rosso di brand di default, oro nel finale
+  /// della pioggia di Mad Dog.
+  final Color color;
+
   @override
   void paint(Canvas canvas, Size size) {
     // Tutto il disegno è nelle coordinate del viewBox: si scala una volta e
@@ -48,13 +55,14 @@ class ShotGlassPainter extends CustomPainter {
     // è facile.
     canvas.scale(size.width / 118.94, size.height / 126.15);
 
-    final Paint fill = Paint()..color = kPrimaryRed;
+    final Paint fill = Paint()..color = color;
     canvas.drawPath(_glass, fill);
     canvas.drawPath(_liquid, fill);
   }
 
   @override
-  bool shouldRepaint(ShotGlassPainter oldDelegate) => false;
+  bool shouldRepaint(ShotGlassPainter oldDelegate) =>
+      oldDelegate.color != color;
 
   /// Il contorno del bicchiere: bordo esterno (sottopercorso 1) e bordo
   /// interno (sottopercorso 2, avvolgimento opposto) che insieme, con la

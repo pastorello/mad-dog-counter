@@ -194,7 +194,7 @@ void main() {
     test('un effetto arrivato durante un altro aspetta il suo turno', () {
       final b = build();
       b.engine.onChange(tap(239367, 1)); // shake67 -> in scena
-      b.engine.onChange(tap(240000, 1)); // strike -> in coda
+      b.engine.onChange(tap(241000, 1)); // strike -> in coda
       expect(b.engine.state.current, EffectKind.shake67);
       expect(b.engine.state.queue, <EffectKind>[EffectKind.strike]);
     });
@@ -202,7 +202,7 @@ void main() {
     test('finito il primo, parte il secondo', () {
       final b = build();
       b.engine.onChange(tap(239367, 1));
-      b.engine.onChange(tap(240000, 1));
+      b.engine.onChange(tap(241000, 1));
       b.clock.fireAll();
       expect(b.engine.state.current, EffectKind.strike);
     });
@@ -219,7 +219,7 @@ void main() {
   group('regola di assorbimento', () {
     test('sul multiplo di 1000 scatta lo strike, non i fuochi', () {
       final b = build();
-      b.engine.onChange(tap(240000, 1));
+      b.engine.onChange(tap(241000, 1));
       expect(b.engine.state.current, EffectKind.strike);
       expect(b.engine.state.queue, isEmpty);
       expect(b.sounds.played, contains(kSfxBowlingRoll));
@@ -255,7 +255,7 @@ void main() {
 
     test('lo strike suona in due tempi: rotolamento poi impatto', () {
       final b = build();
-      b.engine.onChange(tap(240000, 1));
+      b.engine.onChange(tap(241000, 1));
       expect(b.sounds.played, contains(kSfxBowlingRoll));
       expect(b.sounds.played, isNot(contains(kSfxBowlingStrike)));
 
@@ -269,7 +269,7 @@ void main() {
       final b = build();
       b.engine.onChange(tap(889, 1)); // stato persistente attivo
       b.engine.onChange(tap(239400, 1)); // fuochi in scena
-      b.engine.onChange(tap(240000, 1)); // strike in coda
+      b.engine.onChange(tap(241000, 1)); // strike in coda
 
       b.engine.killAll();
 
@@ -306,7 +306,7 @@ void main() {
 
     test('cancella i timer in volo: niente effetti zombie', () {
       final b = build();
-      b.engine.onChange(tap(240000, 1));
+      b.engine.onChange(tap(241000, 1));
       expect(b.clock.pendingFor(kStrikeDuration), 1, reason: 'effetto');
       expect(b.clock.pendingFor(kStrikeImpactDelay), 1, reason: 'impatto');
 
@@ -354,11 +354,11 @@ void main() {
   group('regola 4 — il conteggio non si ferma mai', () {
     test('i tap durante un effetto continuano a essere elaborati', () {
       final b = build();
-      b.engine.onChange(tap(240000, 1)); // strike lungo in scena
+      b.engine.onChange(tap(241000, 1)); // strike lungo in scena
       b.sounds.played.clear();
 
-      b.engine.onChange(tap(240001, 1));
-      b.engine.onChange(tap(240002, 1));
+      b.engine.onChange(tap(241001, 1));
+      b.engine.onChange(tap(241002, 1));
 
       // Il pop si sente a ogni tap anche mentre lo strike e' in corso.
       // (Questi tap fanno anche salire la combo, che ha suoni suoi: qui
@@ -467,14 +467,31 @@ void main() {
 
     test('il kill switch azzera anche la combo', () {
       final b = build();
-      for (int i = 1; i <= kComboCiommoThreshold; i++) {
+      for (int i = 1; i <= kCiommoIntervalDefault; i++) {
         b.engine.onChange(tap(i, 1));
       }
-      expect(b.engine.state.combo.showsCiommo, isTrue);
+      expect(b.engine.state.combo.count, kCiommoIntervalDefault);
 
       b.engine.killAll(silent: true);
       expect(b.engine.state.combo, ComboState.idle);
     });
+
+    test(
+      'il ta-daa suona alle soglie E a ogni timbro di Ciommo, mai doppio',
+      () {
+        final b = build();
+        // Dieci tap di combo (totali senza altri trigger).
+        for (int i = 1; i <= 10; i++) {
+          b.engine.onChange(tap(i, 1));
+        }
+        // Soglie dei testi a 3, 5, 8; multipli di Ciommo a 5 e 10.
+        // Al 5 coincidono e il ta-daa suona UNA volta: totale 4, non 5.
+        expect(
+          b.sounds.played.where((String s) => s == kSfxComboMilestone).length,
+          4,
+        );
+      },
+    );
 
     test('una combo viva tiene il motore non-idle', () {
       final b = build();

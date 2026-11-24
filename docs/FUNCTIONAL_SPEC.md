@@ -41,6 +41,7 @@ Contenuto, volutamente minimale (le voci oltre le prime quattro sono le aggiunte
 - **Soglia tilt**: quanti mad dog nella finestra di 2 ore fanno scattare il tilt (default 100, passi di 10; la finestra di osservazione è fissa).
 - **Durata tilt**: quanti secondi resta in scena il tilt (default 60).
 - **Messaggio tilt**: il testo sotto alla scritta TILT (default «CALMA RAGAZZI, IL MAD DOG VA RISPETTATO»; campo vuoto ⇒ si usa il default).
+- **Timbro Ciommo ogni N**: ogni quanti tap di combo piomba il timbro gigante (default 5, da 2 a 20).
 - **Chiudi**: unico modo per uscire; nessun altro elemento di navigazione.
 
 Il pannello è pensato per crescere (fase 2: statistiche, export backup, gestione sync), ma non deve contenere altro oltre alle voci elencate qui.

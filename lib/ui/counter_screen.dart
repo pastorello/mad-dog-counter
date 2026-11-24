@@ -14,6 +14,7 @@ import '../state/counter_provider.dart';
 import '../state/effect_triggers.dart';
 import '../state/effects_provider.dart';
 import '../state/settings_provider.dart';
+import 'effects/ciommo_slam.dart';
 import 'effects/combo_overlay.dart';
 import 'effects/combo_rain.dart';
 import 'effects/effect_catalog.dart';
@@ -23,7 +24,9 @@ import 'effects/idle_face.dart';
 import 'effects/tilt_overlay.dart';
 import 'settings_panel.dart';
 import 'widgets/big_number.dart';
+import 'widgets/daily_stats_badge.dart';
 import 'widgets/dutch_flag_divider.dart';
+import 'widgets/header_title.dart';
 import 'widgets/homd_brand_mark.dart';
 import 'widgets/panic_button.dart';
 import 'widgets/settings_gear.dart';
@@ -158,6 +161,29 @@ class _CounterScreenState extends ConsumerState<CounterScreen> {
             child: DutchFlagDivider(),
           ),
 
+          // L'intestazione al bordo alto: si dissolve quando la fascia
+          // serve agli eventi (combo, effetti in coda, faccina). Sta sotto
+          // ai layer degli effetti: quando convivono, loro passano davanti.
+          Positioned(
+            top: kTopOverlayTop,
+            left: 0,
+            right: 0,
+            child: HeaderTitle(
+              visible:
+                  !effects.combo.isActive &&
+                  effects.current == null &&
+                  !effects.idleFaceVisible &&
+                  !effects.idleWaking,
+            ),
+          ),
+
+          // Il badge del record: sempre a schermo, angolo opposto al panico.
+          const Positioned(
+            top: kBadgeTop,
+            left: kBadgeLeft,
+            child: DailyStatsBadge(),
+          ),
+
           // La pioggia di bicchierini: evento a sé, non annidato
           // nell'overlay della combo. Oggi parte insieme a lei, ma le due
           // cose hanno soglie separate e possono prendere cadenze diverse
@@ -177,6 +203,26 @@ class _CounterScreenState extends ConsumerState<CounterScreen> {
           // L'overlay della combo: sotto agli effetti in coda, sopra il
           // numerone.
           Positioned.fill(child: ComboOverlay(combo: effects.combo)),
+
+          // Il timbro gigante di Ciommo: piomba a ogni multiplo
+          // dell'intervallo (dal pannello). Deriva dallo stato combo lato
+          // UI; il ta-daa lo suona il motore. Sopra l'overlay della combo,
+          // sotto gli effetti in coda e il marchio.
+          Positioned.fill(
+            child: Consumer(
+              builder: (BuildContext context, WidgetRef ref, Widget? _) {
+                final int interval = ref.watch(
+                  settingsProvider.select(
+                    (SettingsState s) => s.ciommoInterval,
+                  ),
+                );
+                final int serial = effects.combo.isActive
+                    ? effects.combo.count ~/ interval
+                    : 0;
+                return CiommoSlamOverlay(serial: serial);
+              },
+            ),
+          ),
 
           // I cuoricini delle tette: partono quando la coppia di 8 si forma e
           // ricadono con la gravità. Stanno sopra al numerone perché devono

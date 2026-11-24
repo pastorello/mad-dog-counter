@@ -123,6 +123,7 @@ class EffectsEngine {
     DailyStatsController? dailyStats,
     this.tiltThreshold = kTiltThresholdDefault,
     this.tiltDuration = const Duration(seconds: kTiltDurationSecondsDefault),
+    this.ciommoInterval = kCiommoIntervalDefault,
   }) : _schedule = scheduler,
        _clock = clock,
        _dailyStats = dailyStats {
@@ -156,6 +157,10 @@ class EffectsEngine {
   /// stesso motivo di [idleDelay]: cambiarle non deve ricostruire il motore.
   int tiltThreshold;
   Duration tiltDuration;
+
+  /// Ogni quanti tap di combo piomba il timbro di Ciommo (dal pannello).
+  /// Al motore serve solo per il ta-daa: lo slam è un fatto della UI.
+  int ciommoInterval;
 
   final StreamController<EffectsState> _states =
       StreamController<EffectsState>.broadcast();
@@ -221,7 +226,13 @@ class EffectsEngine {
 
     // Regola 2: il feedback base è istantaneo e non entra in coda.
     _sounds.play(kSfxTapPop, rate: combo.state.pitch);
-    if (combo.crossedThreshold) _sounds.play(kSfxComboMilestone);
+    // Il ta-daa suona alle soglie dei testi E a ogni timbro di Ciommo
+    // (DECISIONS → 02: slam col ta-daa riusato). Quando coincidono — 5 e 20
+    // col default — suona UNA volta, non due.
+    final bool ciommoBeat = isCiommoMultiple(combo.state.count, ciommoInterval);
+    if (combo.crossedThreshold || ciommoBeat) {
+      _sounds.play(kSfxComboMilestone);
+    }
     _emit(_state.copyWith(combo: combo.state));
 
     // Regola 3: lo stato persistente si ricalcola, fuori dalla coda.
