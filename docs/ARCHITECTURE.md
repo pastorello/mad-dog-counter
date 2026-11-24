@@ -21,7 +21,7 @@
 - **Android only**, orientamento **landscape bloccato** (`SystemChrome.setPreferredOrientations`).
 - **Device di produzione: Samsung Galaxy Tab A8 (SM-X200)** — Android 14 (API 34), One UI 6.1, schermo 10.5" 1920×1200. Ampiamente dentro i requisiti di Flutter stable corrente: nessun vincolo di versione.
 - **Flutter: ultima stable corrente**, plugin alle ultime versioni. `minSdkVersion 24` (il minimo di Flutter ≥ 3.35: non serve alzarlo, il device è a 34), `targetSdkVersion` all'ultima richiesta dalla toolchain.
-  - **Nota (24/11/2026)**: la CI è temporaneamente **pinnata a Flutter 3.47.0** (la versione di sviluppo): da 3.48 `package:flutter/material.dart` è deprecato in favore di `package:material_ui`, e con `--fatal-infos` gli avvisi fanno rosso ovunque. Il pin si toglie con la chore di migrazione a `material_ui`.
+  - **Nota (24/11/2026)**: da Flutter 3.48 `package:flutter/material.dart` è deprecato in favore di **`package:material_ui`**: l'app è migrata al nuovo pacchetto e la CI è tornata a `channel: stable` (il pin temporaneo a 3.47.0 è stato tolto).
 - Hardware di fascia media (SoC Unisoc, non un flagship): le animazioni pesanti vanno comunque verificate sul device. Budget prestazioni (densità particelle, durata effetti) configurabile in `config.dart`, così la taratura è un numero da cambiare, non un refactoring.
 - Nota storica: il tablet precedente (Asus TF300T, Android 5.1.1 / API 22) è stato scartato perché sotto il minimo supportato da Flutter ≥ 3.35. Non è più un target: nessun workaround per device datati nel codice.
 
@@ -55,7 +55,7 @@ sqflite — tabella taps:
 
 - **`counter_total`** si scrive a ogni tap, immediatamente. È la verità mostrata a schermo.
 - **`taps`** è un log append-only, scritto fire-and-forget: se una insert fallisce, il conteggio NON deve risentirne. Le modifiche manuali dal pannello impostazioni entrano come record `type='adjust'` col delta risultante: lo storico resta sommabile.
-- All'avvio, sanity check facoltativo: se `counter_total` e la somma dei delta divergono, fa fede `counter_total` (loggare la discrepanza).
+- All'avvio, sanity check (implementato in `bootstrap.dart` → `startupLogDiscrepancy`): se `counter_total` e la somma dei delta del log divergono, **fa fede `counter_total`** e la discrepanza finisce nel log di debug. Fire-and-forget, salta i `NoopTapLog`: mai un'attesa sul percorso d'avvio.
 - **Record del giorno (v2)**: la finestra va da mezzogiorno a mezzogiorno locale (`state/daily_window.dart`, funzioni pure). `DailyStatsController` (`state/daily_stats_provider.dart`) parte dalla cache prefs e poi, se il log è reale, ricalcola il netto della finestra con `TapLog.sumOfTapDeltasBetween` (una SUM su `idx_taps_ts`, niente migrazione di schema); il rollover è idempotente per chiave di finestra (timer di mezzogiorno + controllo a ogni tap e all'avvio, la chiave si scrive per ultima). Il tilt riparte dagli incrementi delle ultime 2 ore via `TapLog.incrementTimestampsSince`. Il clock del log è iniettabile (`SqfliteTapLog.open(clock: …)`) per testare le query a intervallo.
 - **Tilt (v2)**: finestra mobile in memoria (`state/sliding_window.dart`, pura), pilotata da `EffectsEngine` — che resta l'UNICO iscritto a `watchChanges()`: record del giorno e tilt passano da lì dentro, non in parallelo, così l'ordine di esecuzione sullo stesso tap è deterministico.
 
@@ -64,8 +64,12 @@ sqflite — tabella taps:
 ```dart
 abstract class CounterRepository {
   Stream<int> watchTotal();
+  int get total;                        // sincrono: il numerone al primo frame
+  Stream<CounterChange> watchChanges(); // per il motore effetti (broadcast)
   Future<void> increment();
   Future<void> decrement();
+  Future<void> setTotal(int value);     // "Imposta contatore" (adjust)
+  Future<void> dispose();
 }
 
 class LocalCounterRepository implements CounterRepository { ... } // MVP

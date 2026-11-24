@@ -9,6 +9,7 @@ library;
 import 'dart:async';
 import 'dart:io';
 
+import 'package:flutter/foundation.dart';
 import 'package:path_provider/path_provider.dart';
 
 import 'audio/sound_manager.dart';
@@ -40,6 +41,20 @@ class AppDependencies {
 
 SoundManager _createDefaultSounds() => AudioPlayersSoundManager();
 
+/// Il sanity check d'avvio: la somma del log quando DIVERGE dal totale,
+/// null quando torna, quando il log è un Noop (lì la divergenza è ovvia e
+/// non dice niente) o quando la lettura fallisce. Mai un'eccezione: in ogni
+/// caso fa fede il totale (regola d'oro 1).
+Future<int?> startupLogDiscrepancy(TapLog log, int total) async {
+  if (log is NoopTapLog) return null;
+  try {
+    final int logged = await log.sumOfDeltas();
+    return logged == total ? null : logged;
+  } catch (_) {
+    return null;
+  }
+}
+
 /// Apre log, repository, audio, impostazioni e backup con i loro fallback.
 ///
 /// I parametri iniettano il singolo passo di apertura: nei test si passano
@@ -65,6 +80,20 @@ Future<AppDependencies> buildAppDependencies({
   }
 
   final LocalCounterRepository repository = await openRepository(log: log);
+
+  // Sanity check d'avvio (ARCHITECTURE -> Modello dati): se il log racconta
+  // un'altra storia, fa fede il totale — ma la discrepanza si deve VEDERE.
+  // Fire-and-forget: nessuna attesa sul percorso d'avvio.
+  unawaited(
+    startupLogDiscrepancy(log, repository.total).then((int? logged) {
+      if (logged != null) {
+        debugPrint(
+          'Mad Dog Counter: il totale (${repository.total}) e la somma del '
+          'log ($logged) divergono — fa fede il totale.',
+        );
+      }
+    }),
+  );
 
   // Anche l'audio e' fire-and-forget: se non si inizializza, si conta muti.
   SoundManager sounds;

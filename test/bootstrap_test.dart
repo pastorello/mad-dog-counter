@@ -149,4 +149,61 @@ void main() {
 
     expect(deps.repository.total, 7);
   });
+
+  group('sanity check d\'avvio (startupLogDiscrepancy)', () {
+    test('quando log e totale tornano, silenzio', () async {
+      expect(await startupLogDiscrepancy(_SumLog(42), 42), isNull);
+    });
+
+    test('quando divergono, restituisce la somma del log', () async {
+      expect(await startupLogDiscrepancy(_SumLog(40), 42), 40);
+    });
+
+    test('un NoopTapLog non fa mai scattare l\'allarme', () async {
+      // Col log muto la divergenza e' ovvia e non dice niente.
+      expect(await startupLogDiscrepancy(const NoopTapLog(), 42), isNull);
+    });
+
+    test('un log che esplode non fa esplodere l\'avvio', () async {
+      expect(
+        await startupLogDiscrepancy(_SumLog(0, explode: true), 42),
+        isNull,
+      );
+    });
+  });
+}
+
+/// Log finto con la somma programmata. IMPLEMENTA TapLog (non estende
+/// NoopTapLog) di proposito: il check tratta i Noop come "nessun log".
+class _SumLog implements TapLog {
+  _SumLog(this.sum, {this.explode = false});
+
+  final int sum;
+  final bool explode;
+
+  @override
+  Future<int> sumOfDeltas() async {
+    if (explode) throw StateError('sqflite offeso');
+    return sum;
+  }
+
+  @override
+  Future<void> record(int delta, {TapType type = TapType.tap}) async {}
+
+  @override
+  Future<List<TapRecord>> recent({int limit = 100}) async =>
+      const <TapRecord>[];
+
+  @override
+  Future<List<TapRecord>> dumpAll() async => const <TapRecord>[];
+
+  @override
+  Future<int> sumOfTapDeltasBetween(DateTime start, DateTime end) async => 0;
+
+  @override
+  Future<List<DateTime>> incrementTimestampsSince(DateTime since) async =>
+      const <DateTime>[];
+
+  @override
+  Future<void> close() async {}
 }

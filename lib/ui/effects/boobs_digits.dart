@@ -8,7 +8,7 @@
 /// battuta non si leggeva. Resta un pub, non un sito porno.
 library;
 
-import 'package:flutter/material.dart';
+import 'package:material_ui/material_ui.dart';
 
 import '../../config.dart';
 

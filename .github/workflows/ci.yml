@@ -16,13 +16,10 @@ permissions:
   contents: read
 
 env:
-  # PINNATA, non piu' "channel stable": il 24/11/2026 lo stable e' rotolato
-  # a 3.50, dove package:flutter/material.dart e' deprecato in favore di
-  # package:material_ui — e con `--fatal-infos` i 25 avvisi di deprecazione
-  # fanno rosso su QUALUNQUE branch, senza che il codice c'entri nulla.
-  # 3.47.0 e' la versione con cui l'app e' davvero sviluppata e testata.
-  # Da togliere quando si fara' la migrazione a material_ui (chore dedicata).
-  FLUTTER_VERSION: 3.47.0
+  # ARCHITECTURE.md -> Target: Flutter ultima stable. Il pin temporaneo a
+  # 3.47.0 (deprecazione di material.dart) e' stato tolto con la migrazione
+  # a material_ui.
+  FLUTTER_CHANNEL: stable
 
 jobs:
   quality:
@@ -34,7 +31,7 @@ jobs:
 
       - uses: subosito/flutter-action@v2
         with:
-          flutter-version: ${{ env.FLUTTER_VERSION }}
+          channel: ${{ env.FLUTTER_CHANNEL }}
           cache: true
 
       # L'unico punto in cui si risolvono le dipendenze. I comandi qui sotto
@@ -81,7 +78,7 @@ jobs:
 
       - uses: subosito/flutter-action@v2
         with:
-          flutter-version: ${{ env.FLUTTER_VERSION }}
+          channel: ${{ env.FLUTTER_CHANNEL }}
           cache: true
 
       - name: flutter pub get

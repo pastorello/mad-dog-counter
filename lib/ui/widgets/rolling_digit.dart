@@ -9,7 +9,7 @@
 /// +1 (FUNCTIONAL_SPEC → Interazioni base).
 library;
 
-import 'package:flutter/material.dart';
+import 'package:material_ui/material_ui.dart';
 
 /// Come rendere una cifra alla dimensione data.
 typedef DigitBuilder = Widget Function(String digit);

@@ -7,7 +7,7 @@
 /// qui: vivono in shared_preferences. Qui c'è solo il loro default.
 library;
 
-import 'package:flutter/material.dart';
+import 'package:material_ui/material_ui.dart';
 
 // ---------------------------------------------------------------------------
 // Contatore
