@@ -24,7 +24,7 @@ Il locale è **The Dutch** (Gaeta, since 1980); il brand del cicchetto è **Hous
 
 ### Motivo ricorrente
 
-La **bandierina olandese** (striscia rosso/bianco/blu) è il separatore firma del brand: usarla come elemento orizzontale sottile (es. sotto il numerone o come bordo inferiore dello schermo). In app è il bordo inferiore, alto `kDutchFlagHeight` (12 dp: a 6 dp, da dietro il bancone, non si vedeva).
+La **bandierina olandese** (striscia rosso/bianco/blu) è il separatore firma del brand: usarla come elemento orizzontale (es. sotto il numerone o come bordo inferiore dello schermo). In app è il bordo inferiore, alto `kDutchFlagHeight` (**40 dp dalla v2**, DECISIONS → 04: a 12 era corretta ma timida; il tetto del marchio è sceso a 0,23 per farle spazio).
 
 ## Layout (landscape)
 
@@ -44,7 +44,8 @@ La **bandierina olandese** (striscia rosso/bianco/blu) è il separatore firma de
 └──────────────────────────────────────────────┘
 ```
 
-- **In alto al centro** ci vanno il moltiplicatore della combo e i testi celebrativi: è l'area degli eventi, resta libera.
+- **In alto al centro** ci vanno il moltiplicatore della combo e i testi celebrativi: è l'area degli eventi. Dalla v2 ci abita anche l'**intestazione «MAD DOG COUNTER»** (Oswald Bold 44, tracking 6, ink all'80%), che però è un'ospite educata: **si dissolve** quando la fascia serve agli eventi (combo, effetti in coda, faccina) e torna a scena finita (DECISIONS → 01).
+- **In alto a sinistra** (angolo opposto al panico) sta il **badge del record** `OGGI n · RECORD m` (v2): Oswald Bold 26, etichette in ink spento, numeri in oro, una riga sola, sempre a schermo. Primo giorno: `RECORD —`. Decorativo, non intercetta tap.
 - **Marchio House of Mad Dogs**: in basso al centro, piccolo, sopra la bandierina. Sempre a video, anche durante gli effetti; decorativo, non intercetta tap. I timbri "Ciommo Approved" salgono dal bordo basso ai suoi due lati, senza mai coprirlo.
 - **Pulsante panico**: angolo alto destro, icona piccola e discreta (es. una "X" in un cerchio sottile, opacità ridotta), con padding generoso che lo isola dalla zona +1: i suoi tap NON contano come incrementi. Comportamento in FUNCTIONAL_SPEC.md.
 - **Ingranaggio impostazioni**: angolo basso destro, stessa discrezione del pulsante panico, isolato dalla zona +1 e dalla bandierina. Si apre SOLO con pressione lunga (2 s), con un anello rosso spesso che si riempie mentre si tiene premuto; pannello overlay scuro coerente con la palette, tipografia secondaria (non Creepster: nel pannello serve leggibilità, usare il sans condensed). Dettagli in FUNCTIONAL_SPEC.md.
@@ -56,8 +57,9 @@ La **bandierina olandese** (striscia rosso/bianco/blu) è il separatore firma de
 
 ## Tipografia
 
-- **Numerone**: stile **graffiti/pennellata** come il lettering del poster «Come bere il Mad Dog» (scelta esplicita del committente). Il lettering del poster è disegnato, non un font esistente: dopo un confronto visivo tra 8 candidati Google Fonts, la scelta è **Creepster** (`design/fonts/Creepster-Regular.ttf`, licenza OFL inclusa) — maiuscole compatte a bordi frastagliati fedelissime al poster, cifre distinguibili. Alternativa più morbida già nel pacchetto: **Knewave**. Validare la scelta guardandola sul tablet vero. Le cifre devono avere larghezza stabile (slot a larghezza fissa via layout, i font brush non hanno cifre tabular) per evitare che il numero balli a ogni cifra che cambia.
-- **Testi celebrativi combo**: stesso font del numerone (Creepster), rosso 186C con bordo scuro.
+- **Numerone (v2)**: cifre in **Passion One Bold** (`kCounterFont`, `assets/fonts/PassionOne-Bold.ttf`, OFL), scelto per confronto diretto nei mockup della Fase 0 (DECISIONS → 05) col mandato «meno Halloween, sempre da pub»: condensed caldo, le cifre più grandi del lotto. Lo slot fisso è ritarato sulla misura vera del font (`kDigitSlotRatio = 0.56`: la cifra più larga è il 4 a 0,548 em) — slot a larghezza fissa sempre, questi font non hanno cifre tabular e il numero ballerebbe.
+- **Creepster** (`design/fonts/Creepster-Regular.ttf`, OFL) resta la voce **celebrativa**: testi combo, STRIKE!, APOTEOSI, NUOVO RECORD!, TILT. Era anche il font delle cifre fino alla v2; Knewave resta nel pacchetto come alternativa.
+- **Testi celebrativi combo (v2)**: Creepster, rosso 186C con bordo scuro, **corpo 140** col **moltiplicatore a 160** (DECISIONS → 04): la fascia alta si prende tutto lo spazio fino al contatore, lieve invasione del glow accettata.
 - **Testi secondari** (stato connessione, placeholder) e **logo HoMD** ("HOUSE OF MAD DOGS", tagline, "THE DUTCH PUB · GAETA"): **Oswald Bold** (`kBrandFont`), il font vero del logo — confermato dal font incorporato nel vettoriale ufficiale del committente (`design/raw/sottobicchiere_homd_93x93.pdf`, consegnato il 2026-08-22), non più un sans generico a occhio.
 
 ## Micro-interazioni
