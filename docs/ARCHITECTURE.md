@@ -21,6 +21,7 @@
 - **Android only**, orientamento **landscape bloccato** (`SystemChrome.setPreferredOrientations`).
 - **Device di produzione: Samsung Galaxy Tab A8 (SM-X200)** — Android 14 (API 34), One UI 6.1, schermo 10.5" 1920×1200. Ampiamente dentro i requisiti di Flutter stable corrente: nessun vincolo di versione.
 - **Flutter: ultima stable corrente**, plugin alle ultime versioni. `minSdkVersion 24` (il minimo di Flutter ≥ 3.35: non serve alzarlo, il device è a 34), `targetSdkVersion` all'ultima richiesta dalla toolchain.
+  - **Nota (24/11/2026)**: la CI è temporaneamente **pinnata a Flutter 3.47.0** (la versione di sviluppo): da 3.48 `package:flutter/material.dart` è deprecato in favore di `package:material_ui`, e con `--fatal-infos` gli avvisi fanno rosso ovunque. Il pin si toglie con la chore di migrazione a `material_ui`.
 - Hardware di fascia media (SoC Unisoc, non un flagship): le animazioni pesanti vanno comunque verificate sul device. Budget prestazioni (densità particelle, durata effetti) configurabile in `config.dart`, così la taratura è un numero da cambiare, non un refactoring.
 - Nota storica: il tablet precedente (Asus TF300T, Android 5.1.1 / API 22) è stato scartato perché sotto il minimo supportato da Flutter ≥ 3.35. Non è più un target: nessun workaround per device datati nel codice.
 
