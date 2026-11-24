@@ -14,6 +14,7 @@ import 'package:mad_dog_counter/ui/effects/combo_overlay.dart';
 import 'package:mad_dog_counter/ui/effects/combo_rain.dart';
 import 'package:mad_dog_counter/ui/effects/idle_clouds.dart';
 import 'package:mad_dog_counter/ui/effects/idle_face.dart';
+import 'package:mad_dog_counter/ui/widgets/big_number.dart';
 import 'package:mad_dog_counter/ui/widgets/panic_button.dart';
 import 'package:mad_dog_counter/ui/widgets/homd_brand_mark.dart';
 import 'package:mad_dog_counter/ui/widgets/homd_mark.dart';
@@ -218,11 +219,11 @@ void main() {
 
     /// La regressione da cui nasce questo giro: la pioggia si era mangiata i
     /// timbri. Sono due eventi distinti e devono convivere.
-    testWidgets('pioggia e timbri di Ciommo convivono', (
+    testWidgets('pioggia e timbro di Ciommo convivono', (
       WidgetTester tester,
     ) async {
       final FakeClock clock = await pumpScreen(tester, await repoWith(0));
-      await tapIncrement(tester, clock, kComboCiommoThreshold);
+      await tapIncrement(tester, clock, kCiommoIntervalDefault);
       await tester.pump();
 
       expect(rainDrops(), findsNWidgets(kComboRainDropCount));
@@ -239,19 +240,27 @@ void main() {
       expect(find.text(kComboTexts[0]), findsOneWidget);
     });
 
-    testWidgets('alla soglia di Ciommo compare il timbro', (
+    testWidgets('al multiplo dell intervallo piomba il timbro gigante', (
       WidgetTester tester,
     ) async {
       final FakeClock clock = await pumpScreen(tester, await repoWith(0));
       expect(find.byType(Image), findsNothing);
 
-      await tapIncrement(tester, clock, kComboCiommoThreshold);
+      await tapIncrement(tester, clock, kCiommoIntervalDefault - 1);
+      await tester.pump();
+      expect(
+        find.byType(Image),
+        findsNothing,
+        reason: 'sotto il multiplo niente timbro',
+      );
+
+      await tapIncrement(tester, clock, 1);
       await tester.pump();
 
       expect(
         find.byType(Image),
         findsOneWidget,
-        reason: 'un timbro alla soglia esatta',
+        reason: 'un timbro al multiplo esatto',
       );
     });
 
@@ -274,47 +283,69 @@ void main() {
       );
     });
 
-    /// I timbri escono ai due lati del marchio HoMD: sono grossi, e se
-    /// nascessero al centro se lo mangerebbero.
-    /// Su schermo largo la fila dei timbri ci sta comoda; su schermo stretto
-    /// il `FittedBox` la rimpicciolisce. È il secondo caso che si era rotto:
-    /// la corsia del marchio stava dentro al FittedBox e si rimpiccioliva
-    /// coi timbri, mentre il marchio ha dimensione fissa — risultato, i
-    /// timbri gli finivano addosso. Per questo il test gira su entrambi.
-    for (final Size schermo in const <Size>[
-      Size(1920, 1200),
-      Size(1024, 700),
-    ]) {
-      testWidgets('i timbri lasciano libero il marchio al centro '
-          '(${schermo.width.toInt()}x${schermo.height.toInt()})', (
-        WidgetTester tester,
-      ) async {
-        tester.view.physicalSize = schermo;
-        tester.view.devicePixelRatio = 1.0;
-        addTearDown(tester.view.reset);
+    /// Lo slam è monumentale di proposito (DECISIONS → 02): 85% dell'altezza,
+    /// piomba SUL numerone e lo copre un attimo. Non è un bug, è la battuta.
+    testWidgets('lo slam copre il numerone e poi sfuma', (
+      WidgetTester tester,
+    ) async {
+      tester.view.physicalSize = const Size(1920, 1200);
+      tester.view.devicePixelRatio = 1.0;
+      addTearDown(tester.view.reset);
 
-        final FakeClock clock = await pumpScreen(tester, await repoWith(0));
-        // Fuori lo splash: finche' e' a video i marchi a schermo sono due.
-        await tester.pump(kSplashHold);
-        await tester.pumpAndSettle();
+      final FakeClock clock = await pumpScreen(tester, await repoWith(0));
+      await tester.pump(kSplashHold);
+      await tester.pumpAndSettle();
 
-        await tapIncrement(tester, clock, kComboCiommoThreshold + 1);
-        await tester.pump(kComboStampDuration);
+      await tapIncrement(tester, clock, kCiommoIntervalDefault);
+      // A metà corsa lo slam è pieno: copre il centro del numerone.
+      await tester.pump(kCiommoSlamDuration * 0.5);
 
-        // Il marchio completo (bicchiere + wordmark + tagline): i timbri
-        // non devono invadere nemmeno il testo sotto il bicchiere.
-        final Rect marchio = tester.getRect(find.byType(HomdBrandMark));
-        expect(find.byType(Image), findsNWidgets(2));
-        for (int i = 0; i < 2; i++) {
-          final Rect timbro = tester.getRect(find.byType(Image).at(i));
-          expect(
-            timbro.left >= marchio.right || timbro.right <= marchio.left,
-            isTrue,
-            reason: 'il timbro sta tutto da un lato del marchio',
-          );
-        }
-      });
-    }
+      final Rect timbro = tester.getRect(find.byType(Image));
+      final Rect numerone = tester.getRect(find.byType(BigNumber));
+      expect(
+        timbro.overlaps(numerone),
+        isTrue,
+        reason: 'il timbro piomba sopra le cifre',
+      );
+      // getSize legge il layout, non il rect ruotato di -14 gradi.
+      expect(
+        tester.getSize(find.byType(Image)).height,
+        closeTo(1200 * kCiommoSlamHeightFraction, 1),
+        reason: 'la taglia e quella decisa nei mockup',
+      );
+
+      // Un tap in mezzo tiene viva la combo (finestra 2 s) senza cambiare
+      // il serial (6 ~/ 5 == 1): lo slam continua la sua corsa.
+      await tapIncrement(tester, clock, 1);
+
+      // A fine corsa e' sfumato del tutto, anche se resta nell'albero
+      // finche' la combo e' viva.
+      await tester.pump(kCiommoSlamDuration * 0.55);
+      final Opacity velo = tester.widget<Opacity>(
+        find
+            .ancestor(of: find.byType(Image), matching: find.byType(Opacity))
+            .first,
+      );
+      expect(velo.opacity, closeTo(0, 0.01));
+    });
+
+    testWidgets('lo slam non intercetta i tap: sotto si continua a contare', (
+      WidgetTester tester,
+    ) async {
+      final LocalCounterRepository repo = await repoWith(0);
+      final FakeClock clock = await pumpScreen(tester, repo);
+
+      await tapIncrement(tester, clock, kCiommoIntervalDefault);
+      await tester.pump(kCiommoSlamDuration * 0.5);
+      expect(find.byType(Image), findsOneWidget);
+
+      await tapIncrement(tester, clock, 2);
+      expect(
+        repo.total,
+        kCiommoIntervalDefault + 2,
+        reason: 'il timbro e scenografia: il conteggio non si ferma mai',
+      );
+    });
 
     testWidgets('scaduta la finestra la combo sfuma via, poi si smonta', (
       WidgetTester tester,

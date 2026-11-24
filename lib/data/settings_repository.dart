@@ -140,6 +140,18 @@ class SettingsRepository {
     }
   }
 
+  /// Ogni quanti tap di combo piomba il timbro gigante di Ciommo.
+  int get ciommoInterval =>
+      _prefs.getInt(kPrefsCiommoInterval) ?? kCiommoIntervalDefault;
+
+  Future<void> setCiommoInterval(int value) async {
+    try {
+      await _prefs.setInt(kPrefsCiommoInterval, value);
+    } catch (_) {
+      // idem
+    }
+  }
+
   /// Il messaggio sotto al TILT. Vuoto ⇒ la UI mostra il default.
   String get tiltMessage =>
       _prefs.getString(kPrefsTiltMessage) ?? kTiltMessageDefault;

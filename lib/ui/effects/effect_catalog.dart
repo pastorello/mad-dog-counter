@@ -15,7 +15,9 @@ import 'package:flutter/widgets.dart';
 
 import '../../config.dart';
 import '../../state/effect_triggers.dart';
+import 'apotheosis_effect.dart';
 import 'fireworks_effect.dart';
+import 'mad_dog_rain_effect.dart';
 import 'record_celebration_effect.dart';
 import 'shake_effect.dart';
 import 'strike_effect.dart';
@@ -65,6 +67,19 @@ const Map<EffectKind, EffectSpec> effectCatalog = <EffectKind, EffectSpec>{
     duration: kRecordCelebrationDuration,
     sound: kSfxWakeJubilation,
   ),
+  // Le milestone v2: solo suoni riusati dal set esistente.
+  EffectKind.madDogRain: EffectSpec(
+    duration: kMadDogRainDuration,
+    sound: kSfxFireworks,
+    followUpSound: kSfxBowlingStrike, // la campanella sul finale
+    followUpDelay: kMadDogRainFinaleDelay,
+  ),
+  EffectKind.apotheosis: EffectSpec(
+    duration: kApotheosisDuration,
+    sound: kSfxFireworks,
+    followUpSound: kSfxPanicExplosion, // il botto come apice
+    followUpDelay: kApotheosisBlastDelay,
+  ),
 };
 
 /// Dove si trova una cifra e a che punto è l'effetto.
@@ -101,6 +116,8 @@ const Map<EffectKind, WidgetBuilder> effectOverlays =
       EffectKind.fireworks: buildFireworksOverlay,
       EffectKind.strike: buildStrikeOverlay,
       EffectKind.dailyRecord: buildRecordCelebrationOverlay,
+      EffectKind.madDogRain: buildMadDogRainOverlay,
+      EffectKind.apotheosis: buildApotheosisOverlay,
     };
 
 /// Le trasformazioni delle cifre, una per effetto che ne ha bisogno.
@@ -110,7 +127,10 @@ const Map<EffectKind, DigitTransform> digitTransforms =
       EffectKind.fireworks: gildDigit,
       // Le cifre si indorano come coi fuochi: è il riuso, non una svista.
       EffectKind.dailyRecord: gildDigit,
+      EffectKind.madDogRain: gildDigit,
       EffectKind.strike: scatterDigit,
+      // Nell'apoteosi le cifre volano come nello strike: riuso dal catalogo.
+      EffectKind.apotheosis: scatterDigit,
     };
 
 /// La durata di un effetto secondo il catalogo.

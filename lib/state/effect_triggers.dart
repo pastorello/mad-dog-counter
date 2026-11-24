@@ -25,6 +25,12 @@ enum EffectKind {
   /// a [triggersFor] come flag. È un evento indipendente come lo shake,
   /// fuori dalla regola di assorbimento dei multipli.
   dailyRecord,
+
+  /// Multiplo di 10.000: la pioggia di Mad Dog (bicchierini fitti in oro).
+  madDogRain,
+
+  /// Multiplo di 100.000: l'apoteosi. Il momento più epico di tutti.
+  apotheosis,
 }
 
 /// `total % 100 == 0`.
@@ -75,14 +81,33 @@ int effectWeight(EffectKind kind) => switch (kind) {
   EffectKind.fireworks => 3500,
   EffectKind.dailyRecord => 4000,
   EffectKind.strike => 5500,
+  EffectKind.madDogRain => 7000,
+  EffectKind.apotheosis => 9000,
 };
+
+/// La milestone del totale, se c'è.
+///
+/// La catena è ordinata dal più raro, e **il più raro vince** (regola di
+/// assorbimento generalizzata, ANIMATIONS_SPEC → §4): ogni milestone più
+/// grande è anche multiplo delle più piccole, quindi sullo stesso tap
+/// scatta solo lei — l'apoteosi assorbe tutto, la pioggia assorbe strike e
+/// fuochi, lo strike assorbe i fuochi.
+EffectKind? milestoneFor(int total) {
+  if (total <= 0) return null;
+  if (total % 100000 == 0) return EffectKind.apotheosis;
+  if (total % 10000 == 0) return EffectKind.madDogRain;
+  if (total % 1000 == 0) return EffectKind.strike;
+  if (total % 100 == 0) return EffectKind.fireworks;
+  return null;
+}
 
 /// Gli effetti da accodare per [total], già ordinati per durata crescente:
 /// prima i corti, per ultimo l'evento più epico che chiude in bellezza
 /// (ANIMATIONS_SPEC → regola 1).
 ///
-/// Applica la **regola di assorbimento**: un multiplo di 1000 è anche multiplo
-/// di 100, ma scatta solo lo strike, mai i fuochi.
+/// Applica la **regola di assorbimento** via [milestoneFor]: delle milestone
+/// scatta solo la più rara. Lo shake del 67 e il record del giorno sono
+/// eventi indipendenti e si accodano accanto a lei.
 ///
 /// Da chiamare SOLO dopo un incremento. [dailyRecord] dice se con questo tap
 /// il giornaliero ha superato il record (lo sa il chiamante, non il totale).
@@ -93,10 +118,8 @@ List<EffectKind> triggersFor(int total, {bool dailyRecord = false}) {
 
   if (dailyRecord) effects.add(EffectKind.dailyRecord);
 
-  if (isMultipleOf1000(total)) {
-    effects.add(EffectKind.strike); // assorbe i fuochi
-  } else if (isMultipleOf100(total)) {
-    effects.add(EffectKind.fireworks);
+  if (milestoneFor(total) case final EffectKind milestone) {
+    effects.add(milestone);
   }
 
   effects.sort(

@@ -173,6 +173,15 @@ class _SettingsPanelState extends ConsumerState<SettingsPanel> {
                         .read(settingsProvider.notifier)
                         .setTiltDurationSeconds(value),
                   ),
+                  _IntStepper(
+                    label: kSettingsCiommoIntervalLabel,
+                    value: settings.ciommoInterval,
+                    min: kCiommoIntervalMin,
+                    max: kCiommoIntervalMax,
+                    onChanged: (int value) => ref
+                        .read(settingsProvider.notifier)
+                        .setCiommoInterval(value),
+                  ),
                   const SizedBox(height: 16),
                   TextField(
                     controller: _tiltMessageField,

@@ -14,6 +14,7 @@ import '../state/counter_provider.dart';
 import '../state/effect_triggers.dart';
 import '../state/effects_provider.dart';
 import '../state/settings_provider.dart';
+import 'effects/ciommo_slam.dart';
 import 'effects/combo_overlay.dart';
 import 'effects/combo_rain.dart';
 import 'effects/effect_catalog.dart';
@@ -177,6 +178,26 @@ class _CounterScreenState extends ConsumerState<CounterScreen> {
           // L'overlay della combo: sotto agli effetti in coda, sopra il
           // numerone.
           Positioned.fill(child: ComboOverlay(combo: effects.combo)),
+
+          // Il timbro gigante di Ciommo: piomba a ogni multiplo
+          // dell'intervallo (dal pannello). Deriva dallo stato combo lato
+          // UI; il ta-daa lo suona il motore. Sopra l'overlay della combo,
+          // sotto gli effetti in coda e il marchio.
+          Positioned.fill(
+            child: Consumer(
+              builder: (BuildContext context, WidgetRef ref, Widget? _) {
+                final int interval = ref.watch(
+                  settingsProvider.select(
+                    (SettingsState s) => s.ciommoInterval,
+                  ),
+                );
+                final int serial = effects.combo.isActive
+                    ? effects.combo.count ~/ interval
+                    : 0;
+                return CiommoSlamOverlay(serial: serial);
+              },
+            ),
+          ),
 
           // I cuoricini delle tette: partono quando la coppia di 8 si forma e
           // ricadono con la gravità. Stanno sopra al numerone perché devono

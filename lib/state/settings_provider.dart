@@ -18,6 +18,7 @@ class SettingsState {
     required this.tiltThreshold,
     required this.tiltDurationSeconds,
     required this.tiltMessage,
+    required this.ciommoInterval,
   });
 
   final bool soundEnabled;
@@ -37,18 +38,23 @@ class SettingsState {
   String get effectiveTiltMessage =>
       tiltMessage.trim().isEmpty ? kTiltMessageDefault : tiltMessage;
 
+  /// Ogni quanti tap di combo piomba il timbro gigante di Ciommo.
+  final int ciommoInterval;
+
   SettingsState copyWith({
     bool? soundEnabled,
     int? idleMinutes,
     int? tiltThreshold,
     int? tiltDurationSeconds,
     String? tiltMessage,
+    int? ciommoInterval,
   }) => SettingsState(
     soundEnabled: soundEnabled ?? this.soundEnabled,
     idleMinutes: idleMinutes ?? this.idleMinutes,
     tiltThreshold: tiltThreshold ?? this.tiltThreshold,
     tiltDurationSeconds: tiltDurationSeconds ?? this.tiltDurationSeconds,
     tiltMessage: tiltMessage ?? this.tiltMessage,
+    ciommoInterval: ciommoInterval ?? this.ciommoInterval,
   );
 }
 
@@ -62,6 +68,7 @@ class SettingsNotifier extends Notifier<SettingsState> {
       tiltThreshold: repository.tiltThreshold,
       tiltDurationSeconds: repository.tiltDurationSeconds,
       tiltMessage: repository.tiltMessage,
+      ciommoInterval: repository.ciommoInterval,
     );
   }
 
@@ -96,6 +103,13 @@ class SettingsNotifier extends Notifier<SettingsState> {
     if (clamped == state.tiltDurationSeconds) return;
     state = state.copyWith(tiltDurationSeconds: clamped);
     ref.read(settingsRepositoryProvider).setTiltDurationSeconds(clamped);
+  }
+
+  void setCiommoInterval(int value) {
+    final int clamped = value.clamp(kCiommoIntervalMin, kCiommoIntervalMax);
+    if (clamped == state.ciommoInterval) return;
+    state = state.copyWith(ciommoInterval: clamped);
+    ref.read(settingsRepositoryProvider).setCiommoInterval(clamped);
   }
 
   /// Il testo si salva com'è, anche vuoto (si sta riscrivendo): il fallback

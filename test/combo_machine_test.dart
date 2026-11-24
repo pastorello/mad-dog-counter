@@ -72,24 +72,51 @@ void main() {
     });
   });
 
-  group('Ciommo', () {
-    test('non compare sotto la soglia', () {
-      expect(ComboState(kComboCiommoThreshold - 1).showsCiommo, isFalse);
-      expect(ComboState(kComboCiommoThreshold - 1).ciommoStamps, 0);
+  group('Ciommo (timbro gigante a ogni multiplo)', () {
+    test('niente timbro sotto il primo multiplo', () {
+      for (int count = 0; count < kCiommoIntervalDefault; count++) {
+        expect(isCiommoMultiple(count, kCiommoIntervalDefault), isFalse);
+      }
     });
 
-    test('compare alla soglia con un timbro', () {
-      final ComboState s = ComboState(kComboCiommoThreshold);
-      expect(s.showsCiommo, isTrue);
-      expect(s.ciommoStamps, 1);
+    test('piomba a ogni multiplo esatto', () {
+      expect(
+        isCiommoMultiple(kCiommoIntervalDefault, kCiommoIntervalDefault),
+        isTrue,
+      );
+      expect(
+        isCiommoMultiple(kCiommoIntervalDefault * 2, kCiommoIntervalDefault),
+        isTrue,
+      );
+      expect(
+        isCiommoMultiple(kCiommoIntervalDefault * 3, kCiommoIntervalDefault),
+        isTrue,
+      );
     });
 
-    test('piu la combo cresce, piu timbri spuntano', () {
-      expect(ComboState(kComboCiommoThreshold + 2).ciommoStamps, 3);
+    test('tra un multiplo e l altro resta giu', () {
+      expect(
+        isCiommoMultiple(kCiommoIntervalDefault + 1, kCiommoIntervalDefault),
+        isFalse,
+      );
+      expect(
+        isCiommoMultiple(
+          kCiommoIntervalDefault * 2 - 1,
+          kCiommoIntervalDefault,
+        ),
+        isFalse,
+      );
     });
 
-    test('i timbri non riempiono lo schermo all infinito', () {
-      expect(const ComboState(500).ciommoStamps, kComboCiommoMaxStamps);
+    test('l intervallo e un parametro, non una costante', () {
+      expect(isCiommoMultiple(3, 3), isTrue);
+      expect(isCiommoMultiple(6, 3), isTrue);
+      expect(isCiommoMultiple(5, 3), isFalse);
+      expect(isCiommoMultiple(2, 2), isTrue);
+    });
+
+    test('un intervallo assurdo non divide per zero', () {
+      expect(isCiommoMultiple(10, 0), isFalse);
     });
   });
 

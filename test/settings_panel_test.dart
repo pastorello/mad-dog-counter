@@ -268,6 +268,10 @@ void main() {
       await holdGear(tester, kSettingsLongPress);
       await tester.pumpAndSettle();
 
+      // Col pannello cresciuto (voci tilt e Ciommo), sullo schermo piccolo
+      // dei test il Chiudi sta sotto la piega: va portato in vista.
+      await tester.ensureVisible(find.text(kSettingsClose));
+      await tester.pumpAndSettle();
       await tester.tap(find.text(kSettingsClose));
       await tester.pumpAndSettle();
 
@@ -313,6 +317,29 @@ void main() {
 
       final SharedPreferences prefs = await SharedPreferences.getInstance();
       expect(prefs.getInt(kPrefsTiltThreshold), kTiltThresholdDefault + 10);
+    });
+
+    testWidgets('l intervallo di Ciommo si regola a passi di 1', (
+      WidgetTester tester,
+    ) async {
+      tester.view.physicalSize = const Size(1920, 1200);
+      tester.view.devicePixelRatio = 1.0;
+      addTearDown(tester.view.reset);
+
+      await pumpApp(tester);
+      await holdGear(tester, kSettingsLongPress);
+      await tester.pumpAndSettle();
+
+      expect(find.text(kSettingsCiommoIntervalLabel), findsOneWidget);
+      expect(find.text('$kCiommoIntervalDefault'), findsOneWidget);
+
+      // I bottoni − nell'ordine del pannello: idle, soglia, durata, Ciommo.
+      await tester.tap(find.byIcon(Icons.remove_circle_outline).at(3));
+      await tester.pump();
+
+      expect(find.text('${kCiommoIntervalDefault - 1}'), findsOneWidget);
+      final SharedPreferences prefs = await SharedPreferences.getInstance();
+      expect(prefs.getInt(kPrefsCiommoInterval), kCiommoIntervalDefault - 1);
     });
 
     testWidgets('il messaggio del tilt si salva mentre si scrive', (

@@ -1,6 +1,9 @@
 /// L'overlay della combo: moltiplicatore e testo celebrativo in alto al
-/// centro, e i timbri di Ciommo che salgono dal bordo basso ai due lati del
-/// marchio House of Mad Dogs.
+/// centro, col bagliore che scalda tutto lo schermo.
+///
+/// Il timbro di Ciommo non vive più qui: dalla v2 è un modulo suo
+/// (`ciommo_slam.dart`), un timbro unico gigante che piomba sul numerone a
+/// ogni multiplo dell'intervallo.
 ///
 /// Non entra nella coda effetti: è una proprietà del display, attiva finché la
 /// combo è viva (ANIMATIONS_SPEC → regola 3).
@@ -77,49 +80,30 @@ class _ComboOverlayState extends State<ComboOverlay> {
     if (!combo.isActive) return const SizedBox.shrink();
 
     return IgnorePointer(
-      child: Stack(
-        children: <Widget>[
-          // Glow e testi sfumano dolcemente a fine combo.
-          Positioned.fill(
-            child: AnimatedOpacity(
-              opacity: widget.combo.isActive ? 1 : 0,
-              duration: kComboFadeDuration,
-              curve: Curves.easeOut,
-              child: Stack(
-                children: <Widget>[
-                  // Il glow che scalda l'ambiente attorno al numero: più la
-                  // combo sale, più è denso.
-                  Positioned.fill(child: _ComboGlow(combo: combo)),
+      // Glow e testi sfumano dolcemente a fine combo.
+      child: AnimatedOpacity(
+        opacity: widget.combo.isActive ? 1 : 0,
+        duration: kComboFadeDuration,
+        curve: Curves.easeOut,
+        child: Stack(
+          children: <Widget>[
+            // Il glow che scalda l'ambiente attorno al numero: più la
+            // combo sale, più è denso.
+            Positioned.fill(child: _ComboGlow(combo: combo)),
 
-                  Positioned(
-                    top: kTopOverlayTop,
-                    left: 0,
-                    right: 0,
-                    child: Column(
-                      children: <Widget>[
-                        _Multiplier(combo: combo),
-                        if (combo.text case final String text)
-                          _ComboText(text: text),
-                      ],
-                    ),
-                  ),
+            Positioned(
+              top: kTopOverlayTop,
+              left: 0,
+              right: 0,
+              child: Column(
+                children: <Widget>[
+                  _Multiplier(combo: combo),
+                  if (combo.text case final String text) _ComboText(text: text),
                 ],
               ),
             ),
-          ),
-
-          // I timbri invece non sfumano: entrano dal basso e dal basso se ne
-          // vanno. Per questo stanno fuori dalla dissolvenza.
-          Positioned(
-            left: 0,
-            right: 0,
-            bottom: kComboStampBottom,
-            child: _CiommoRow(
-              count: combo.ciommoStamps,
-              visible: widget.combo.isActive,
-            ),
-          ),
-        ],
+          ],
+        ),
       ),
     );
   }
@@ -207,155 +191,6 @@ class _ComboText extends StatelessWidget {
         fontSize: 40,
         color: kPrimaryRed,
         shadows: <Shadow>[Shadow(color: kBackground, blurRadius: 10)],
-      ),
-    );
-  }
-}
-
-/// La fila dei timbri lungo il bordo basso: si aprono a ventaglio ai due lati
-/// del marchio HoMD, che sta al centro e non va mai coperto.
-class _CiommoRow extends StatelessWidget {
-  const _CiommoRow({required this.count, required this.visible});
-
-  final int count;
-  final bool visible;
-
-  @override
-  Widget build(BuildContext context) {
-    // Indici pari a sinistra, dispari a destra. A sinistra si stampano in
-    // ordine inverso, così i timbri nuovi finiscono sempre verso l'esterno.
-    final List<int> left = <int>[for (int i = 0; i < count; i += 2) i].reversed
-        .toList();
-    final List<int> right = <int>[for (int i = 1; i < count; i += 2) i];
-
-    return Row(
-      crossAxisAlignment: CrossAxisAlignment.end,
-      children: <Widget>[
-        _StampGroup(
-          indices: left,
-          visible: visible,
-          alignment: Alignment.bottomRight,
-        ),
-        // La corsia del marchio: vuota di proposito, e soprattutto FUORI dai
-        // FittedBox che rimpiccioliscono i timbri. Dentro si sarebbe
-        // rimpicciolita con loro, e i timbri sarebbero finiti addosso al
-        // marchio. È la stessa frazione a cui il marchio si attiene, quindi
-        // i due non possono sovrapporsi su nessuna larghezza di schermo.
-        SizedBox(
-          width: MediaQuery.sizeOf(context).width * kHomdMarkLaneFraction,
-        ),
-        _StampGroup(
-          indices: right,
-          visible: visible,
-          alignment: Alignment.bottomLeft,
-        ),
-      ],
-    );
-  }
-}
-
-/// Una delle due ali di timbri, che si rimpicciolisce per stare nel suo
-/// mezzo schermo senza mai invadere la corsia del marchio.
-class _StampGroup extends StatelessWidget {
-  const _StampGroup({
-    required this.indices,
-    required this.visible,
-    required this.alignment,
-  });
-
-  final List<int> indices;
-  final bool visible;
-
-  /// Da che parte si accumulano: verso il marchio, così i timbri restano
-  /// vicini al centro e lo spazio in eccesso resta ai bordi dello schermo.
-  final Alignment alignment;
-
-  @override
-  Widget build(BuildContext context) {
-    return Expanded(
-      child: Align(
-        alignment: alignment,
-        child: FittedBox(
-          // Rete di sicurezza: con cinque timbri su uno schermo stretto l'ala
-          // sforerebbe. Meglio rimpicciolire i timbri che un overflow — e
-          // ora rimpicciolisce solo loro, non la corsia del marchio.
-          fit: BoxFit.scaleDown,
-          child: Row(
-            mainAxisSize: MainAxisSize.min,
-            crossAxisAlignment: CrossAxisAlignment.end,
-            children: <Widget>[
-              for (final int i in indices)
-                _CiommoStamp(index: i, visible: visible, key: ValueKey<int>(i)),
-            ],
-          ),
-        ),
-      ),
-    );
-  }
-}
-
-/// Un timbro "Ciommo Approved": sale dal bordo basso, e quando la combo
-/// finisce riscende da dove è arrivato.
-class _CiommoStamp extends StatelessWidget {
-  const _CiommoStamp({super.key, required this.index, required this.visible});
-
-  final int index;
-
-  /// La combo è ancora viva. A `false` il timbro se ne torna giù.
-  final bool visible;
-
-  @override
-  Widget build(BuildContext context) {
-    // L'inclinazione dipende dall'indice, non dal caso: due build dello stesso
-    // stato devono dare lo stesso risultato.
-    final double angle = (index.isEven ? -1 : 1) * (0.06 + (index % 3) * 0.04);
-
-    return TweenAnimationBuilder<double>(
-      tween: Tween<double>(begin: 0, end: visible ? 1 : 0),
-      duration: visible ? kComboStampDuration : kComboStampExitDuration,
-      // In salita rimbalza appena; in discesa scivola via e basta.
-      curve: visible ? Curves.easeOutBack : Curves.easeIn,
-      builder: (BuildContext context, double t, Widget? child) {
-        return Transform.translate(
-          // A t=0 il timbro è tutto sotto il bordo dello schermo, a t=1 è al
-          // suo posto. Lo Stack che lo contiene ritaglia: quello che scende
-          // sotto il bordo sparisce da sé.
-          offset: Offset(0, (1 - t) * (kComboStampHeight + kComboStampBottom)),
-          child: child,
-        );
-      },
-      child: Builder(
-        builder: (BuildContext context) {
-          // L'asset e' 924x1316: senza cacheHeight Flutter lo decodifica a
-          // piena risoluzione (~4,9 MB in RAM) per poi disegnarlo alto
-          // kComboStampHeight. In fisici, cosi' resta nitido anche sul
-          // tablet ad alta densita' (P1 dell'audit prestazioni).
-          final int cacheHeight =
-              (kComboStampHeight * MediaQuery.devicePixelRatioOf(context))
-                  .round();
-          return Transform.rotate(
-            angle: angle,
-            // Slot a dimensione fissa, ricavata dalle proporzioni note
-            // dell'asset: il posto del timbro esiste gia' prima che il PNG
-            // si decodifichi, e resta anche se non si decodifica affatto.
-            // Senza, il figlio a larghezza zero mandava in NaN la scala del
-            // FittedBox dell'ala.
-            child: SizedBox(
-              width: kComboStampWidth,
-              height: kComboStampHeight,
-              child: Image.asset(
-                kImgCiommoApproved,
-                fit: BoxFit.contain,
-                cacheHeight: cacheHeight,
-                // L'asset e' line-art bianca: la tingiamo del rosso di brand.
-                color: kPrimaryRed,
-                colorBlendMode: BlendMode.srcIn,
-                errorBuilder: (BuildContext _, Object _, StackTrace? _) =>
-                    const SizedBox.shrink(),
-              ),
-            ),
-          );
-        },
       ),
     );
   }

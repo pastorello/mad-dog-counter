@@ -12,7 +12,7 @@ void main() {
 
     test('1000 riconosce i multipli di 1000', () {
       expect(isMultipleOf1000(1000), isTrue);
-      expect(isMultipleOf1000(240000), isTrue);
+      expect(isMultipleOf1000(241000), isTrue);
       expect(isMultipleOf1000(239400), isFalse);
       expect(isMultipleOf1000(0), isFalse);
     });
@@ -50,7 +50,7 @@ void main() {
 
   group('coda effetti', () {
     test('il multiplo di 1000 assorbe il multiplo di 100', () {
-      final List<EffectKind> effects = triggersFor(240000);
+      final List<EffectKind> effects = triggersFor(241000);
       expect(effects, contains(EffectKind.strike));
       expect(
         effects,
@@ -92,6 +92,39 @@ void main() {
 
     test('un totale senza trigger non accoda nulla', () {
       expect(triggersFor(239339), isEmpty);
+    });
+  });
+
+  group('catena di assorbimento generalizzata (v2)', () {
+    test('il 10000 assorbe 1000 e 100: parte solo la pioggia', () {
+      expect(triggersFor(10000), <EffectKind>[EffectKind.madDogRain]);
+      expect(
+        milestoneFor(110000),
+        EffectKind.madDogRain,
+        reason: '110000 non e multiplo di 100000: vince la pioggia',
+      );
+    });
+
+    test('il 100000 assorbe tutta la catena: parte solo l apoteosi', () {
+      expect(triggersFor(100000), <EffectKind>[EffectKind.apotheosis]);
+      expect(triggersFor(200000), <EffectKind>[EffectKind.apotheosis]);
+    });
+
+    test('la catena intera, dal piu comune al piu raro', () {
+      expect(milestoneFor(100), EffectKind.fireworks);
+      expect(milestoneFor(1000), EffectKind.strike);
+      expect(milestoneFor(10000), EffectKind.madDogRain);
+      expect(milestoneFor(100000), EffectKind.apotheosis);
+      expect(milestoneFor(101), isNull);
+      expect(milestoneFor(0), isNull, reason: 'zero non festeggia');
+    });
+
+    test('gli eventi indipendenti si accodano accanto alla milestone', () {
+      // 10000 + record: prima il record (4000), poi la pioggia (7000).
+      expect(triggersFor(10000, dailyRecord: true), <EffectKind>[
+        EffectKind.dailyRecord,
+        EffectKind.madDogRain,
+      ]);
     });
   });
 

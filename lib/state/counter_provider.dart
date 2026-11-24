@@ -91,6 +91,7 @@ final Provider<EffectsEngine> effectsEngineProvider = Provider<EffectsEngine>((
     dailyStats: dailyStats,
     tiltThreshold: settings.tiltThreshold,
     tiltDuration: Duration(seconds: settings.tiltDurationSeconds),
+    ciommoInterval: settings.ciommoInterval,
   );
 
   // La finestra del tilt riparte da dove il log l'aveva lasciata: un riavvio
@@ -106,6 +107,7 @@ final Provider<EffectsEngine> effectsEngineProvider = Provider<EffectsEngine>((
     engine.idleDelay = Duration(minutes: next.idleMinutes);
     engine.tiltThreshold = next.tiltThreshold;
     engine.tiltDuration = Duration(seconds: next.tiltDurationSeconds);
+    engine.ciommoInterval = next.ciommoInterval;
   });
 
   final StreamSubscription<CounterChange> subscription = ref
