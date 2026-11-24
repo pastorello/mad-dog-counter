@@ -33,14 +33,17 @@ Con tante animazioni concatenabili serve un freno d'emergenza utilizzabile in te
 
 Accessibile SOLO con pressione lunga di 2 secondi sull'icona ingranaggio (angolo basso destro, piccola, opacità ridotta): il tap semplice è ignorato, per essere a prova di dita ubriache. Si apre come overlay sopra la schermata; mentre è aperto i tap sul contatore sono disabilitati e gli effetti in corso vengono fermati (equivalente a un `killAll()` silenzioso, senza esplosione).
 
-Contenuto MVP, volutamente minimale:
+Contenuto, volutamente minimale (le voci oltre le prime quattro sono le aggiunte v2 approvate dal committente, design/mockups/DECISIONS.md):
 
 - **Imposta contatore**: campo numerico per scrivere a mano il valore del totale (es. per la migrazione iniziale o per correzioni grosse). Richiede conferma esplicita mostrando "vecchio → nuovo". La modifica viene registrata nel log come record di tipo `adjust` con il delta risultante, così lo storico resta coerente.
 - **Audio**: interruttore on/off degli effetti sonori.
 - **Minuti di idle**: dopo quanti minuti di inattività parte la faccina annoiata (default 10).
+- **Soglia tilt**: quanti mad dog nella finestra di 2 ore fanno scattare il tilt (default 100, passi di 10; la finestra di osservazione è fissa).
+- **Durata tilt**: quanti secondi resta in scena il tilt (default 60).
+- **Messaggio tilt**: il testo sotto alla scritta TILT (default «CALMA RAGAZZI, IL MAD DOG VA RISPETTATO»; campo vuoto ⇒ si usa il default).
 - **Chiudi**: unico modo per uscire; nessun altro elemento di navigazione.
 
-Il pannello è pensato per crescere (fase 2: statistiche, export backup, gestione sync), ma nell'MVP non deve contenere altro.
+Il pannello è pensato per crescere (fase 2: statistiche, export backup, gestione sync), ma non deve contenere altro oltre alle voci elencate qui.
 
 ## Persistenza (MVP: locale)
 
@@ -67,6 +70,21 @@ Il pannello è pensato per crescere (fase 2: statistiche, export backup, gestion
 - Audio **a tutto volume**: ogni tap ha un suono corto; gli easter egg hanno suoni dedicati (specifiche in ANIMATIONS_SPEC.md).
 - Volume gestito dal sistema del tablet; l'app non abbassa mai l'audio da sola.
 
+## Record del giorno (v2)
+
+- Il "giorno" del pub va da **mezzogiorno a mezzogiorno** (ora locale): la serata vive a cavallo della mezzanotte, e a mezzogiorno il pub è certamente vuoto. A mezzogiorno la finestra si chiude e ne parte una nuova.
+- Si contano i tap **netti delle correzioni** (`type='tap'`): gli `adjust` dal pannello sono correzioni di storia, non cicchetti.
+- Il **record** è la miglior finestra di sempre, aggiornato "a cricchetto": appena il giornaliero lo supera, il record sale subito e non ridiscende mai. Parte da 0: **il primissimo mad dog del primissimo giorno è già un record**.
+- Giornaliero e record sono **sempre a schermo** (badge `OGGI n · RECORD m`, piccolo e discreto, in alto a sinistra; a video il giornaliero non scende mai sotto zero). Al superamento del record parte la celebrazione **NUOVO RECORD!** (ANIMATIONS_SPEC → catalogo), una sola volta per finestra.
+- Fonte di verità: il log sqflite quando c'è (all'avvio il conteggio della finestra si ricalcola da lì); le prefs fanno da cache. Il rollover scatta col timer di mezzogiorno e, come rete, a ogni tap e a ogni avvio; è idempotente per chiave di finestra.
+
+## Tilt (v2)
+
+- Oltre la **soglia** di incrementi (default 100, dal pannello) nella **finestra mobile di 2 ore**, il tabellone "va in tilt": velo scuro sfocato, scritta TILT gigante che vibra, messaggio personalizzabile, barra del tempo che si svuota.
+- **Il conteggio non si ferma MAI** (regola d'oro 2): la scena è solo scenografica, i tap la attraversano e contano normalmente. Pulsante panico e ingranaggio restano sopra la scena: il panico (o l'apertura impostazioni) la spegne subito.
+- Finita la durata (default 60 s, dal pannello), la scena svanisce e la finestra di osservazione riparte vuota.
+- Dopo un riavvio la finestra si ricarica dagli incrementi delle ultime 2 ore nel log: il tilt non si aggira spegnendo e riaccendendo il tablet.
+
 ## Stati speciali
 
 - **Inattività**: dopo un periodo senza tap parte l'animazione "faccina annoiata" (vedi ANIMATIONS_SPEC.md → Idle).
@@ -75,6 +93,6 @@ Il pannello è pensato per crescere (fase 2: statistiche, export backup, gestion
 ## Fase 2 (fuori scope, ma predisposta)
 
 - **Persistenza online** (Firebase o simili) tramite una nuova implementazione di `CounterRepository`, con migrazione del totale e del log tap locali.
-- Statistiche: conteggio "di stasera", record di cicchetti in una singola serata, ora di punta, grafici settimanali.
+- Statistiche: ora di punta, grafici settimanali (il conteggio "di stasera" e il record di serata sono arrivati in locale con la v2, vedi Record del giorno).
 - Sito/pagina pubblica di consultazione del contatore.
 - Il log locale dei tap con timestamp raccoglie i dati necessari **da subito**, così la fase 2 avrà storico retroattivo.

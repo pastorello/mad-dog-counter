@@ -33,7 +33,7 @@ I plugin di Claude Code sono installati **globalmente** e accesi **per progetto*
 
 ## Testing
 
-- Unit test obbligatori per: trigger easter egg, macchina a stati combo, ordinamento coda effetti (durata crescente), regola "il multiplo di 1000 assorbe il multiplo di 100", clamp a zero del contatore.
+- Unit test obbligatori per: trigger easter egg, macchina a stati combo, ordinamento coda effetti (durata crescente), regola "il multiplo di 1000 assorbe il multiplo di 100", clamp a zero del contatore, finestra giornaliera del record (mezzogiorno→mezzogiorno, rollover idempotente, ratchet, festa una-per-finestra), finestra mobile del tilt (soglia, svuotamento, seed dal log, la scena non mangia i tap).
 - Widget test per la schermata contatore (zone tap, roll delle cifre).
 - Test manuali sul tablet vero per performance animazioni e audio.
 
@@ -41,7 +41,7 @@ I plugin di Claude Code sono installati **globalmente** e accesi **per progetto*
 
 - Non implementare la fase 2 (persistenza online, statistiche, sito pubblico): solo predisporre il log tap locale e l'interfaccia repository.
 - Non implementare il white label (temi configurabili, modalità Dutch/Custom): l'idea è congelata in `docs/WHITE_LABEL.md` e richiede una nuova intervista al committente prima di diventare codice.
-- Non aggiungere autenticazione utente né schermate extra oltre al pannello impostazioni specificato in FUNCTIONAL_SPEC (e non estendere il pannello oltre le voci MVP elencate lì).
+- Non aggiungere autenticazione utente né schermate extra oltre al pannello impostazioni specificato in FUNCTIONAL_SPEC (e non estendere il pannello oltre le voci elencate lì — la lista include le aggiunte v2 approvate dal committente: parametri tilt; in arrivo con le PR successive: intervallo Ciommo, stagione).
 - Non usare bianco puro né rosa nella UI (vedi UX_UI_SPEC → palette).
 - Non chiedere conferma per il decremento: è un tap semplice per scelta di prodotto.
 
