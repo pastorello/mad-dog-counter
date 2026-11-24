@@ -42,6 +42,7 @@ Contenuto, volutamente minimale (le voci oltre le prime quattro sono le aggiunte
 - **Durata tilt**: quanti secondi resta in scena il tilt (default 60).
 - **Messaggio tilt**: il testo sotto alla scritta TILT (default «CALMA RAGAZZI, IL MAD DOG VA RISPETTATO»; campo vuoto ⇒ si usa il default).
 - **Timbro Ciommo ogni N**: ogni quanti tap di combo piomba il timbro gigante (default 5, da 2 a 20).
+- **Stagione**: il tema del tabellone — Nessuna (default) / Halloween / Natale. Scelta **manuale** (niente automatismo per data); l'elenco è pensato per crescere.
 - **Chiudi**: unico modo per uscire; nessun altro elemento di navigazione.
 
 Il pannello è pensato per crescere (fase 2: statistiche, export backup, gestione sync), ma non deve contenere altro oltre alle voci elencate qui.
@@ -85,6 +86,12 @@ Il pannello è pensato per crescere (fase 2: statistiche, export backup, gestion
 - **Il conteggio non si ferma MAI** (regola d'oro 2): la scena è solo scenografica, i tap la attraversano e contano normalmente. Pulsante panico e ingranaggio restano sopra la scena: il panico (o l'apertura impostazioni) la spegne subito.
 - Finita la durata (default 60 s, dal pannello), la scena svanisce e la finestra di osservazione riparte vuota.
 - Dopo un riavvio la finestra si ricarica dagli incrementi delle ultime 2 ore nel log: il tilt non si aggira spegnendo e riaccendendo il tablet.
+
+## Stagioni (v2)
+
+- Temi scelti **a mano** dal pannello (voce «Stagione»): **Nessuna / Halloween / Natale**, elenco pensato per crescere. Niente automatismo per data (DECISIONS → 06).
+- Resa: **cornice colorata** ai bordi (arancio zucca / verde abete) con alone verso l'interno, e **decorazioni discrete ai 4 angoli**, dietro al numerone — pipistrelli e zucche per Halloween; palline, pacchi regalo e bastoncini di zucchero per Natale, più la **neve**.
+- Lo sfondo resta quasi nero (pub buio); tutto è disegnato, niente asset. Arancio e verde sono accenti stagionali fuori dalla palette base: il resto della UI non li usa mai.
 
 ## Stati speciali
 
