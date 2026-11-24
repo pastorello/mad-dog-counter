@@ -166,7 +166,8 @@ class _Multiplier extends StatelessWidget {
         'x${combo.multiplier}',
         style: const TextStyle(
           fontFamily: kDisplayFont,
-          fontSize: 56,
+          fontSize: kComboMultiplierSize,
+          height: 1,
           color: kCelebrationGold,
           shadows: <Shadow>[Shadow(color: kPrimaryRed, blurRadius: 18)],
         ),
@@ -186,9 +187,11 @@ class _ComboText extends StatelessWidget {
     return Text(
       text,
       key: ValueKey<String>(text),
+      textAlign: TextAlign.center,
       style: const TextStyle(
         fontFamily: kDisplayFont,
-        fontSize: 40,
+        fontSize: kComboTextSize,
+        height: 1,
         color: kPrimaryRed,
         shadows: <Shadow>[Shadow(color: kBackground, blurRadius: 10)],
       ),

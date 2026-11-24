@@ -246,7 +246,10 @@ class _BigNumberState extends State<BigNumber> with TickerProviderStateMixin {
         digit,
         textAlign: TextAlign.center,
         style: TextStyle(
-          fontFamily: kDisplayFont,
+          // Il font delle SOLE cifre (v2, DECISIONS → 05): Passion One.
+          // Creepster resta la voce dei testi celebrativi e dello STRIKE!.
+          fontFamily: kCounterFont,
+          fontWeight: FontWeight.w700,
           fontSize: size,
           height: 1,
           color: kTextColor,

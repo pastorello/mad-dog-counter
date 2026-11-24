@@ -24,7 +24,9 @@ import 'effects/idle_face.dart';
 import 'effects/tilt_overlay.dart';
 import 'settings_panel.dart';
 import 'widgets/big_number.dart';
+import 'widgets/daily_stats_badge.dart';
 import 'widgets/dutch_flag_divider.dart';
+import 'widgets/header_title.dart';
 import 'widgets/homd_brand_mark.dart';
 import 'widgets/panic_button.dart';
 import 'widgets/settings_gear.dart';
@@ -157,6 +159,29 @@ class _CounterScreenState extends ConsumerState<CounterScreen> {
             right: 0,
             bottom: 0,
             child: DutchFlagDivider(),
+          ),
+
+          // L'intestazione al bordo alto: si dissolve quando la fascia
+          // serve agli eventi (combo, effetti in coda, faccina). Sta sotto
+          // ai layer degli effetti: quando convivono, loro passano davanti.
+          Positioned(
+            top: kTopOverlayTop,
+            left: 0,
+            right: 0,
+            child: HeaderTitle(
+              visible:
+                  !effects.combo.isActive &&
+                  effects.current == null &&
+                  !effects.idleFaceVisible &&
+                  !effects.idleWaking,
+            ),
+          ),
+
+          // Il badge del record: sempre a schermo, angolo opposto al panico.
+          const Positioned(
+            top: kBadgeTop,
+            left: kBadgeLeft,
+            child: DailyStatsBadge(),
           ),
 
           // La pioggia di bicchierini: evento a sé, non annidato

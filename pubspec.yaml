@@ -84,3 +84,7 @@ flutter:
     - family: Oswald
       fonts:
         - asset: assets/fonts/Oswald-Bold.ttf
+    - family: Passion One
+      fonts:
+        - asset: assets/fonts/PassionOne-Bold.ttf
+          weight: 700

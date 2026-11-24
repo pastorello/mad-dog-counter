@@ -190,19 +190,26 @@ const Color kCelebrationGold = Color(0xFFF0A830);
 const Color kFleshPink = Color(0xFFEFA79B);
 const Color kHeartPink = Color(0xFFE86A8A);
 
-/// Altezza della bandierina olandese in fondo allo schermo. Tre strisce: sotto
-/// una certa altezza, da dietro il bancone, non si vedono proprio.
-const double kDutchFlagHeight = 12;
+/// Altezza della bandierina olandese in fondo allo schermo. Tre strisce:
+/// a 12 era corretta ma timida — portata a 40 con la v2 (DECISIONS → 04),
+/// la firma si deve vedere da dietro il bancone.
+const double kDutchFlagHeight = 40;
 
 // ---------------------------------------------------------------------------
 // Tipografia
 // ---------------------------------------------------------------------------
 
-/// Font del numerone e dei testi celebrativi (lettering brush, come il poster).
+/// Font dei testi celebrativi e dello STRIKE! (lettering brush, come il
+/// poster). Fino alla v2 era anche il font delle cifre.
 const String kDisplayFont = 'Creepster';
 
 /// Alternativa più morbida, già nel pacchetto: da validare sul tablet vero.
 const String kDisplayFontAlt = 'Knewave';
+
+/// Font delle SOLE cifre del numerone (v2): scelto per confronto nei mockup
+/// (design/mockups/DECISIONS.md → 05), «meno Halloween ma sempre da pub».
+/// Peso 700 (PassionOne-Bold.ttf, OFL in design/fonts/).
+const String kCounterFont = 'Passion One';
 
 /// Font del logo HoMD: "HOUSE OF MAD DOGS" e la tagline. È il font vero,
 /// preso dal vettoriale ufficiale del committente (Sottobicchiere HoMD
@@ -356,6 +363,12 @@ const Duration kComboDismissDelay = Duration(milliseconds: 600);
 /// alto al centro ci sta di casa.
 const double kTopOverlayTop = 40;
 
+/// Corpi del moltiplicatore e del testo celebrativo (v2, DECISIONS → 04):
+/// la fascia alta si prende tutto lo spazio fino al contatore, lieve
+/// invasione del glow accettata. Erano 56 e 40, cablati nei widget.
+const double kComboMultiplierSize = 160;
+const double kComboTextSize = 140;
+
 // ---------------------------------------------------------------------------
 // Combo — pioggia di bicchierini
 // ---------------------------------------------------------------------------
@@ -417,6 +430,40 @@ const String kSettingsInvalidNumber =
     'Serve un numero tra 0 e $kMaxSettableTotal';
 
 // ---------------------------------------------------------------------------
+// Intestazione e badge del record (v2)
+// ---------------------------------------------------------------------------
+// Decisioni nei mockup (DECISIONS → 01): intestazione al bordo alto che si
+// dissolve durante gli effetti; badge OGGI/RECORD sempre a schermo, alto a
+// sinistra, numeri in oro.
+
+/// L'intestazione sopra al contatore, in Oswald Bold come il marchio.
+const String kHeaderText = 'MAD DOG COUNTER';
+const double kHeaderTextSize = 44;
+const double kHeaderTracking = 6;
+
+/// Ink all'80%: presente ma non compete col numerone.
+const Color kHeaderColor = Color(0xCCF0F0F0);
+
+/// Quanto impiega l'intestazione a dissolversi quando la fascia alta serve
+/// agli eventi (combo, strike, faccina) e a tornare dopo.
+const Duration kHeaderFadeDuration = Duration(milliseconds: 450);
+
+/// Il badge col giornaliero e il record da battere: una riga sola, mai
+/// `Text` a cifra singola.
+const String kDailyLabel = 'OGGI';
+const String kRecordLabel = 'RECORD';
+
+/// Primo giorno, nessun record ancora: `RECORD —`.
+const String kRecordEmptyPlaceholder = '—';
+const double kBadgeTextSize = 26;
+const double kBadgeTracking = 1.5;
+const double kBadgeTop = 36;
+const double kBadgeLeft = 40;
+
+/// Etichette in ink al 55%, numeri in oro ([kCelebrationGold]).
+const Color kBadgeLabelColor = Color(0x8CF0F0F0);
+
+// ---------------------------------------------------------------------------
 // Marchio House of Mad Dogs
 // ---------------------------------------------------------------------------
 
@@ -454,11 +501,12 @@ const double kHomdTaglineTracking = 1.2;
 /// Quanta altezza dello schermo può occupare al massimo il marchio completo.
 ///
 /// Sotto al numerone resta libero `(1 - kBigNumberHeightFraction) / 2` di
-/// altezza, cioè 0,275: questo tetto sta sotto quella soglia col margine di
-/// `kHomdMarkBottom`. Sul tablet di produzione non morde mai — il marchio a
-/// grandezza piena ci sta comodo — ma su uno schermo basso lo rimpicciolisce
-/// invece di lasciarlo salire fin sul numerone.
-const double kHomdMarkMaxHeightFraction = 0.24;
+/// altezza, cioè 0,275, MENO il sollevamento dal bordo (`kHomdMarkBottom`,
+/// che con la bandierina a 40 vale 48 ≈ 0,04): il tetto sta sotto quella
+/// soglia. Stretto da 0,24 a 0,23 con la v2, quando la bandierina è
+/// cresciuta (DECISIONS → 04): sul tablet di produzione il marchio si
+/// rimpicciolisce di un ~4% invece di salire fin sul numerone.
+const double kHomdMarkMaxHeightFraction = 0.23;
 
 /// Frazione della larghezza schermo riservata al marchio nella fila dei
 /// timbri di Ciommo, che gli escono ai due lati senza mai passarci sopra.
@@ -494,9 +542,13 @@ const double kBigNumberHeightFraction = 0.45;
 const double kBigNumberWidthFraction = 0.92;
 
 /// Larghezza dello slot di una cifra, in proporzione alla sua dimensione.
-/// Slot a larghezza fissa perché i font brush non hanno cifre tabular e il
+/// Slot a larghezza fissa perché questi font non hanno cifre tabular e il
 /// numero ballerebbe a ogni cifra che cambia (UX_UI_SPEC → Tipografia).
-const double kDigitSlotRatio = 0.62;
+///
+/// Tarato su Passion One Bold: la cifra più larga è il «4» a 0,548 em
+/// (misura dal TTF, advance/unitsPerEm), più un filo d'aria. Era 0,62 su
+/// Creepster: lo slot più stretto compra un numerone più grande.
+const double kDigitSlotRatio = 0.56;
 
 // ---------------------------------------------------------------------------
 // Idle — la faccina annoiata
