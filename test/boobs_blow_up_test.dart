@@ -8,8 +8,8 @@ import 'package:mad_dog_counter/ui/effects/boobs_digits.dart';
 import 'package:material_ui/material_ui.dart';
 
 void main() {
-  group('boobsBlowUpScale (tocca i bordi, mai oltre)', () {
-    test('in landscape vince l altezza: tocca sopra e sotto', () {
+  group('boobsBlowUpScale (100% dell altezza del monitor)', () {
+    test('sul tablet landscape tocca sopra e sotto, dentro ai lati', () {
       // Le misure del tablet di produzione, cifre a ~526.
       const Size screen = Size(1920, 1200);
       final Size drawing = Size(526 * kDigitSlotRatio * 2, 526);
@@ -20,18 +20,20 @@ void main() {
       expect(
         scale * drawing.width,
         lessThanOrEqualTo(screen.width),
-        reason: 'tocca i bordi senza uscire dallo schermo',
+        reason: 'in landscape i lati restano dentro',
       );
     });
 
-    test('con un disegno proporzionalmente largo vince la larghezza', () {
-      const Size screen = Size(1000, 5000);
-      const Size drawing = Size(500, 100);
+    test('comanda sempre l altezza, anche se i lati sbordano', () {
+      // Schermo quasi quadrato (l'anteprima web): l'altezza arriva comunque
+      // al 100% e la larghezza può uscire di poco — voluto.
+      const Size screen = Size(800, 827);
+      final Size drawing = Size(219 * kDigitSlotRatio * 2, 219);
 
       final double scale = boobsBlowUpScale(screen, drawing);
 
-      expect(scale * drawing.width, closeTo(screen.width, 0.001));
-      expect(scale * drawing.height, lessThanOrEqualTo(screen.height));
+      expect(scale * drawing.height, closeTo(screen.height, 0.001));
+      expect(scale * drawing.width, greaterThan(screen.width));
     });
 
     test('un disegno degenere non divide per zero', () {

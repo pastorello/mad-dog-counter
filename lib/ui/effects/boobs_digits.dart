@@ -31,12 +31,13 @@ double boobsFadeProgress(double expand) =>
       1.0,
     );
 
-/// La scala che porta il disegno a toccare i bordi dello schermo: vince il
-/// vincolo più stretto (in landscape di solito l'altezza), così il disegno
-/// tocca i bordi senza uscirne.
+/// La scala che porta il disegno al 100% DELL'ALTEZZA dello schermo
+/// (chiesta dal committente dopo l'anteprima). Comanda sempre l'altezza:
+/// sul tablet landscape la larghezza resta dentro, su schermi quasi
+/// quadrati può sbordare di poco ai lati ed è voluto.
 double boobsBlowUpScale(Size screen, Size drawing) {
-  if (drawing.width <= 0 || drawing.height <= 0) return 1;
-  return math.min(screen.width / drawing.width, screen.height / drawing.height);
+  if (drawing.height <= 0) return 1;
+  return screen.height / drawing.height;
 }
 
 /// Disegno che sostituisce una coppia di `88`.
