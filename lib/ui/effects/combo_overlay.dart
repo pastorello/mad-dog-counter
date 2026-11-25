@@ -157,19 +157,34 @@ class _Multiplier extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    // Le due righe insieme prendono metà monitor (v3): questo è lo slot
+    // della prima, la sua quota del blocco. Il FittedBox tiene la riga su
+    // UNA riga: se mai fosse troppo larga si stringe, lo slot non cresce.
+    final double slotHeight =
+        MediaQuery.sizeOf(context).height *
+        kComboBlockHeightFraction *
+        kComboMultiplierBlockShare;
     return AnimatedScale(
       // Uno scatto di scala a ogni tap: il moltiplicatore "pompa".
       scale: 1 + math.min(0.35, combo.count * 0.02),
       duration: kTapPulseDuration,
       curve: Curves.easeOut,
-      child: Text(
-        'x${combo.multiplier}',
-        style: const TextStyle(
-          fontFamily: kDisplayFont,
-          fontSize: kComboMultiplierSize,
-          height: 1,
-          color: kCelebrationGold,
-          shadows: <Shadow>[Shadow(color: kPrimaryRed, blurRadius: 18)],
+      child: SizedBox(
+        height: slotHeight,
+        child: FittedBox(
+          fit: BoxFit.contain,
+          child: Text(
+            'x${combo.multiplier}',
+            style: TextStyle(
+              fontFamily: kDisplayFont,
+              fontSize: slotHeight,
+              height: 1,
+              color: kCelebrationGold,
+              shadows: const <Shadow>[
+                Shadow(color: kPrimaryRed, blurRadius: 18),
+              ],
+            ),
+          ),
         ),
       ),
     );
@@ -184,16 +199,29 @@ class _ComboText extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    return Text(
-      text,
-      key: ValueKey<String>(text),
-      textAlign: TextAlign.center,
-      style: const TextStyle(
-        fontFamily: kDisplayFont,
-        fontSize: kComboTextSize,
-        height: 1,
-        color: kPrimaryRed,
-        shadows: <Shadow>[Shadow(color: kBackground, blurRadius: 10)],
+    // La seconda riga del blocco a metà monitor: il resto della quota.
+    // Slot fisso + FittedBox: «LEGGENDARIO!» si stringe invece di andare a
+    // capo, e il blocco resta esattamente a metà schermo.
+    final double slotHeight =
+        MediaQuery.sizeOf(context).height *
+        kComboBlockHeightFraction *
+        (1 - kComboMultiplierBlockShare);
+    return SizedBox(
+      height: slotHeight,
+      child: FittedBox(
+        fit: BoxFit.contain,
+        child: Text(
+          text,
+          key: ValueKey<String>(text),
+          textAlign: TextAlign.center,
+          style: TextStyle(
+            fontFamily: kDisplayFont,
+            fontSize: slotHeight,
+            height: 1,
+            color: kPrimaryRed,
+            shadows: const <Shadow>[Shadow(color: kBackground, blurRadius: 10)],
+          ),
+        ),
       ),
     );
   }

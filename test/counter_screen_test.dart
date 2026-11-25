@@ -10,6 +10,7 @@ import 'package:mad_dog_counter/data/settings_repository.dart';
 import 'package:mad_dog_counter/state/combo_machine.dart';
 import 'package:confetti/confetti.dart';
 import 'package:mad_dog_counter/ui/effects/boobs_digits.dart';
+import 'package:mad_dog_counter/ui/effects/ciommo_slam.dart';
 import 'package:mad_dog_counter/ui/effects/combo_overlay.dart';
 import 'package:mad_dog_counter/ui/effects/combo_rain.dart';
 import 'package:mad_dog_counter/ui/effects/idle_clouds.dart';
@@ -240,6 +241,34 @@ void main() {
       expect(find.text(kComboTexts[0]), findsOneWidget);
     });
 
+    /// v3, dopo l'anteprima: i corpi delle due righe non sono più fissi, si
+    /// ricavano dall'altezza del monitor e insieme ne prendono metà.
+    testWidgets('le due righe della combo prendono meta monitor', (
+      WidgetTester tester,
+    ) async {
+      tester.view.physicalSize = const Size(1920, 1200);
+      tester.view.devicePixelRatio = 1.0;
+      addTearDown(tester.view.reset);
+
+      final FakeClock clock = await pumpScreen(tester, await repoWith(0));
+      await tapIncrement(tester, clock, kComboThresholds[0]);
+      await tester.pump();
+
+      final double multiplier = tester
+          .widget<Text>(find.text('x${kComboThresholds[0]}'))
+          .style!
+          .fontSize!;
+      final double text = tester
+          .widget<Text>(find.text(kComboTexts[0]))
+          .style!
+          .fontSize!;
+      expect(
+        multiplier + text,
+        closeTo(1200 * kComboBlockHeightFraction, 1),
+        reason: 'i corpi si ricavano dall altezza del monitor',
+      );
+    });
+
     testWidgets('al multiplo dell intervallo piomba il timbro gigante', (
       WidgetTester tester,
     ) async {
@@ -301,20 +330,24 @@ void main() {
       // A metà corsa lo slam è pieno: copre il lato sinistro del numerone.
       await tester.pump(kCiommoSlamDuration * 0.5);
 
-      // Il centro resta fermo sotto rotazione e scala: è l'ancora giusta,
-      // getRect restituirebbe il rect ruotato di -14 gradi.
-      final Offset timbro = tester.getCenter(find.byType(Image));
+      // Centro e taglia restano fermi sotto rotazione e scala: il rect di
+      // layout si ricostruisce da lì (getRect darebbe il rect ruotato).
+      final Rect timbro = Rect.fromCenter(
+        center: tester.getCenter(find.byType(Image)),
+        width: tester.getSize(find.byType(Image)).width,
+        height: tester.getSize(find.byType(Image)).height,
+      );
       final Rect numerone = tester.getRect(find.byType(BigNumber));
       expect(
-        numerone.contains(timbro),
+        timbro.overlaps(numerone),
         isTrue,
         reason: 'il timbro piomba sopra le cifre',
       );
       // getSize legge il layout, non il rect ruotato.
       expect(
         tester.getSize(find.byType(Image)).height,
-        closeTo((1200 - kCiommoSlamAreaTop) * kCiommoSlamSideHeightFraction, 1),
-        reason: 'la taglia laterale riempie l area sotto il blocco combo',
+        closeTo(ciommoSlamHeight(0, 1200), 1),
+        reason: 'la taglia laterale e quella del posto a sinistra',
       );
 
       // Un tap in mezzo tiene viva la combo (finestra 2 s) senza cambiare
@@ -372,10 +405,7 @@ void main() {
       expect(centro.dx, closeTo(1920 / 2, 1), reason: 'il terzo e centrato');
       expect(
         taglia.height,
-        closeTo(
-          (1200 - kCiommoSlamAreaTop) * kCiommoSlamSmallHeightFraction,
-          1,
-        ),
+        closeTo(ciommoSlamHeight(2, 1200), 1),
         reason: 'il terzo timbro e piu piccolo',
       );
 

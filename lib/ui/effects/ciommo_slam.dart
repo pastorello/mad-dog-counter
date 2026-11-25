@@ -18,10 +18,33 @@
 /// strike.
 library;
 
+import 'dart:math' as math;
+
 import 'package:material_ui/material_ui.dart';
 
 import '../../config.dart';
 import '../../state/combo_machine.dart';
+
+/// Quota dal bordo alto sotto cui vivono i timbri, su uno schermo alto
+/// [screenHeight]: il blocco combo (metà monitor, [kComboBlockHeightFraction])
+/// più il respiro [kCiommoSlamComboGap].
+double ciommoSlamAreaTop(double screenHeight) =>
+    kTopOverlayTop +
+    screenHeight * kComboBlockHeightFraction +
+    kCiommoSlamComboGap;
+
+/// L'altezza del timbro nel posto [slot] su uno schermo alto [screenHeight]:
+/// la frazione di schermo del posto, ma mai oltre lo spazio che resta sotto
+/// il blocco combo — la scritta non si copre comunque.
+double ciommoSlamHeight(int slot, double screenHeight) {
+  final double area = screenHeight - ciommoSlamAreaTop(screenHeight);
+  final double wanted =
+      screenHeight *
+      (slot == 2
+          ? kCiommoSlamSmallHeightFraction
+          : kCiommoSlamSideHeightFraction);
+  return math.min(area, wanted);
+}
 
 class CiommoSlamOverlay extends StatelessWidget {
   const CiommoSlamOverlay({super.key, required this.serial});
@@ -39,27 +62,23 @@ class CiommoSlamOverlay extends StatelessWidget {
     return IgnorePointer(
       // Tutti i posti vivono sotto il blocco combo (moltiplicatore + testo):
       // qualunque sia la larghezza della scritta, il timbro non la copre.
-      child: Padding(
-        padding: const EdgeInsets.only(top: kCiommoSlamAreaTop),
-        child: LayoutBuilder(
-          builder: (BuildContext context, BoxConstraints constraints) {
-            final double area = constraints.maxHeight;
-            // Schermo più basso del blocco combo: niente da disegnare.
-            if (area <= 0 || !constraints.maxHeight.isFinite) {
-              return const SizedBox.shrink();
-            }
-            final double height =
-                area *
-                (slot == 2
-                    ? kCiommoSlamSmallHeightFraction
-                    : kCiommoSlamSideHeightFraction);
-            final Alignment alignment = switch (slot) {
-              0 => Alignment.centerLeft,
-              1 => Alignment.centerRight,
-              // Sotto la scritta: appena fuori dal blocco combo, centrato.
-              _ => Alignment.topCenter,
-            };
-            return Align(
+      child: LayoutBuilder(
+        builder: (BuildContext context, BoxConstraints constraints) {
+          // L'overlay è a tutto schermo: maxHeight È l'altezza del monitor.
+          final double screenHeight = constraints.maxHeight;
+          if (!screenHeight.isFinite) return const SizedBox.shrink();
+          final double height = ciommoSlamHeight(slot, screenHeight);
+          // Schermo più basso del blocco combo: niente da disegnare.
+          if (height <= 0) return const SizedBox.shrink();
+          final Alignment alignment = switch (slot) {
+            0 => Alignment.centerLeft,
+            1 => Alignment.centerRight,
+            // Sotto la scritta: appena fuori dal blocco combo, centrato.
+            _ => Alignment.topCenter,
+          };
+          return Padding(
+            padding: EdgeInsets.only(top: ciommoSlamAreaTop(screenHeight)),
+            child: Align(
               alignment: alignment,
               child: Padding(
                 padding: slot == 2
@@ -69,9 +88,9 @@ class CiommoSlamOverlay extends StatelessWidget {
                       ),
                 child: _Slam(key: ValueKey<int>(serial), height: height),
               ),
-            );
-          },
-        ),
+            ),
+          );
+        },
       ),
     );
   }

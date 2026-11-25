@@ -345,18 +345,22 @@ const double kComboPitchMax = 1.8;
 // quelli dei mockup (DECISIONS → 02: −14°, 2,0 s col ta-daa).
 const double kCiommoSlamAngle = -0.24434609527920614; // −14° in radianti
 
-/// Quota dal bordo alto sotto cui vivono i timbri: il blocco combo
-/// (moltiplicatore + testo celebrativo) più un respiro che assorbe anche
-/// l'ingombro extra della rotazione di −14° sugli angoli del timbro.
-const double kCiommoSlamAreaTop =
-    kTopOverlayTop + kComboMultiplierSize + kComboTextSize + 32;
+/// Respiro tra il fondo del blocco combo e la zona dei timbri: assorbe
+/// anche l'ingombro extra della rotazione di −14° sugli angoli del timbro.
+/// La quota vera la calcola `ciommoSlamAreaTop` (il blocco è in frazione
+/// di schermo).
+const double kCiommoSlamComboGap = 32;
 
-/// Altezza dei timbri laterali (sinistra/destra), in frazione dell'area
-/// sotto il blocco combo: restano monumentali, ma non salgono sulla scritta.
-const double kCiommoSlamSideHeightFraction = 0.78;
+/// Altezza dei timbri laterali (sinistra/destra), in frazione dell'ALTEZZA
+/// DELLO SCHERMO: 50%, chiesto dal committente dopo l'anteprima. Mai oltre
+/// lo spazio sotto il blocco combo (`ciommoSlamHeight`): la scritta non si
+/// copre comunque, quindi col blocco a metà schermo i laterali si fermano
+/// un filo sotto il 50%.
+const double kCiommoSlamSideHeightFraction = 0.5;
 
-/// Altezza del timbro sotto la scritta: più piccolo, non deve coprirla.
-const double kCiommoSlamSmallHeightFraction = 0.42;
+/// Altezza del timbro sotto la scritta, in frazione dello schermo: più
+/// piccolo dei laterali (stessa proporzione di prima), non deve coprirla.
+const double kCiommoSlamSmallHeightFraction = 0.27;
 
 /// Respiro dei timbri laterali dal bordo dello schermo.
 const double kCiommoSlamSideMargin = 48;
@@ -395,11 +399,12 @@ const Duration kComboDismissDelay = Duration(milliseconds: 600);
 /// alto al centro ci sta di casa.
 const double kTopOverlayTop = 40;
 
-/// Corpi del moltiplicatore e del testo celebrativo (v2, DECISIONS → 04):
-/// la fascia alta si prende tutto lo spazio fino al contatore, lieve
-/// invasione del glow accettata. Erano 56 e 40, cablati nei widget.
-const double kComboMultiplierSize = 160;
-const double kComboTextSize = 140;
+/// Le due righe della combo (moltiplicatore + testo celebrativo) prendono
+/// META' DEL MONITOR: chiesto dal committente dopo l'anteprima della v3.
+/// In v2 erano corpi fissi, 160 + 140 (DECISIONS → 04): i corpi ora si
+/// ricavano dall'altezza dello schermo, ripartiti nel rapporto storico.
+const double kComboBlockHeightFraction = 0.5;
+const double kComboMultiplierBlockShare = 160 / 300;
 
 // ---------------------------------------------------------------------------
 // Combo — pioggia di bicchierini
