@@ -8,36 +8,82 @@ import 'package:mad_dog_counter/ui/effects/boobs_digits.dart';
 import 'package:material_ui/material_ui.dart';
 
 void main() {
-  group('boobsBlowUpScale (100% dell altezza del monitor)', () {
-    test('sul tablet landscape tocca sopra e sotto, dentro ai lati', () {
-      // Le misure del tablet di produzione, cifre a ~526.
-      const Size screen = Size(1920, 1200);
-      final Size drawing = Size(526 * kDigitSlotRatio * 2, 526);
+  group('boobsPaintedBounds (il contorno che si vede davvero)', () {
+    test(
+      'sta nel riquadro, centrato in orizzontale, un po sotto il centro',
+      () {
+        const Size box = Size(526 * kDigitSlotRatio * 2, 526);
+        final Rect bounds = boobsPaintedBounds(box);
 
-      final double scale = boobsBlowUpScale(screen, drawing);
+        expect(bounds.top, greaterThan(0));
+        expect(bounds.bottom, lessThan(box.height));
+        expect(bounds.center.dx, closeTo(box.width / 2, 0.001));
+        expect(
+          bounds.center.dy,
+          greaterThan(box.height / 2),
+          reason: 'le forme stanno sotto la mezzeria del riquadro',
+        );
+      },
+    );
 
-      expect(scale * drawing.height, closeTo(screen.height, 0.001));
+    test('occupa circa meta dell altezza del riquadro', () {
+      // Per questo fino alla v3, scalando il RIQUADRO a tutto schermo, le
+      // tette si fermavano a meta monitor.
+      const Size box = Size(200, 100);
+      expect(boobsPaintedBounds(box).height, closeTo(50, 1));
+    });
+  });
+
+  group('boobsBlowUpTransform (100% dell altezza del monitor)', () {
+    // Il tablet di produzione e una coppia a sinistra del centro, cifre a
+    // ~526: il contorno a riposo, gia nelle coordinate dello schermo.
+    const Size screen = Size(1920, 1200);
+    final Rect rest = boobsPaintedBounds(
+      const Size(526 * kDigitSlotRatio * 2, 526),
+    ).shift(const Offset(400, 337));
+
+    Rect apply(Matrix4 m, Rect r) => MatrixUtils.transformRect(m, r);
+
+    test('a riposo non si muove niente', () {
+      final Rect at0 = apply(
+        boobsBlowUpTransform(screen: screen, rest: rest, progress: 0),
+        rest,
+      );
+      expect(at0.left, closeTo(rest.left, 0.001));
+      expect(at0.top, closeTo(rest.top, 0.001));
+      expect(at0.width, closeTo(rest.width, 0.001));
+      expect(at0.height, closeTo(rest.height, 0.001));
+    });
+
+    test('a fine corsa tocca il bordo alto e quello basso, centrata', () {
+      final Rect at1 = apply(
+        boobsBlowUpTransform(screen: screen, rest: rest, progress: 1),
+        rest,
+      );
+      expect(at1.top, closeTo(0, 0.001));
+      expect(at1.bottom, closeTo(screen.height, 0.001));
+      expect(at1.center.dx, closeTo(screen.width / 2, 0.001));
       expect(
-        scale * drawing.width,
-        lessThanOrEqualTo(screen.width),
-        reason: 'in landscape i lati restano dentro',
+        at1.width,
+        greaterThan(screen.width),
+        reason: 'in landscape comanda l altezza: i lati escono, voluto',
       );
     });
 
-    test('comanda sempre l altezza, anche se i lati sbordano', () {
-      // Schermo quasi quadrato (l'anteprima web): l'altezza arriva comunque
-      // al 100% e la larghezza può uscire di poco — voluto.
-      const Size screen = Size(800, 827);
-      final Size drawing = Size(219 * kDigitSlotRatio * 2, 219);
-
-      final double scale = boobsBlowUpScale(screen, drawing);
-
-      expect(scale * drawing.height, closeTo(screen.height, 0.001));
-      expect(scale * drawing.width, greaterThan(screen.width));
+    test('a meta corsa e a meta strada, in mezzo tra le due taglie', () {
+      final Rect atHalf = apply(
+        boobsBlowUpTransform(screen: screen, rest: rest, progress: 0.5),
+        rest,
+      );
+      expect(atHalf.height, greaterThan(rest.height));
+      expect(atHalf.height, lessThan(screen.height));
     });
 
-    test('un disegno degenere non divide per zero', () {
-      expect(boobsBlowUpScale(const Size(1920, 1200), Size.zero), 1);
+    test('un contorno degenere non divide per zero', () {
+      expect(
+        boobsBlowUpTransform(screen: screen, rest: Rect.zero, progress: 1),
+        Matrix4.identity(),
+      );
     });
   });
 

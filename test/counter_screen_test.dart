@@ -694,6 +694,67 @@ void main() {
         reason: 'le cifre sono tornate cifre',
       );
     });
+
+    /// La v4 della scena: il disegno vive nell'Overlay dell'app, sopra a
+    /// tutto, e a fine corsa è alto quanto lo schermo.
+    testWidgets('le tette passano sopra a tutto e arrivano ai bordi', (
+      WidgetTester tester,
+    ) async {
+      tester.view.physicalSize = const Size(1920, 1200);
+      tester.view.devicePixelRatio = 1.0;
+      addTearDown(tester.view.reset);
+
+      await pumpScreen(tester, await repoWith(87));
+      await tester.pump(kSplashHold);
+      await tester.pumpAndSettle();
+
+      await tapOnce(tester); // 88
+      await tester.pump(kBoobsMorphDuration);
+      await tester.pump();
+
+      // Il disegno non sta nell'albero di rendering della schermata (dove
+      // combo, timbri, marchio e splash gli passerebbero davanti): sta
+      // nell'Overlay, dipinto dopo tutta la route.
+      final RenderBox disegno = tester.renderObject<RenderBox>(
+        find.byKey(kBoobsDrawingKey),
+      );
+      final RenderObject schermata = tester.renderObject(find.byType(Scaffold));
+      bool sottoLaSchermata = false;
+      for (RenderObject? p = disegno.parent; p != null; p = p.parent) {
+        if (p == schermata) sottoLaSchermata = true;
+      }
+      expect(sottoLaSchermata, isFalse, reason: 'nessun layer gli sta sopra');
+
+      // Appena prima della fine: il contorno disegnato tocca sopra e sotto.
+      await tester.pump(kBoobsBlowUpDuration * 0.99);
+      final RenderBox finale = tester.renderObject<RenderBox>(
+        find.byKey(kBoobsDrawingKey),
+      );
+      final Rect aSchermo = MatrixUtils.transformRect(
+        finale.getTransformTo(null),
+        boobsPaintedBounds(finale.size),
+      );
+      expect(aSchermo.top, closeTo(0, 2), reason: 'tocca il bordo alto');
+      expect(aSchermo.bottom, closeTo(1200, 2), reason: 'e quello basso');
+      expect(aSchermo.center.dx, closeTo(1920 / 2, 2), reason: 'centrata');
+    });
+
+    testWidgets('le tette sopra a tutto non rubano i tap', (
+      WidgetTester tester,
+    ) async {
+      final LocalCounterRepository repo = await repoWith(87);
+      final FakeClock clock = await pumpScreen(tester, repo);
+
+      await tapOnce(tester); // 88
+      await tester.pump(kBoobsMorphDuration);
+      await tester.pump();
+      await tester.pump(kBoobsBlowUpDuration * 0.6);
+      expect(find.byKey(kBoobsDrawingKey), findsOneWidget);
+
+      clock.advance(kTapDebounce * 2);
+      await tapOnce(tester);
+      expect(repo.total, 89, reason: 'il tap attraversa il disegno e conta');
+    });
   });
 
   group('faccina annoiata', () {
