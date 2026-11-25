@@ -338,44 +338,49 @@ const double kComboPitchStep = 0.06;
 /// Tetto del pitch: oltre, il pop diventa un fischio.
 const double kComboPitchMax = 1.8;
 
-// Lo slam del timbro gigante, v3: niente più timbro unico al centro — a 85%
-// d'altezza copriva la scritta celebrativa della combo. I timbri girano su
-// tre posti, tutti SOTTO il blocco combo (moltiplicatore + testo): sinistra,
-// destra, e sotto la scritta (più piccolo). Inclinazione e ritmo restano
-// quelli dei mockup (DECISIONS → 02: −14°, 2,0 s col ta-daa).
+// Lo slam del timbro gigante, v4: i timbri girano su tre posti (sinistra,
+// destra, centro), sono TUTTI alti metà monitor e RESTANO a video finché
+// dura la combo, uno per posto — chiesto dal committente dopo l'anteprima.
+// I laterali si appoggiano sulla bandierina olandese; il centrale scende
+// quanto basta per stare tutto sotto la scritta della combo, e il suo
+// fondo finisce dietro la bandierina. Inclinazione dei mockup (DECISIONS →
+// 02: −14°).
 const double kCiommoSlamAngle = -0.24434609527920614; // −14° in radianti
 
-/// Respiro tra il fondo del blocco combo e la zona dei timbri: assorbe
-/// anche l'ingombro extra della rotazione di −14° sugli angoli del timbro.
-/// La quota vera la calcola `ciommoSlamAreaTop` (il blocco è in frazione
-/// di schermo).
-const double kCiommoSlamComboGap = 32;
+/// Quanti posti ha il giro dei timbri: sinistra, destra, centro.
+const int kCiommoSlamSlots = 3;
 
-/// Altezza dei timbri laterali (sinistra/destra), in frazione dell'ALTEZZA
-/// DELLO SCHERMO: 50%, chiesto dal committente dopo l'anteprima. Mai oltre
-/// lo spazio sotto il blocco combo (`ciommoSlamHeight`): la scritta non si
-/// copre comunque, quindi col blocco a metà schermo i laterali si fermano
-/// un filo sotto il 50%.
-const double kCiommoSlamSideHeightFraction = 0.5;
+/// Altezza del timbro, in frazione dell'ALTEZZA DELLO SCHERMO, uguale nei tre
+/// posti. È l'altezza del disegno vero: l'asset è ritagliato al filo della
+/// line-art, niente margini trasparenti che lo rimpiccioliscano a vista.
+const double kCiommoSlamHeightFraction = 0.5;
 
-/// Altezza del timbro sotto la scritta, in frazione dello schermo: più
-/// piccolo dei laterali (stessa proporzione di prima), non deve coprirla.
-const double kCiommoSlamSmallHeightFraction = 0.27;
+/// Di quanto scende sotto il suo centro il disegno ruotato di −14°, in
+/// altezze di timbro: 0,535 misurato sull'asset (è l'angolo della «A» di
+/// APPROVED), più un filo di respiro. Serve ad appoggiare il timbro sulla
+/// bandierina olandese senza che la scritta ci finisca sopra.
+const double kCiommoSlamReachDown = 0.54;
+
+/// Di quanto sale sopra il suo centro il disegno ruotato, in altezze di
+/// timbro: 0,508 misurato sull'asset (la tesa del cappello), più un filo di
+/// respiro. Serve a mettere il timbro centrale tutto sotto la scritta.
+const double kCiommoSlamReachUp = 0.51;
 
 /// Respiro dei timbri laterali dal bordo dello schermo.
 const double kCiommoSlamSideMargin = 48;
 
-/// Durata totale dello slam e fasi in frazione: piomba (~12%), tiene, sfuma.
-const Duration kCiommoSlamDuration = Duration(milliseconds: 2000);
-const double kCiommoSlamInEnd = 0.12;
-const double kCiommoSlamHoldEnd = 0.77;
+/// L'entrata del timbro: piomba grande e trasparente e si schiaccia a
+/// grandezza vera (il ~12% dei 2 s dei mockup). Poi resta lì, senza
+/// sfumare: se ne va con la dissolvenza di fine combo.
+const Duration kCiommoSlamInDuration = Duration(milliseconds: 240);
 
 /// Scala di partenza: il timbro arriva grande e trasparente e piomba a 1.
 const double kCiommoSlamStartScale = 1.7;
 
-/// Proporzioni dell'asset del timbro (924×1316 px): lo slot esiste già
-/// prima che il PNG si decodifichi, e resta sano anche se non si decodifica.
-const double kCiommoStampAspect = 924 / 1316;
+/// Proporzioni dell'asset del timbro (776×976 px, ritagliato al filo della
+/// line-art): lo slot esiste già prima che il PNG si decodifichi, e resta
+/// sano anche se non si decodifica.
+const double kCiommoStampAspect = 776 / 976;
 
 /// Quanto rosso di fondo prende TUTTO lo schermo al culmine della combo:
 /// il bagliore non si ferma alle zone di tap, tinge anche la fascia -1.

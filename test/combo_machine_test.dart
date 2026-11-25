@@ -135,6 +135,32 @@ void main() {
     });
   });
 
+  group('ciommoStampsOnScreen (i timbri restano, v4)', () {
+    test('senza timbri non c e niente a video', () {
+      expect(ciommoStampsOnScreen(0), isEmpty);
+    });
+
+    test('si accumulano: sinistra, poi destra, poi centro', () {
+      expect(ciommoStampsOnScreen(1), <int>[1]);
+      expect(ciommoStampsOnScreen(2), <int>[1, 2]);
+      expect(ciommoStampsOnScreen(3), <int>[1, 2, 3]);
+    });
+
+    test('dal quarto il nuovo prende il posto di quello di un giro prima', () {
+      expect(ciommoStampsOnScreen(4), <int>[2, 3, 4]);
+      expect(ciommoStampsOnScreen(7), <int>[5, 6, 7]);
+    });
+
+    test('mai due timbri nello stesso posto', () {
+      for (int serial = 1; serial <= 12; serial++) {
+        final Set<int> slots = ciommoStampsOnScreen(serial)
+            .map(ciommoSlamSlot)
+            .toSet();
+        expect(slots.length, ciommoStampsOnScreen(serial).length);
+      }
+    });
+  });
+
   test('il moltiplicatore e il conteggio', () {
     expect(const ComboState(7).multiplier, 7);
   });

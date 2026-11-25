@@ -220,26 +220,6 @@ class _CounterScreenState extends ConsumerState<CounterScreen> {
           // numerone.
           Positioned.fill(child: ComboOverlay(combo: effects.combo)),
 
-          // Il timbro gigante di Ciommo: piomba a ogni multiplo
-          // dell'intervallo (dal pannello). Deriva dallo stato combo lato
-          // UI; il ta-daa lo suona il motore. Sopra l'overlay della combo,
-          // sotto gli effetti in coda e il marchio.
-          Positioned.fill(
-            child: Consumer(
-              builder: (BuildContext context, WidgetRef ref, Widget? _) {
-                final int interval = ref.watch(
-                  settingsProvider.select(
-                    (SettingsState s) => s.ciommoInterval,
-                  ),
-                );
-                final int serial = effects.combo.isActive
-                    ? effects.combo.count ~/ interval
-                    : 0;
-                return CiommoSlamOverlay(serial: serial);
-              },
-            ),
-          ),
-
           // I cuoricini delle tette: partono quando la coppia di 8 si forma e
           // ricadono con la gravità. Stanno sopra al numerone perché devono
           // passargli davanti.
@@ -270,14 +250,38 @@ class _CounterScreenState extends ConsumerState<CounterScreen> {
 
           // Il marchio del locale, fisso in basso al centro: in alto al
           // centro ci vanno il moltiplicatore e i testi della combo. Sta
-          // sopra agli effetti perché non deve sparire mai, e non intercetta
-          // tocchi: la zona +1 sopra di lui conta come tutto il resto.
+          // sopra agli effetti in coda perché non deve sparire mai (solo il
+          // timbro centrale di Ciommo gli passa davanti, finché dura la
+          // combo), e non intercetta tocchi: la zona +1 sopra di lui conta
+          // come tutto il resto.
           const Positioned(
             bottom: kHomdMarkBottom,
             left: 0,
             right: 0,
             child: IgnorePointer(
               child: Center(child: RepaintBoundary(child: HomdBrandMark())),
+            ),
+          ),
+
+          // Il timbro gigante di Ciommo: piomba a ogni multiplo
+          // dell'intervallo (dal pannello). Deriva dallo stato combo lato
+          // UI; il ta-daa lo suona il motore. Dalla v4 i timbri sono alti
+          // metà monitor e restano finché dura la combo; il terzo posto è
+          // al centro, sotto la scritta: sta SOPRA il marchio, che torna
+          // libero quando la combo sfuma.
+          Positioned.fill(
+            child: Consumer(
+              builder: (BuildContext context, WidgetRef ref, Widget? _) {
+                final int interval = ref.watch(
+                  settingsProvider.select(
+                    (SettingsState s) => s.ciommoInterval,
+                  ),
+                );
+                final int serial = effects.combo.isActive
+                    ? effects.combo.count ~/ interval
+                    : 0;
+                return CiommoSlamOverlay(serial: serial);
+              },
             ),
           ),
 
