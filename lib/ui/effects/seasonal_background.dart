@@ -4,6 +4,8 @@
 /// colorata ai bordi (arancio zucca / verde abete) con un alone verso
 /// l'interno, e decorazioni DISCRETE ai 4 angoli — pipistrelli e zucche,
 /// oppure palline, pacchi regalo e bastoncini di zucchero più la neve.
+/// L'angolo in alto a sinistra è del badge OGGI/RECORD: lì le decorazioni
+/// non disegnano ([kSeasonRecordClearZone]).
 /// Lo sfondo resta quasi nero: il tablet vive in un pub buio.
 ///
 /// Sta all'indice 0 dello Stack, DIETRO al numerone: è atmosfera, non un
@@ -13,6 +15,7 @@
 library;
 
 import 'dart:math' as math;
+import 'dart:ui' show ClipOp;
 
 import 'package:material_ui/material_ui.dart';
 
@@ -66,9 +69,16 @@ class _SeasonalBackgroundState extends State<SeasonalBackground>
         child: AnimatedBuilder(
           animation: _cycle,
           builder: (BuildContext context, Widget? _) {
+            final bool halloween = widget.season == Season.halloween;
+            // Sotto la cornice, sopra le decorazioni: due pittori separati,
+            // perché solo le decorazioni lasciano libero l'angolo del
+            // record ([kSeasonRecordClearZone]).
             return CustomPaint(
               size: Size.infinite,
-              painter: widget.season == Season.halloween
+              painter: _FramePainter(
+                halloween ? kSeasonHalloweenFrame : kSeasonChristmasFrame,
+              ),
+              foregroundPainter: halloween
                   ? _HalloweenPainter(_cycle.value)
                   : _ChristmasPainter(_cycle.value),
             );
@@ -79,7 +89,24 @@ class _SeasonalBackgroundState extends State<SeasonalBackground>
   }
 }
 
-/// Cornice comune: bordo pieno + alone sfumato verso l'interno.
+/// Cornice comune: bordo pieno + alone sfumato verso l'interno. Ferma: si
+/// ridisegna solo se cambia la stagione, non a ogni giro del ciclo.
+class _FramePainter extends CustomPainter {
+  const _FramePainter(this.color);
+
+  final Color color;
+
+  @override
+  void paint(Canvas canvas, Size size) => _paintFrame(canvas, size, color);
+
+  @override
+  bool shouldRepaint(_FramePainter oldDelegate) => oldDelegate.color != color;
+}
+
+/// Le decorazioni non entrano mai nell'angolo del record.
+void _keepRecordCornerClear(Canvas canvas) =>
+    canvas.clipRect(kSeasonRecordClearZone, clipOp: ClipOp.difference);
+
 void _paintFrame(Canvas canvas, Size size, Color color) {
   final Paint border = Paint()
     ..style = PaintingStyle.stroke
@@ -122,7 +149,7 @@ class _HalloweenPainter extends CustomPainter {
 
   @override
   void paint(Canvas canvas, Size size) {
-    _paintFrame(canvas, size, kSeasonHalloweenFrame);
+    _keepRecordCornerClear(canvas);
 
     // I pipistrelli aleggiano appena, su e giù col ciclo.
     final double hover = math.sin(t * 2 * math.pi) * 14;
@@ -134,8 +161,9 @@ class _HalloweenPainter extends CustomPainter {
             .withValues(alpha: kSeasonDecorOpacity),
     );
 
-    _bat(canvas, Offset(170, 90 + hover), 110);
-    _bat(canvas, Offset(70, 170 + hover * 0.6), 70);
+    // I due di sinistra volano sotto l'angolo del record, non sopra.
+    _bat(canvas, Offset(200, 160 + hover), 110);
+    _bat(canvas, Offset(80, 215 + hover * 0.6), 70);
     _bat(canvas, Offset(size.width - 150, 110 - hover), 90);
 
     _pumpkin(canvas, Offset(120, size.height - kDutchFlagHeight - 90), 1.0);
@@ -284,7 +312,7 @@ class _ChristmasPainter extends CustomPainter {
 
   @override
   void paint(Canvas canvas, Size size) {
-    _paintFrame(canvas, size, kSeasonChristmasFrame);
+    _keepRecordCornerClear(canvas);
 
     // La neve: colonne e velocità deterministiche, in loop col ciclo.
     final Paint flake = Paint()
@@ -304,8 +332,9 @@ class _ChristmasPainter extends CustomPainter {
             .withValues(alpha: kSeasonDecorOpacity),
     );
 
-    _bauble(canvas, const Offset(90, 70), 22, kPrimaryRed);
-    _bauble(canvas, const Offset(180, 56), 16, kSeasonChristmasFrame);
+    // Le due palline di sinistra stanno sotto l'angolo del record.
+    _bauble(canvas, const Offset(90, 165), 22, kPrimaryRed);
+    _bauble(canvas, const Offset(190, 148), 16, kSeasonChristmasFrame);
     _bauble(canvas, Offset(size.width - 110, 72), 20, kPrimaryRed);
     _candyCane(canvas, Offset(size.width - 190, 120), 0.9);
 

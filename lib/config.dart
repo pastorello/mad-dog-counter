@@ -721,6 +721,19 @@ const double kSeasonFrameAlpha = 0.8;
 
 /// Le decorazioni stanno ai 4 angoli, dietro al numerone, discrete.
 const double kSeasonDecorOpacity = 0.55;
+
+/// L'angolo del record, in alto a sinistra: dentro questo rettangolo le
+/// decorazioni stagionali (neve compresa) non disegnano niente — sotto al
+/// badge OGGI/RECORD il record non si leggeva. Segue la posizione del badge:
+/// col font vero è largo ~350 px anche con numeri a cinque cifre, la zona
+/// lo copre con margine. La cornice invece resta intera.
+const Rect kSeasonRecordClearZone = Rect.fromLTRB(
+  0,
+  0,
+  kBadgeLeft + 420,
+  kBadgeTop + 74,
+);
+
 const double kSeasonCornerSize = 320;
 
 /// La neve di Natale.
