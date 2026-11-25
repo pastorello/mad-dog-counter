@@ -2,9 +2,15 @@
 ///
 /// Dalla v2 Ciommo non è più una fila di timbrini ai lati del marchio: a ogni
 /// multiplo dell'intervallo (5, 10, 15… col default, regolabile dal pannello)
-/// UN timbro monumentale piomba sul numerone, lo copre un attimo e sfuma.
-/// Geometria e ritmo decisi nei mockup (design/mockups/DECISIONS.md → 02):
-/// 85% dell'altezza, −14°, 2,0 s col ta-daa (che suona il motore).
+/// UN timbro monumentale piomba e sfuma. Inclinazione e ritmo decisi nei
+/// mockup (design/mockups/DECISIONS.md → 02): −14°, 2,0 s col ta-daa (che
+/// suona il motore).
+///
+/// Dalla v3 il timbro non piomba più al centro: a 85% d'altezza copriva la
+/// scritta celebrativa della combo («Bello!», «Fantastico!»…). I timbri
+/// girano su tre posti decisi da [ciommoSlamSlot], tutti SOTTO il blocco
+/// combo: il primo a sinistra, il secondo a destra, il terzo sotto la
+/// scritta (più piccolo), poi il giro ricomincia.
 ///
 /// È scenografia pura (regola d'oro 2): radice [IgnorePointer], sotto si
 /// continua a contare. Non entra nella coda effetti — è un fatto della combo,
@@ -15,31 +21,70 @@ library;
 import 'package:material_ui/material_ui.dart';
 
 import '../../config.dart';
+import '../../state/combo_machine.dart';
 
 class CiommoSlamOverlay extends StatelessWidget {
   const CiommoSlamOverlay({super.key, required this.serial});
 
   /// Quanti multipli dell'intervallo ha toccato la combo
   /// (`count ~/ intervallo`): 0 = nessun timbro; ogni valore nuovo fa
-  /// ripartire lo slam da capo (via [ValueKey]).
+  /// ripartire lo slam da capo (via [ValueKey]) nel posto successivo.
   final int serial;
 
   @override
   Widget build(BuildContext context) {
     if (serial <= 0) return const SizedBox.shrink();
+    final int slot = ciommoSlamSlot(serial);
+
     return IgnorePointer(
-      child: Center(child: _Slam(key: ValueKey<int>(serial))),
+      // Tutti i posti vivono sotto il blocco combo (moltiplicatore + testo):
+      // qualunque sia la larghezza della scritta, il timbro non la copre.
+      child: Padding(
+        padding: const EdgeInsets.only(top: kCiommoSlamAreaTop),
+        child: LayoutBuilder(
+          builder: (BuildContext context, BoxConstraints constraints) {
+            final double area = constraints.maxHeight;
+            // Schermo più basso del blocco combo: niente da disegnare.
+            if (area <= 0 || !constraints.maxHeight.isFinite) {
+              return const SizedBox.shrink();
+            }
+            final double height =
+                area *
+                (slot == 2
+                    ? kCiommoSlamSmallHeightFraction
+                    : kCiommoSlamSideHeightFraction);
+            final Alignment alignment = switch (slot) {
+              0 => Alignment.centerLeft,
+              1 => Alignment.centerRight,
+              // Sotto la scritta: appena fuori dal blocco combo, centrato.
+              _ => Alignment.topCenter,
+            };
+            return Align(
+              alignment: alignment,
+              child: Padding(
+                padding: slot == 2
+                    ? EdgeInsets.zero
+                    : const EdgeInsets.symmetric(
+                        horizontal: kCiommoSlamSideMargin,
+                      ),
+                child: _Slam(key: ValueKey<int>(serial), height: height),
+              ),
+            );
+          },
+        ),
+      ),
     );
   }
 }
 
 class _Slam extends StatelessWidget {
-  const _Slam({super.key});
+  const _Slam({super.key, required this.height});
+
+  /// Altezza del timbro, già decisa dal posto che occupa.
+  final double height;
 
   @override
   Widget build(BuildContext context) {
-    final Size screen = MediaQuery.sizeOf(context);
-    final double height = screen.height * kCiommoSlamHeightFraction;
     final double width = height * kCiommoStampAspect;
     // L'asset e' 924x1316: senza cacheHeight Flutter lo decodificherebbe a
     // piena risoluzione per poi scalarlo (P1 dell'audit prestazioni).

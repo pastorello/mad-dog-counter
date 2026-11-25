@@ -324,10 +324,28 @@ const double kComboPitchStep = 0.06;
 /// Tetto del pitch: oltre, il pop diventa un fischio.
 const double kComboPitchMax = 1.8;
 
-// Lo slam del timbro gigante: quota di schermo coperta, inclinazione e
-// ritmo decisi nei mockup (DECISIONS → 02: 85%, −14°, 2,0 s col ta-daa).
-const double kCiommoSlamHeightFraction = 0.85;
+// Lo slam del timbro gigante, v3: niente più timbro unico al centro — a 85%
+// d'altezza copriva la scritta celebrativa della combo. I timbri girano su
+// tre posti, tutti SOTTO il blocco combo (moltiplicatore + testo): sinistra,
+// destra, e sotto la scritta (più piccolo). Inclinazione e ritmo restano
+// quelli dei mockup (DECISIONS → 02: −14°, 2,0 s col ta-daa).
 const double kCiommoSlamAngle = -0.24434609527920614; // −14° in radianti
+
+/// Quota dal bordo alto sotto cui vivono i timbri: il blocco combo
+/// (moltiplicatore + testo celebrativo) più un respiro che assorbe anche
+/// l'ingombro extra della rotazione di −14° sugli angoli del timbro.
+const double kCiommoSlamAreaTop =
+    kTopOverlayTop + kComboMultiplierSize + kComboTextSize + 32;
+
+/// Altezza dei timbri laterali (sinistra/destra), in frazione dell'area
+/// sotto il blocco combo: restano monumentali, ma non salgono sulla scritta.
+const double kCiommoSlamSideHeightFraction = 0.78;
+
+/// Altezza del timbro sotto la scritta: più piccolo, non deve coprirla.
+const double kCiommoSlamSmallHeightFraction = 0.42;
+
+/// Respiro dei timbri laterali dal bordo dello schermo.
+const double kCiommoSlamSideMargin = 48;
 
 /// Durata totale dello slam e fasi in frazione: piomba (~12%), tiene, sfuma.
 const Duration kCiommoSlamDuration = Duration(milliseconds: 2000);

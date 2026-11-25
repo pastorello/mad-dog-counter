@@ -283,8 +283,9 @@ void main() {
       );
     });
 
-    /// Lo slam è monumentale di proposito (DECISIONS → 02): 85% dell'altezza,
-    /// piomba SUL numerone e lo copre un attimo. Non è un bug, è la battuta.
+    /// Lo slam resta monumentale (DECISIONS → 02) ma dalla v3 piomba nei tre
+    /// posti sotto il blocco combo: può coprire un pezzo di numerone — è la
+    /// battuta, non un bug — mai la scritta celebrativa.
     testWidgets('lo slam copre il numerone e poi sfuma', (
       WidgetTester tester,
     ) async {
@@ -297,21 +298,23 @@ void main() {
       await tester.pumpAndSettle();
 
       await tapIncrement(tester, clock, kCiommoIntervalDefault);
-      // A metà corsa lo slam è pieno: copre il centro del numerone.
+      // A metà corsa lo slam è pieno: copre il lato sinistro del numerone.
       await tester.pump(kCiommoSlamDuration * 0.5);
 
-      final Rect timbro = tester.getRect(find.byType(Image));
+      // Il centro resta fermo sotto rotazione e scala: è l'ancora giusta,
+      // getRect restituirebbe il rect ruotato di -14 gradi.
+      final Offset timbro = tester.getCenter(find.byType(Image));
       final Rect numerone = tester.getRect(find.byType(BigNumber));
       expect(
-        timbro.overlaps(numerone),
+        numerone.contains(timbro),
         isTrue,
         reason: 'il timbro piomba sopra le cifre',
       );
-      // getSize legge il layout, non il rect ruotato di -14 gradi.
+      // getSize legge il layout, non il rect ruotato.
       expect(
         tester.getSize(find.byType(Image)).height,
-        closeTo(1200 * kCiommoSlamHeightFraction, 1),
-        reason: 'la taglia e quella decisa nei mockup',
+        closeTo((1200 - kCiommoSlamAreaTop) * kCiommoSlamSideHeightFraction, 1),
+        reason: 'la taglia laterale riempie l area sotto il blocco combo',
       );
 
       // Un tap in mezzo tiene viva la combo (finestra 2 s) senza cambiare
@@ -327,6 +330,63 @@ void main() {
             .first,
       );
       expect(velo.opacity, closeTo(0, 0.01));
+    });
+
+    /// La v3 del timbro: il giro dei tre posti, tutti sotto il blocco combo
+    /// — la scritta celebrativa (rossa) non va mai coperta.
+    testWidgets('i timbri girano: sinistra, destra, poi sotto la scritta', (
+      WidgetTester tester,
+    ) async {
+      tester.view.physicalSize = const Size(1920, 1200);
+      tester.view.devicePixelRatio = 1.0;
+      addTearDown(tester.view.reset);
+
+      final FakeClock clock = await pumpScreen(tester, await repoWith(0));
+      await tester.pump(kSplashHold);
+      await tester.pumpAndSettle();
+
+      // Primo multiplo: timbro a sinistra.
+      await tapIncrement(tester, clock, kCiommoIntervalDefault);
+      await tester.pump(kCiommoSlamDuration * 0.5);
+      expect(
+        tester.getCenter(find.byType(Image)).dx,
+        lessThan(1920 / 3),
+        reason: 'il primo timbro sta a sinistra',
+      );
+
+      // Secondo multiplo: timbro a destra.
+      await tapIncrement(tester, clock, kCiommoIntervalDefault);
+      await tester.pump(kCiommoSlamDuration * 0.5);
+      expect(
+        tester.getCenter(find.byType(Image)).dx,
+        greaterThan(1920 * 2 / 3),
+        reason: 'il secondo timbro sta a destra',
+      );
+
+      // Terzo multiplo: timbro piccolo, centrato, sotto la scritta.
+      await tapIncrement(tester, clock, kCiommoIntervalDefault);
+      await tester.pump(kCiommoSlamDuration * 0.5);
+
+      final Offset centro = tester.getCenter(find.byType(Image));
+      final Size taglia = tester.getSize(find.byType(Image));
+      expect(centro.dx, closeTo(1920 / 2, 1), reason: 'il terzo e centrato');
+      expect(
+        taglia.height,
+        closeTo(
+          (1200 - kCiommoSlamAreaTop) * kCiommoSlamSmallHeightFraction,
+          1,
+        ),
+        reason: 'il terzo timbro e piu piccolo',
+      );
+
+      // A quota 15 la scritta dell ultima soglia superata (12) e viva: il
+      // bordo alto del timbro le sta sotto.
+      final Rect scritta = tester.getRect(find.text(kComboTexts[3]));
+      expect(
+        centro.dy - taglia.height / 2,
+        greaterThanOrEqualTo(scritta.bottom),
+        reason: 'il timbro non copre mai la scritta combo',
+      );
     });
 
     testWidgets('lo slam non intercetta i tap: sotto si continua a contare', (
