@@ -9,7 +9,7 @@ I suoni citati qui sotto esistono già come file: mappa evento→WAV in `assets/
 0. **REGOLA MADRE — solo su incremento**: nessuna animazione, easter egg o effetto celebrativo scatta MAI su un decremento. Il −1 produce solo il suo feedback base (pulsazione inversa blu + suono) e può *rimuovere* stati attivi (azzera la combo; se rompe una coppia di 8, le cifre tornano normali), mai attivarne. Tutte le condizioni trigger si valutano esclusivamente dopo un +1.
 1. **Coda, non sovrapposizione**: se più eventi scattano sullo stesso tap (es. 239400 è multiplo di 100 e finisce la combo), gli effetti si **accodano in ordine di durata crescente** — prima i corti, per ultimo l'evento più epico che chiude in bellezza.
 2. Il **feedback base del tap** (pulsazione + suono) non va mai in coda: è istantaneo e si somma a tutto.
-3. Gli effetti **persistenti** (8 adiacenti → tette) non entrano in coda: sono uno stato del display, attivo finché la condizione è vera.
+3. Gli effetti **persistenti** (lo stato combo, il tilt) non entrano in coda: sono uno stato del display, attivo finché la condizione è vera. (Le tette degli 8 adiacenti erano l'esempio storico: dalla v3 sono una scena una-tantum, vedi §6.)
 4. Durante un effetto in corso i tap **continuano a contare normalmente** — mai bloccare il conteggio per un'animazione.
 5. Ogni effetto è un modulo autonomo (widget/controller dedicato) registrato in un catalogo, per aggiungerne di nuovi facilmente: i baristi produrranno altre idee, garantito.
 6. **Kill switch**: il pulsante panico (vedi FUNCTIONAL_SPEC.md) svuota la coda, ferma animazioni e suoni, azzera combo e stati persistenti, mascherando tutto con un'esplosione di ~1 s. Ha priorità assoluta su qualsiasi effetto in corso. Il motore effetti deve esporre un metodo `killAll()` chiamabile in ogni istante.
@@ -63,9 +63,9 @@ I suoni citati qui sotto esistono già come file: mappa evento→WAV in `assets/
 - **Effetto**: il numerone **trema/traballa a destra e sinistra** (shake orizzontale, stile brivido) per ~1,5 s.
 - **Suono**: wobble breve.
 
-### 6. Otto adiacenti → tette (persistente)
-- **Trigger**: dopo un incremento, il totale contiene **due `8` consecutivi** (es. 239**88**1). Per la regola 0 lo stato si *attiva* solo salendo; un decremento può però *romperlo* (le cifre tornano normali) o al massimo mantenerlo se la coppia resta intatta — mai crearlo.
-- **Effetto**: le coppie di 8 adiacenti si **trasformano in due tette** e **rimangono così** finché gli 8 restano adiacenti nel numero. Quando il numero cambia e la coppia si rompe, le cifre tornano normali (con una piccola transizione morph, non uno stacco secco).
+### 6. Otto adiacenti → tette (scena una-tantum, v3)
+- **Trigger**: dopo un incremento, il totale contiene **due `8` consecutivi** (es. 239**88**1). Per la regola 0 la scena *parte* solo salendo; un decremento può però *interromperla* (le cifre tornano normali) — mai farla partire.
+- **Effetto (v3)**: le coppie di 8 adiacenti si **trasformano in due tette** col morph, restano un attimo in posa, poi il disegno **si espande verso il centro dello schermo fino a toccare i bordi** e sfuma, mentre le cifre tornano normali sotto di lui. A fine scena non resta niente a video, anche se il totale è fermo sugli 8 (es. 88 fisso): niente tette parcheggiate. Se la coppia si rompe a scena in corso, il disegno sfuma col morph inverso, non uno stacco secco. Tempi in `config.dart`: morph (`kBoobsMorphDuration`) + posa/espansione (`kBoobsBlowUpDuration`, posa `kBoobsBlowUpHoldFraction`, dissolvenza da `kBoobsBlowUpFadeStart`).
 - Casi da gestire: `888` → una coppia trasformata + un 8 normale (scegliere: le prime due cifre della sequenza); più coppie disgiunte nel numero → tutte trasformate.
 - **Suono**: "boing" solo al momento della trasformazione, non continuo.
 - Grafica: due tette stilizzate in stile buffo da cartoon — è un pub, non un sito porno. **Rosa carne** (`kFleshPink`), unica deroga al divieto di rosa della palette: in rosso 186C la battuta non si leggeva (vedi UX_UI_SPEC → Palette).

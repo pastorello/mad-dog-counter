@@ -137,6 +137,20 @@ const double kHeartsGravity = 0.45;
 /// Morph delle cifre quando una coppia di 8 adiacenti si forma o si rompe.
 const Duration kBoobsMorphDuration = Duration(milliseconds: 400);
 
+/// La scena delle tette non è più persistente (v3): dopo il morph il disegno
+/// resta un attimo in posa, poi si ESPANDE fino a toccare i bordi dello
+/// schermo e sfuma. A fine scena le cifre tornano normali anche se il totale
+/// resta sugli 8 adiacenti (es. fermo su 88): niente tette parcheggiate.
+/// Questa è la durata di posa + espansione, dopo il morph.
+const Duration kBoobsBlowUpDuration = Duration(milliseconds: 2000);
+
+/// Frazione iniziale di [kBoobsBlowUpDuration] di sola posa, ferma: la
+/// battuta va letta prima dell'esplosione.
+const double kBoobsBlowUpHoldFraction = 0.3;
+
+/// Da quale frazione dell'espansione il disegno comincia a sfumare.
+const double kBoobsBlowUpFadeStart = 0.75;
+
 /// Esplosione a tutto schermo del pulsante panico.
 const Duration kPanicBlastDuration = Duration(milliseconds: 1000);
 

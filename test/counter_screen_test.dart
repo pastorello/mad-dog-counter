@@ -627,6 +627,43 @@ void main() {
         reason: 'il terzo 8 resta una cifra',
       );
     });
+
+    /// La v3 della scena: dopo morph, posa ed espansione fino ai bordi, le
+    /// tette spariscono da sole anche se il totale resta fermo su 88.
+    testWidgets('le tette esplodono a tutto schermo e poi spariscono', (
+      WidgetTester tester,
+    ) async {
+      final LocalCounterRepository repo = await repoWith(87);
+      await pumpScreen(tester, repo);
+
+      await tapOnce(tester); // 88
+      await tester.pump(kBoobsMorphDuration);
+      expect(find.byType(BoobsDigits), findsOneWidget);
+
+      // Il ticker di posa+espansione parte col primo frame dopo il morph.
+      await tester.pump();
+
+      // A metà di posa+espansione il disegno è ancora in scena.
+      await tester.pump(kBoobsBlowUpDuration * 0.5);
+      expect(find.byType(BoobsDigits), findsOneWidget);
+
+      // A corsa finita la scena si chiude da sola: nessun tap in mezzo. Il
+      // controller completa al primo tick OLTRE la durata, da qui i 32 ms.
+      await tester.pump(kBoobsBlowUpDuration * 0.5);
+      await tester.pump(const Duration(milliseconds: 32));
+
+      expect(repo.total, 88, reason: 'il totale non si e mosso');
+      expect(
+        find.byType(BoobsDigits),
+        findsNothing,
+        reason: 'niente tette parcheggiate sull 88 fermo',
+      );
+      expect(
+        find.text('8'),
+        findsNWidgets(2),
+        reason: 'le cifre sono tornate cifre',
+      );
+    });
   });
 
   group('faccina annoiata', () {
