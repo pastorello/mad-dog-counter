@@ -54,6 +54,17 @@ class _BigNumberState extends State<BigNumber> with TickerProviderStateMixin {
     duration: kBoobsMorphDuration,
   );
 
+  /// Posa + espansione delle tette fino ai bordi dello schermo (v3): parte
+  /// quando il morph è concluso, e alla fine la scena si chiude da sola.
+  late final AnimationController _blowUp = AnimationController(
+    vsync: this,
+    duration: kBoobsBlowUpDuration,
+  );
+
+  /// La scena di QUESTA coppia è conclusa: le cifre sono tornate normali
+  /// anche se il totale resta sugli 8 adiacenti (es. fermo su 88).
+  bool _blownUp = false;
+
   /// Il roll delle cifre. Uno solo per tutto il numero: le cifre cambiano
   /// tutte nello stesso istante, e quelle che non cambiano si disegnano ferme.
   late final AnimationController _roll = AnimationController(
@@ -72,8 +83,32 @@ class _BigNumberState extends State<BigNumber> with TickerProviderStateMixin {
   void initState() {
     super.initState();
     _previousDigits = _digitsOf(widget.total);
-    if (widget.boobsActive) _morph.value = 1;
+    // Montato a coppia già attiva (ricostruzione a scena in corso): la scena
+    // non si rigioca, le cifre restano cifre.
+    if (widget.boobsActive) _blownUp = true;
+    _morph.addStatusListener(_onMorphStatus);
+    _blowUp.addStatusListener(_onBlowUpStatus);
     _startEffect();
+  }
+
+  /// A morph concluso parte la posa e poi l'espansione, una volta sola per
+  /// coppia formata.
+  void _onMorphStatus(AnimationStatus status) {
+    if (status == AnimationStatus.completed &&
+        widget.boobsActive &&
+        !_blownUp) {
+      _blowUp.forward(from: 0);
+    }
+  }
+
+  void _onBlowUpStatus(AnimationStatus status) {
+    if (status != AnimationStatus.completed) return;
+    // Fine scena: il disegno è già sfumato a tutto schermo, le cifre sono
+    // già tornate. Da qui in poi si disegnano cifre normali e basta.
+    setState(() {
+      _blownUp = true;
+      _morph.value = 0;
+    });
   }
 
   @override
@@ -89,9 +124,18 @@ class _BigNumberState extends State<BigNumber> with TickerProviderStateMixin {
     }
     if (widget.effect != oldWidget.effect) _startEffect();
     if (widget.boobsActive != oldWidget.boobsActive) {
-      // Il morph vale in entrambi i versi: le cifre tornano normali
-      // sfumando, non di scatto.
-      widget.boobsActive ? _morph.forward() : _morph.reverse();
+      if (widget.boobsActive) {
+        // Nuova coppia: la scena riparte da capo.
+        _blownUp = false;
+        _blowUp.value = 0;
+        _morph.forward(from: 0);
+      } else {
+        // Coppia rotta a scena in corso: l'espansione si ferma e il morph
+        // inverso sfuma il disegno, non uno stacco secco. A scena già
+        // conclusa non c'è niente da sfumare.
+        _blowUp.stop();
+        if (!_blownUp) _morph.reverse();
+      }
     }
   }
 
@@ -111,6 +155,7 @@ class _BigNumberState extends State<BigNumber> with TickerProviderStateMixin {
   void dispose() {
     _effectAnimation.dispose();
     _morph.dispose();
+    _blowUp.dispose();
     _roll.dispose();
     super.dispose();
   }
@@ -121,9 +166,9 @@ class _BigNumberState extends State<BigNumber> with TickerProviderStateMixin {
     // Gli zeri davanti spostano a destra le cifre vere, quindi gli indici che
     // arrivano dal trigger (calcolati sul numero nudo) vanno traslati.
     final int pad = digits.length - widget.total.toString().length;
-    // Le coppie si calcolano sul totale corrente; durante il morph inverso
-    // il disegno resta al suo posto perché l'opacità scende, non la struttura.
-    final Set<int> pairStarts = widget.boobsActive
+    // Le coppie si calcolano sul totale corrente; a scena conclusa
+    // ([_blownUp]) le cifre restano cifre anche se la coppia è ancora lì.
+    final Set<int> pairStarts = widget.boobsActive && !_blownUp
         ? adjacentEightPairs(widget.total).map((int i) => i + pad).toSet()
         : const <int>{};
 
@@ -153,6 +198,7 @@ class _BigNumberState extends State<BigNumber> with TickerProviderStateMixin {
           animation: Listenable.merge(<Listenable>[
             _effectAnimation,
             _morph,
+            _blowUp,
             _roll,
           ]),
           builder: (BuildContext context, Widget? _) {
@@ -160,10 +206,25 @@ class _BigNumberState extends State<BigNumber> with TickerProviderStateMixin {
                 ? null
                 : digitTransforms[widget.effect];
 
+            // Geometria dell'espansione a tutto schermo: la fila di slot è
+            // centrata, quindi il posto di ogni coppia si ricava da indice e
+            // larghezza di slot. Il disegno vola da lì al centro dello
+            // schermo e scala fino a toccare i bordi.
+            final double slotWidth = size * kDigitSlotRatio;
+            final double rowLeft =
+                (constraints.maxWidth - digits.length * slotWidth) / 2;
+            final double blowScale = boobsBlowUpScale(
+              Size(constraints.maxWidth, constraints.maxHeight),
+              Size(slotWidth * 2, size),
+            );
+
             final List<Widget> slots = <Widget>[];
             for (int i = 0; i < digits.length; i++) {
               // Una coppia di 8 occupa due slot con un disegno solo.
               if (pairStarts.contains(i)) {
+                // Dal centro della coppia (gli slot i e i+1) al centro dello
+                // schermo. La fila è già centrata in verticale.
+                final double pairCenterX = rowLeft + (i + 1) * slotWidth;
                 slots.add(
                   _wrap(
                     transform,
@@ -174,6 +235,12 @@ class _BigNumberState extends State<BigNumber> with TickerProviderStateMixin {
                       child: BoobsDigits(
                         size: size,
                         morph: _morph.value,
+                        blowUp: _blowUp.value,
+                        blowUpScale: blowScale,
+                        blowUpShift: Offset(
+                          constraints.maxWidth / 2 - pairCenterX,
+                          0,
+                        ),
                         fallback: Row(
                           mainAxisSize: MainAxisSize.min,
                           children: <Widget>[

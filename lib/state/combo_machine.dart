@@ -76,3 +76,9 @@ bool crossedThreshold(ComboState before, ComboState after) =>
 /// resta pura (regola d'oro 3).
 bool isCiommoMultiple(int count, int interval) =>
     interval > 0 && count >= interval && count % interval == 0;
+
+/// Il posto del timbro di Ciommo per il suo [serial] (1 = primo timbro
+/// della combo): 0 a sinistra, 1 a destra, 2 sotto la scritta celebrativa
+/// (più piccolo). Dal quarto il giro ricomincia. I posti stanno tutti fuori
+/// dal blocco combo: il timbro non deve mai coprire la scritta (v3).
+int ciommoSlamSlot(int serial) => (serial - 1) % 3;

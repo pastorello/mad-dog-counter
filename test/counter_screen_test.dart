@@ -10,6 +10,7 @@ import 'package:mad_dog_counter/data/settings_repository.dart';
 import 'package:mad_dog_counter/state/combo_machine.dart';
 import 'package:confetti/confetti.dart';
 import 'package:mad_dog_counter/ui/effects/boobs_digits.dart';
+import 'package:mad_dog_counter/ui/effects/ciommo_slam.dart';
 import 'package:mad_dog_counter/ui/effects/combo_overlay.dart';
 import 'package:mad_dog_counter/ui/effects/combo_rain.dart';
 import 'package:mad_dog_counter/ui/effects/idle_clouds.dart';
@@ -240,6 +241,34 @@ void main() {
       expect(find.text(kComboTexts[0]), findsOneWidget);
     });
 
+    /// v3, dopo l'anteprima: i corpi delle due righe non sono più fissi, si
+    /// ricavano dall'altezza del monitor e insieme ne prendono metà.
+    testWidgets('le due righe della combo prendono meta monitor', (
+      WidgetTester tester,
+    ) async {
+      tester.view.physicalSize = const Size(1920, 1200);
+      tester.view.devicePixelRatio = 1.0;
+      addTearDown(tester.view.reset);
+
+      final FakeClock clock = await pumpScreen(tester, await repoWith(0));
+      await tapIncrement(tester, clock, kComboThresholds[0]);
+      await tester.pump();
+
+      final double multiplier = tester
+          .widget<Text>(find.text('x${kComboThresholds[0]}'))
+          .style!
+          .fontSize!;
+      final double text = tester
+          .widget<Text>(find.text(kComboTexts[0]))
+          .style!
+          .fontSize!;
+      expect(
+        multiplier + text,
+        closeTo(1200 * kComboBlockHeightFraction, 1),
+        reason: 'i corpi si ricavano dall altezza del monitor',
+      );
+    });
+
     testWidgets('al multiplo dell intervallo piomba il timbro gigante', (
       WidgetTester tester,
     ) async {
@@ -283,8 +312,9 @@ void main() {
       );
     });
 
-    /// Lo slam è monumentale di proposito (DECISIONS → 02): 85% dell'altezza,
-    /// piomba SUL numerone e lo copre un attimo. Non è un bug, è la battuta.
+    /// Lo slam resta monumentale (DECISIONS → 02) ma dalla v3 piomba nei tre
+    /// posti sotto il blocco combo: può coprire un pezzo di numerone — è la
+    /// battuta, non un bug — mai la scritta celebrativa.
     testWidgets('lo slam copre il numerone e poi sfuma', (
       WidgetTester tester,
     ) async {
@@ -297,21 +327,27 @@ void main() {
       await tester.pumpAndSettle();
 
       await tapIncrement(tester, clock, kCiommoIntervalDefault);
-      // A metà corsa lo slam è pieno: copre il centro del numerone.
+      // A metà corsa lo slam è pieno: copre il lato sinistro del numerone.
       await tester.pump(kCiommoSlamDuration * 0.5);
 
-      final Rect timbro = tester.getRect(find.byType(Image));
+      // Centro e taglia restano fermi sotto rotazione e scala: il rect di
+      // layout si ricostruisce da lì (getRect darebbe il rect ruotato).
+      final Rect timbro = Rect.fromCenter(
+        center: tester.getCenter(find.byType(Image)),
+        width: tester.getSize(find.byType(Image)).width,
+        height: tester.getSize(find.byType(Image)).height,
+      );
       final Rect numerone = tester.getRect(find.byType(BigNumber));
       expect(
         timbro.overlaps(numerone),
         isTrue,
         reason: 'il timbro piomba sopra le cifre',
       );
-      // getSize legge il layout, non il rect ruotato di -14 gradi.
+      // getSize legge il layout, non il rect ruotato.
       expect(
         tester.getSize(find.byType(Image)).height,
-        closeTo(1200 * kCiommoSlamHeightFraction, 1),
-        reason: 'la taglia e quella decisa nei mockup',
+        closeTo(ciommoSlamHeight(0, 1200), 1),
+        reason: 'la taglia laterale e quella del posto a sinistra',
       );
 
       // Un tap in mezzo tiene viva la combo (finestra 2 s) senza cambiare
@@ -327,6 +363,60 @@ void main() {
             .first,
       );
       expect(velo.opacity, closeTo(0, 0.01));
+    });
+
+    /// La v3 del timbro: il giro dei tre posti, tutti sotto il blocco combo
+    /// — la scritta celebrativa (rossa) non va mai coperta.
+    testWidgets('i timbri girano: sinistra, destra, poi sotto la scritta', (
+      WidgetTester tester,
+    ) async {
+      tester.view.physicalSize = const Size(1920, 1200);
+      tester.view.devicePixelRatio = 1.0;
+      addTearDown(tester.view.reset);
+
+      final FakeClock clock = await pumpScreen(tester, await repoWith(0));
+      await tester.pump(kSplashHold);
+      await tester.pumpAndSettle();
+
+      // Primo multiplo: timbro a sinistra.
+      await tapIncrement(tester, clock, kCiommoIntervalDefault);
+      await tester.pump(kCiommoSlamDuration * 0.5);
+      expect(
+        tester.getCenter(find.byType(Image)).dx,
+        lessThan(1920 / 3),
+        reason: 'il primo timbro sta a sinistra',
+      );
+
+      // Secondo multiplo: timbro a destra.
+      await tapIncrement(tester, clock, kCiommoIntervalDefault);
+      await tester.pump(kCiommoSlamDuration * 0.5);
+      expect(
+        tester.getCenter(find.byType(Image)).dx,
+        greaterThan(1920 * 2 / 3),
+        reason: 'il secondo timbro sta a destra',
+      );
+
+      // Terzo multiplo: timbro piccolo, centrato, sotto la scritta.
+      await tapIncrement(tester, clock, kCiommoIntervalDefault);
+      await tester.pump(kCiommoSlamDuration * 0.5);
+
+      final Offset centro = tester.getCenter(find.byType(Image));
+      final Size taglia = tester.getSize(find.byType(Image));
+      expect(centro.dx, closeTo(1920 / 2, 1), reason: 'il terzo e centrato');
+      expect(
+        taglia.height,
+        closeTo(ciommoSlamHeight(2, 1200), 1),
+        reason: 'il terzo timbro e piu piccolo',
+      );
+
+      // A quota 15 la scritta dell ultima soglia superata (12) e viva: il
+      // bordo alto del timbro le sta sotto.
+      final Rect scritta = tester.getRect(find.text(kComboTexts[3]));
+      expect(
+        centro.dy - taglia.height / 2,
+        greaterThanOrEqualTo(scritta.bottom),
+        reason: 'il timbro non copre mai la scritta combo',
+      );
     });
 
     testWidgets('lo slam non intercetta i tap: sotto si continua a contare', (
@@ -565,6 +655,43 @@ void main() {
         find.text('8'),
         findsWidgets,
         reason: 'il terzo 8 resta una cifra',
+      );
+    });
+
+    /// La v3 della scena: dopo morph, posa ed espansione fino ai bordi, le
+    /// tette spariscono da sole anche se il totale resta fermo su 88.
+    testWidgets('le tette esplodono a tutto schermo e poi spariscono', (
+      WidgetTester tester,
+    ) async {
+      final LocalCounterRepository repo = await repoWith(87);
+      await pumpScreen(tester, repo);
+
+      await tapOnce(tester); // 88
+      await tester.pump(kBoobsMorphDuration);
+      expect(find.byType(BoobsDigits), findsOneWidget);
+
+      // Il ticker di posa+espansione parte col primo frame dopo il morph.
+      await tester.pump();
+
+      // A metà di posa+espansione il disegno è ancora in scena.
+      await tester.pump(kBoobsBlowUpDuration * 0.5);
+      expect(find.byType(BoobsDigits), findsOneWidget);
+
+      // A corsa finita la scena si chiude da sola: nessun tap in mezzo. Il
+      // controller completa al primo tick OLTRE la durata, da qui i 32 ms.
+      await tester.pump(kBoobsBlowUpDuration * 0.5);
+      await tester.pump(const Duration(milliseconds: 32));
+
+      expect(repo.total, 88, reason: 'il totale non si e mosso');
+      expect(
+        find.byType(BoobsDigits),
+        findsNothing,
+        reason: 'niente tette parcheggiate sull 88 fermo',
+      );
+      expect(
+        find.text('8'),
+        findsNWidgets(2),
+        reason: 'le cifre sono tornate cifre',
       );
     });
   });

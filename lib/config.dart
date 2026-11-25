@@ -137,6 +137,20 @@ const double kHeartsGravity = 0.45;
 /// Morph delle cifre quando una coppia di 8 adiacenti si forma o si rompe.
 const Duration kBoobsMorphDuration = Duration(milliseconds: 400);
 
+/// La scena delle tette non è più persistente (v3): dopo il morph il disegno
+/// resta un attimo in posa, poi si ESPANDE fino a toccare i bordi dello
+/// schermo e sfuma. A fine scena le cifre tornano normali anche se il totale
+/// resta sugli 8 adiacenti (es. fermo su 88): niente tette parcheggiate.
+/// Questa è la durata di posa + espansione, dopo il morph.
+const Duration kBoobsBlowUpDuration = Duration(milliseconds: 2000);
+
+/// Frazione iniziale di [kBoobsBlowUpDuration] di sola posa, ferma: la
+/// battuta va letta prima dell'esplosione.
+const double kBoobsBlowUpHoldFraction = 0.3;
+
+/// Da quale frazione dell'espansione il disegno comincia a sfumare.
+const double kBoobsBlowUpFadeStart = 0.75;
+
 /// Esplosione a tutto schermo del pulsante panico.
 const Duration kPanicBlastDuration = Duration(milliseconds: 1000);
 
@@ -324,10 +338,32 @@ const double kComboPitchStep = 0.06;
 /// Tetto del pitch: oltre, il pop diventa un fischio.
 const double kComboPitchMax = 1.8;
 
-// Lo slam del timbro gigante: quota di schermo coperta, inclinazione e
-// ritmo decisi nei mockup (DECISIONS → 02: 85%, −14°, 2,0 s col ta-daa).
-const double kCiommoSlamHeightFraction = 0.85;
+// Lo slam del timbro gigante, v3: niente più timbro unico al centro — a 85%
+// d'altezza copriva la scritta celebrativa della combo. I timbri girano su
+// tre posti, tutti SOTTO il blocco combo (moltiplicatore + testo): sinistra,
+// destra, e sotto la scritta (più piccolo). Inclinazione e ritmo restano
+// quelli dei mockup (DECISIONS → 02: −14°, 2,0 s col ta-daa).
 const double kCiommoSlamAngle = -0.24434609527920614; // −14° in radianti
+
+/// Respiro tra il fondo del blocco combo e la zona dei timbri: assorbe
+/// anche l'ingombro extra della rotazione di −14° sugli angoli del timbro.
+/// La quota vera la calcola `ciommoSlamAreaTop` (il blocco è in frazione
+/// di schermo).
+const double kCiommoSlamComboGap = 32;
+
+/// Altezza dei timbri laterali (sinistra/destra), in frazione dell'ALTEZZA
+/// DELLO SCHERMO: 50%, chiesto dal committente dopo l'anteprima. Mai oltre
+/// lo spazio sotto il blocco combo (`ciommoSlamHeight`): la scritta non si
+/// copre comunque, quindi col blocco a metà schermo i laterali si fermano
+/// un filo sotto il 50%.
+const double kCiommoSlamSideHeightFraction = 0.5;
+
+/// Altezza del timbro sotto la scritta, in frazione dello schermo: più
+/// piccolo dei laterali (stessa proporzione di prima), non deve coprirla.
+const double kCiommoSlamSmallHeightFraction = 0.27;
+
+/// Respiro dei timbri laterali dal bordo dello schermo.
+const double kCiommoSlamSideMargin = 48;
 
 /// Durata totale dello slam e fasi in frazione: piomba (~12%), tiene, sfuma.
 const Duration kCiommoSlamDuration = Duration(milliseconds: 2000);
@@ -363,11 +399,12 @@ const Duration kComboDismissDelay = Duration(milliseconds: 600);
 /// alto al centro ci sta di casa.
 const double kTopOverlayTop = 40;
 
-/// Corpi del moltiplicatore e del testo celebrativo (v2, DECISIONS → 04):
-/// la fascia alta si prende tutto lo spazio fino al contatore, lieve
-/// invasione del glow accettata. Erano 56 e 40, cablati nei widget.
-const double kComboMultiplierSize = 160;
-const double kComboTextSize = 140;
+/// Le due righe della combo (moltiplicatore + testo celebrativo) prendono
+/// META' DEL MONITOR: chiesto dal committente dopo l'anteprima della v3.
+/// In v2 erano corpi fissi, 160 + 140 (DECISIONS → 04): i corpi ora si
+/// ricavano dall'altezza dello schermo, ripartiti nel rapporto storico.
+const double kComboBlockHeightFraction = 0.5;
+const double kComboMultiplierBlockShare = 160 / 300;
 
 // ---------------------------------------------------------------------------
 // Combo — pioggia di bicchierini

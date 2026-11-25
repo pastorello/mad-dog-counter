@@ -120,6 +120,21 @@ void main() {
     });
   });
 
+  group('ciommoSlamSlot (il giro dei tre posti, v3)', () {
+    test('primo a sinistra, secondo a destra, terzo sotto la scritta', () {
+      expect(ciommoSlamSlot(1), 0);
+      expect(ciommoSlamSlot(2), 1);
+      expect(ciommoSlamSlot(3), 2);
+    });
+
+    test('dal quarto il giro ricomincia', () {
+      expect(ciommoSlamSlot(4), 0);
+      expect(ciommoSlamSlot(5), 1);
+      expect(ciommoSlamSlot(6), 2);
+      expect(ciommoSlamSlot(7), 0);
+    });
+  });
+
   test('il moltiplicatore e il conteggio', () {
     expect(const ComboState(7).multiplier, 7);
   });

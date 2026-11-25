@@ -1,27 +1,59 @@
 /// Effetto 6 — otto adiacenti: la coppia di 8 diventa due tette.
 ///
-/// È uno stato persistente, non un effetto in coda (ANIMATIONS_SPEC → regola
-/// 3): resta finché gli 8 restano adiacenti nel numero. Quando la coppia si
-/// rompe le cifre tornano normali, con un morph e non uno stacco secco.
+/// Dalla v3 non è più uno stato persistente a video: la coppia si trasforma
+/// col morph, resta un attimo in posa, poi il disegno SI ESPANDE verso il
+/// centro dello schermo fino a toccare i bordi e sfuma. A scena finita le
+/// cifre sono tornate normali anche se il totale resta sugli 8 adiacenti
+/// (es. fermo su 88): niente tette parcheggiate a video. La sequenza la
+/// guida `BigNumber`, che possiede i controller.
 ///
 /// Stile buffo da cartoon, rosa carne su fondo scuro: in rosso di brand la
 /// battuta non si leggeva. Resta un pub, non un sito porno.
 library;
 
+import 'dart:math' as math;
+
 import 'package:material_ui/material_ui.dart';
 
 import '../../config.dart';
 
+/// Avanzamento dell'espansione (0..1) dentro la timeline [blowUp] (0..1):
+/// la prima [kBoobsBlowUpHoldFraction] è posa ferma, il resto è la corsa.
+double boobsExpandProgress(double blowUp) =>
+    ((blowUp - kBoobsBlowUpHoldFraction) / (1 - kBoobsBlowUpHoldFraction))
+        .clamp(0.0, 1.0);
+
+/// Avanzamento della dissolvenza finale (0..1) rispetto all'espansione
+/// [expand] (0..1): il disegno sfuma da [kBoobsBlowUpFadeStart] in poi.
+double boobsFadeProgress(double expand) =>
+    ((expand - kBoobsBlowUpFadeStart) / (1 - kBoobsBlowUpFadeStart)).clamp(
+      0.0,
+      1.0,
+    );
+
+/// La scala che porta il disegno al 100% DELL'ALTEZZA dello schermo
+/// (chiesta dal committente dopo l'anteprima). Comanda sempre l'altezza:
+/// sul tablet landscape la larghezza resta dentro, su schermi quasi
+/// quadrati può sbordare di poco ai lati ed è voluto.
+double boobsBlowUpScale(Size screen, Size drawing) {
+  if (drawing.height <= 0) return 1;
+  return screen.height / drawing.height;
+}
+
 /// Disegno che sostituisce una coppia di `88`.
 ///
-/// [morph] va da 0 (le due cifre normali) a 1 (disegno pieno): la
-/// transizione la guida chi lo usa.
+/// [morph] va da 0 (le due cifre normali) a 1 (disegno pieno); [blowUp] da 0
+/// (disegno al suo posto tra le cifre) a 1 (espansione finita e disegno
+/// sfumato): le transizioni le guida chi lo usa.
 class BoobsDigits extends StatelessWidget {
   const BoobsDigits({
     super.key,
     required this.size,
     required this.morph,
     required this.fallback,
+    this.blowUp = 0,
+    this.blowUpScale = 1,
+    this.blowUpShift = Offset.zero,
   });
 
   /// Dimensione tipografica delle cifre che sostituisce.
@@ -30,21 +62,49 @@ class BoobsDigits extends StatelessWidget {
   /// Avanzamento della trasformazione, da 0 a 1.
   final double morph;
 
-  /// Le due cifre `88` normali, mostrate mentre il morph è agli inizi.
+  /// Le due cifre `88` normali, mostrate mentre il morph è agli inizi e di
+  /// nuovo mentre il disegno vola via.
   final Widget fallback;
+
+  /// Timeline di posa + espansione, da 0 a 1.
+  final double blowUp;
+
+  /// La scala a fine espansione, quella che tocca i bordi dello schermo.
+  final double blowUpScale;
+
+  /// Di quanto trasla il disegno a fine espansione: dal posto della coppia
+  /// al centro dello schermo, così tocca i bordi su entrambi i lati.
+  final Offset blowUpShift;
 
   @override
   Widget build(BuildContext context) {
+    final double expand = boobsExpandProgress(blowUp);
+    final double eased = Curves.easeInOutCubic.transform(expand);
+    final double fade = boobsFadeProgress(expand);
+
+    // Le cifre svaniscono mentre il disegno entra e TORNANO mentre il
+    // disegno vola verso i bordi: in nessun momento uno stacco secco.
+    final double digitsOpacity = math.max((1 - morph).clamp(0.0, 1.0), expand);
+    final double drawingOpacity = (morph * (1 - fade)).clamp(0.0, 1.0);
+
     return Stack(
       alignment: Alignment.center,
+      // Durante l'espansione il disegno esce dallo slot delle due cifre e
+      // attraversa lo schermo: senza questo lo Stack lo taglierebbe.
+      clipBehavior: Clip.none,
       children: <Widget>[
-        // Le cifre svaniscono mentre il disegno entra: nessuno stacco secco.
-        Opacity(opacity: (1 - morph).clamp(0.0, 1.0), child: fallback),
+        Opacity(opacity: digitsOpacity, child: fallback),
         Opacity(
-          opacity: morph.clamp(0.0, 1.0),
-          child: CustomPaint(
-            size: Size(size * kDigitSlotRatio * 2, size),
-            painter: _BoobsPainter(morph: morph),
+          opacity: drawingOpacity,
+          child: Transform.translate(
+            offset: blowUpShift * eased,
+            child: Transform.scale(
+              scale: 1 + (blowUpScale - 1) * eased,
+              child: CustomPaint(
+                size: Size(size * kDigitSlotRatio * 2, size),
+                painter: _BoobsPainter(morph: morph),
+              ),
+            ),
           ),
         ),
       ],
