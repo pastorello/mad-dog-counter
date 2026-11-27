@@ -206,25 +206,12 @@ class _BigNumberState extends State<BigNumber> with TickerProviderStateMixin {
                 ? null
                 : digitTransforms[widget.effect];
 
-            // Geometria dell'espansione a tutto schermo: la fila di slot è
-            // centrata, quindi il posto di ogni coppia si ricava da indice e
-            // larghezza di slot. Il disegno vola da lì al centro dello
-            // schermo e scala fino a toccare i bordi.
-            final double slotWidth = size * kDigitSlotRatio;
-            final double rowLeft =
-                (constraints.maxWidth - digits.length * slotWidth) / 2;
-            final double blowScale = boobsBlowUpScale(
-              Size(constraints.maxWidth, constraints.maxHeight),
-              Size(slotWidth * 2, size),
-            );
-
             final List<Widget> slots = <Widget>[];
             for (int i = 0; i < digits.length; i++) {
-              // Una coppia di 8 occupa due slot con un disegno solo.
+              // Una coppia di 8 occupa due slot con un disegno solo. Il
+              // disegno vive nell'Overlay e si espande fino ai bordi dello
+              // schermo: la geometria la ricava lui dal posto della coppia.
               if (pairStarts.contains(i)) {
-                // Dal centro della coppia (gli slot i e i+1) al centro dello
-                // schermo. La fila è già centrata in verticale.
-                final double pairCenterX = rowLeft + (i + 1) * slotWidth;
                 slots.add(
                   _wrap(
                     transform,
@@ -236,11 +223,6 @@ class _BigNumberState extends State<BigNumber> with TickerProviderStateMixin {
                         size: size,
                         morph: _morph.value,
                         blowUp: _blowUp.value,
-                        blowUpScale: blowScale,
-                        blowUpShift: Offset(
-                          constraints.maxWidth / 2 - pairCenterX,
-                          0,
-                        ),
                         fallback: Row(
                           mainAxisSize: MainAxisSize.min,
                           children: <Widget>[

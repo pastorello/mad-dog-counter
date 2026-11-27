@@ -78,7 +78,16 @@ bool isCiommoMultiple(int count, int interval) =>
     interval > 0 && count >= interval && count % interval == 0;
 
 /// Il posto del timbro di Ciommo per il suo [serial] (1 = primo timbro
-/// della combo): 0 a sinistra, 1 a destra, 2 sotto la scritta celebrativa
-/// (più piccolo). Dal quarto il giro ricomincia. I posti stanno tutti fuori
-/// dal blocco combo: il timbro non deve mai coprire la scritta (v3).
-int ciommoSlamSlot(int serial) => (serial - 1) % 3;
+/// della combo): 0 a sinistra, 1 a destra, 2 al centro sotto la scritta
+/// celebrativa. Dal quarto il giro ricomincia.
+int ciommoSlamSlot(int serial) => (serial - 1) % kCiommoSlamSlots;
+
+/// I timbri a video quando la combo è arrivata al timbro [serial], in
+/// ordine di arrivo. Dalla v4 restano finché dura la combo (chiesto dal
+/// committente): uno per posto, il più recente — dal quarto in poi il
+/// timbro nuovo prende il posto di quello piantato un giro prima.
+List<int> ciommoStampsOnScreen(int serial) {
+  if (serial <= 0) return const <int>[];
+  final int first = serial - kCiommoSlamSlots + 1;
+  return <int>[for (int k = first < 1 ? 1 : first; k <= serial; k++) k];
+}

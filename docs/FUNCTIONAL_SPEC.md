@@ -90,7 +90,7 @@ Il pannello è pensato per crescere (fase 2: statistiche, export backup, gestion
 ## Stagioni (v2)
 
 - Temi scelti **a mano** dal pannello (voce «Stagione»): **Nessuna / Halloween / Natale**, elenco pensato per crescere. Niente automatismo per data (DECISIONS → 06).
-- Resa: **cornice colorata** ai bordi (arancio zucca / verde abete) con alone verso l'interno, e **decorazioni discrete ai 4 angoli**, dietro al numerone — pipistrelli e zucche per Halloween; palline, pacchi regalo e bastoncini di zucchero per Natale, più la **neve**.
+- Resa: **cornice colorata** ai bordi (arancio zucca / verde abete) con alone verso l'interno, e **decorazioni discrete ai 4 angoli**, dietro al numerone — pipistrelli e zucche per Halloween; palline, pacchi regalo e bastoncini di zucchero per Natale, più la **neve**. L'angolo in alto a sinistra resta **libero** per il badge OGGI/RECORD: lì le decorazioni (neve compresa) non disegnano, altrimenti il record non si legge (`kSeasonRecordClearZone`); la cornice invece resta intera.
 - Lo sfondo resta quasi nero (pub buio); tutto è disegnato, niente asset. Arancio e verde sono accenti stagionali fuori dalla palette base: il resto della UI non li usa mai.
 
 ## Stati speciali

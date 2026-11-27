@@ -10,7 +10,6 @@ import 'package:mad_dog_counter/data/settings_repository.dart';
 import 'package:mad_dog_counter/state/combo_machine.dart';
 import 'package:confetti/confetti.dart';
 import 'package:mad_dog_counter/ui/effects/boobs_digits.dart';
-import 'package:mad_dog_counter/ui/effects/ciommo_slam.dart';
 import 'package:mad_dog_counter/ui/effects/combo_overlay.dart';
 import 'package:mad_dog_counter/ui/effects/combo_rain.dart';
 import 'package:mad_dog_counter/ui/effects/idle_clouds.dart';
@@ -312,10 +311,10 @@ void main() {
       );
     });
 
-    /// Lo slam resta monumentale (DECISIONS → 02) ma dalla v3 piomba nei tre
-    /// posti sotto il blocco combo: può coprire un pezzo di numerone — è la
-    /// battuta, non un bug — mai la scritta celebrativa.
-    testWidgets('lo slam copre il numerone e poi sfuma', (
+    /// Lo slam resta monumentale (DECISIONS → 02): dalla v4 è alto metà
+    /// monitor e RESTA finché dura la combo. Può coprire un pezzo di
+    /// numerone — è la battuta, non un bug.
+    testWidgets('lo slam copre il numerone e resta finche dura la combo', (
       WidgetTester tester,
     ) async {
       tester.view.physicalSize = const Size(1920, 1200);
@@ -327,8 +326,7 @@ void main() {
       await tester.pumpAndSettle();
 
       await tapIncrement(tester, clock, kCiommoIntervalDefault);
-      // A metà corsa lo slam è pieno: copre il lato sinistro del numerone.
-      await tester.pump(kCiommoSlamDuration * 0.5);
+      await tester.pump(kCiommoSlamInDuration);
 
       // Centro e taglia restano fermi sotto rotazione e scala: il rect di
       // layout si ricostruisce da lì (getRect darebbe il rect ruotato).
@@ -343,31 +341,38 @@ void main() {
         isTrue,
         reason: 'il timbro piomba sopra le cifre',
       );
-      // getSize legge il layout, non il rect ruotato.
+      // getSize legge il layout, non il rect ruotato. L'asset è ritagliato
+      // al filo della line-art: l'altezza del box È quella del disegno.
       expect(
         tester.getSize(find.byType(Image)).height,
-        closeTo(ciommoSlamHeight(0, 1200), 1),
-        reason: 'la taglia laterale e quella del posto a sinistra',
+        closeTo(1200 * 0.5, 1),
+        reason: 'il timbro e alto meta schermo',
       );
 
       // Un tap in mezzo tiene viva la combo (finestra 2 s) senza cambiare
-      // il serial (6 ~/ 5 == 1): lo slam continua la sua corsa.
+      // il serial (6 ~/ 5 == 1): il timbro non sfuma, resta lì.
       await tapIncrement(tester, clock, 1);
-
-      // A fine corsa e' sfumato del tutto, anche se resta nell'albero
-      // finche' la combo e' viva.
-      await tester.pump(kCiommoSlamDuration * 0.55);
-      final Opacity velo = tester.widget<Opacity>(
+      await tester.pump(kComboWindow * 0.9);
+      expect(find.byType(Image), findsOneWidget);
+      final Opacity pieno = tester.widget<Opacity>(
         find
             .ancestor(of: find.byType(Image), matching: find.byType(Opacity))
             .first,
       );
-      expect(velo.opacity, closeTo(0, 0.01));
+      expect(pieno.opacity, 1, reason: 'finche dura la combo il timbro resta');
+
+      // Finita la combo sfuma con lei e poi si smonta.
+      await tester.pump(kComboWindow * 0.1);
+      await tester.pump();
+      await tester.pump(kComboDismissDelay);
+      await tester.pump();
+      expect(find.byType(Image), findsNothing);
     });
 
-    /// La v3 del timbro: il giro dei tre posti, tutti sotto il blocco combo
-    /// — la scritta celebrativa (rossa) non va mai coperta.
-    testWidgets('i timbri girano: sinistra, destra, poi sotto la scritta', (
+    /// Il giro dei tre posti (v3), tutti alti metà monitor e tutti a video
+    /// insieme (v4): sinistra, destra, centro. I laterali si appoggiano
+    /// sulla bandierina; il centrale sta tutto sotto la scritta della combo.
+    testWidgets('i timbri si accumulano: sinistra, destra, poi al centro', (
       WidgetTester tester,
     ) async {
       tester.view.physicalSize = const Size(1920, 1200);
@@ -378,45 +383,62 @@ void main() {
       await tester.pump(kSplashHold);
       await tester.pumpAndSettle();
 
+      final Finder timbri = find.byType(Image);
+      Offset centro(int i) => tester.getCenter(timbri.at(i));
+      double altezza(int i) => tester.getSize(timbri.at(i)).height;
+
+      void expectSideOnFlag(int i, String posto) {
+        expect(
+          altezza(i),
+          closeTo(1200 * 0.5, 1),
+          reason: 'il timbro $posto e alto meta schermo',
+        );
+        expect(
+          centro(i).dy + altezza(i) * kCiommoSlamReachDown,
+          lessThanOrEqualTo(1200 - kDutchFlagHeight + 0.5),
+          reason: 'il timbro $posto, ruotato, non scavalca la bandierina',
+        );
+      }
+
       // Primo multiplo: timbro a sinistra.
       await tapIncrement(tester, clock, kCiommoIntervalDefault);
-      await tester.pump(kCiommoSlamDuration * 0.5);
-      expect(
-        tester.getCenter(find.byType(Image)).dx,
-        lessThan(1920 / 3),
-        reason: 'il primo timbro sta a sinistra',
-      );
+      await tester.pump(kCiommoSlamInDuration);
+      expect(timbri, findsOneWidget);
+      expect(centro(0).dx, lessThan(1920 / 3), reason: 'il primo a sinistra');
+      expectSideOnFlag(0, 'a sinistra');
 
-      // Secondo multiplo: timbro a destra.
+      // Secondo multiplo: quello a sinistra resta, arriva quello a destra.
       await tapIncrement(tester, clock, kCiommoIntervalDefault);
-      await tester.pump(kCiommoSlamDuration * 0.5);
-      expect(
-        tester.getCenter(find.byType(Image)).dx,
-        greaterThan(1920 * 2 / 3),
-        reason: 'il secondo timbro sta a destra',
-      );
+      await tester.pump(kCiommoSlamInDuration);
+      expect(timbri, findsNWidgets(2), reason: 'il primo non se ne va');
+      expect(centro(1).dx, greaterThan(1920 * 2 / 3), reason: 'a destra');
+      expectSideOnFlag(1, 'a destra');
 
-      // Terzo multiplo: timbro piccolo, centrato, sotto la scritta.
+      // Terzo multiplo: al centro, grande quanto gli altri, sotto la
+      // scritta della combo.
       await tapIncrement(tester, clock, kCiommoIntervalDefault);
-      await tester.pump(kCiommoSlamDuration * 0.5);
-
-      final Offset centro = tester.getCenter(find.byType(Image));
-      final Size taglia = tester.getSize(find.byType(Image));
-      expect(centro.dx, closeTo(1920 / 2, 1), reason: 'il terzo e centrato');
+      await tester.pump(kCiommoSlamInDuration);
+      expect(timbri, findsNWidgets(3), reason: 'tre timbri insieme');
+      expect(centro(2).dx, closeTo(1920 / 2, 1), reason: 'il terzo e centrato');
+      expect(altezza(2), closeTo(1200 * 0.5, 1));
+      final double fondoScritta = find
+          .descendant(
+            of: find.byType(ComboOverlay),
+            matching: find.byType(Text),
+          )
+          .evaluate()
+          .map((Element e) => tester.getRect(find.byWidget(e.widget)).bottom)
+          .reduce((double a, double b) => a > b ? a : b);
       expect(
-        taglia.height,
-        closeTo(ciommoSlamHeight(2, 1200), 1),
-        reason: 'il terzo timbro e piu piccolo',
+        centro(2).dy - altezza(2) * kCiommoSlamReachUp,
+        greaterThanOrEqualTo(fondoScritta),
+        reason: 'il cappello del timbro centrale sta sotto la scritta',
       );
 
-      // A quota 15 la scritta dell ultima soglia superata (12) e viva: il
-      // bordo alto del timbro le sta sotto.
-      final Rect scritta = tester.getRect(find.text(kComboTexts[3]));
-      expect(
-        centro.dy - taglia.height / 2,
-        greaterThanOrEqualTo(scritta.bottom),
-        reason: 'il timbro non copre mai la scritta combo',
-      );
+      // Quarto multiplo: il giro ricomincia, sempre tre timbri a video.
+      await tapIncrement(tester, clock, kCiommoIntervalDefault);
+      await tester.pump(kCiommoSlamInDuration);
+      expect(timbri, findsNWidgets(3), reason: 'uno per posto, mai di piu');
     });
 
     testWidgets('lo slam non intercetta i tap: sotto si continua a contare', (
@@ -426,7 +448,7 @@ void main() {
       final FakeClock clock = await pumpScreen(tester, repo);
 
       await tapIncrement(tester, clock, kCiommoIntervalDefault);
-      await tester.pump(kCiommoSlamDuration * 0.5);
+      await tester.pump(kCiommoSlamInDuration);
       expect(find.byType(Image), findsOneWidget);
 
       await tapIncrement(tester, clock, 2);
@@ -693,6 +715,67 @@ void main() {
         findsNWidgets(2),
         reason: 'le cifre sono tornate cifre',
       );
+    });
+
+    /// La v4 della scena: il disegno vive nell'Overlay dell'app, sopra a
+    /// tutto, e a fine corsa è alto quanto lo schermo.
+    testWidgets('le tette passano sopra a tutto e arrivano ai bordi', (
+      WidgetTester tester,
+    ) async {
+      tester.view.physicalSize = const Size(1920, 1200);
+      tester.view.devicePixelRatio = 1.0;
+      addTearDown(tester.view.reset);
+
+      await pumpScreen(tester, await repoWith(87));
+      await tester.pump(kSplashHold);
+      await tester.pumpAndSettle();
+
+      await tapOnce(tester); // 88
+      await tester.pump(kBoobsMorphDuration);
+      await tester.pump();
+
+      // Il disegno non sta nell'albero di rendering della schermata (dove
+      // combo, timbri, marchio e splash gli passerebbero davanti): sta
+      // nell'Overlay, dipinto dopo tutta la route.
+      final RenderBox disegno = tester.renderObject<RenderBox>(
+        find.byKey(kBoobsDrawingKey),
+      );
+      final RenderObject schermata = tester.renderObject(find.byType(Scaffold));
+      bool sottoLaSchermata = false;
+      for (RenderObject? p = disegno.parent; p != null; p = p.parent) {
+        if (p == schermata) sottoLaSchermata = true;
+      }
+      expect(sottoLaSchermata, isFalse, reason: 'nessun layer gli sta sopra');
+
+      // Appena prima della fine: il contorno disegnato tocca sopra e sotto.
+      await tester.pump(kBoobsBlowUpDuration * 0.99);
+      final RenderBox finale = tester.renderObject<RenderBox>(
+        find.byKey(kBoobsDrawingKey),
+      );
+      final Rect aSchermo = MatrixUtils.transformRect(
+        finale.getTransformTo(null),
+        boobsPaintedBounds(finale.size),
+      );
+      expect(aSchermo.top, closeTo(0, 2), reason: 'tocca il bordo alto');
+      expect(aSchermo.bottom, closeTo(1200, 2), reason: 'e quello basso');
+      expect(aSchermo.center.dx, closeTo(1920 / 2, 2), reason: 'centrata');
+    });
+
+    testWidgets('le tette sopra a tutto non rubano i tap', (
+      WidgetTester tester,
+    ) async {
+      final LocalCounterRepository repo = await repoWith(87);
+      final FakeClock clock = await pumpScreen(tester, repo);
+
+      await tapOnce(tester); // 88
+      await tester.pump(kBoobsMorphDuration);
+      await tester.pump();
+      await tester.pump(kBoobsBlowUpDuration * 0.6);
+      expect(find.byKey(kBoobsDrawingKey), findsOneWidget);
+
+      clock.advance(kTapDebounce * 2);
+      await tapOnce(tester);
+      expect(repo.total, 89, reason: 'il tap attraversa il disegno e conta');
     });
   });
 
